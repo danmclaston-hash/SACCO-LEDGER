@@ -1,0 +1,158 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import '../core/json.dart';
+
+/// A message safe to show the user. Rule errors from the database are written for people.
+class ApiError implements Exception {
+  final String message;
+  final bool isNetwork;
+  const ApiError(this.message, {this.isNetwork = false});
+  @override
+  String toString() => message;
+}
+
+/// Thin door to the database. Every read and write goes through a named, rule-checked function.
+class Api {
+  SupabaseClient get _c => Supabase.instance.client;
+
+  Future<dynamic> _rpc(String name, [Map<String, dynamic>? params]) async {
+    try {
+      return await _c.rpc(name, params: params);
+    } on PostgrestException catch (e) {
+      throw ApiError(e.message);
+    } on AuthException catch (e) {
+      throw ApiError(e.message);
+    } catch (e) {
+      throw const ApiError('No connection. Check your internet and try again.', isNetwork: true);
+    }
+  }
+
+  // ----- Sign in -----
+  User? get user => _c.auth.currentUser;
+  Stream<AuthState> get authChanges => _c.auth.onAuthStateChange;
+
+  Future<void> signIn(String email, String password) async {
+    try {
+      await _c.auth.signInWithPassword(email: email, password: password);
+    } on AuthException catch (e) {
+      throw ApiError(e.message);
+    } catch (e) {
+      throw const ApiError('No connection. Check your internet and try again.', isNetwork: true);
+    }
+  }
+
+  Future<void> signUp(String email, String password) async {
+    try {
+      final r = await _c.auth.signUp(email: email, password: password);
+      if (r.session == null) {
+        throw const ApiError('Account made, but sign-in is off. Turn off "Confirm email" in Supabase (see README).');
+      }
+    } on AuthException catch (e) {
+      throw ApiError(e.message);
+    } on ApiError {
+      rethrow;
+    } catch (e) {
+      throw const ApiError('No connection. Check your internet and try again.', isNetwork: true);
+    }
+  }
+
+  Future<void> signOut() => _c.auth.signOut();
+
+  Future<bool> resetPassword(String email, String code, String password) async =>
+      await _rpc('reset_password_with_code', {'p_email': email, 'p_code': code, 'p_new_password': password}) == true;
+
+  // ----- Groups and people -----
+  Future<List<Json>> myMemberships() async => asJsonList(await _rpc('my_memberships'));
+
+  Future<String> createOrganization({
+    required String name,
+    required String edition,
+    required String currency,
+    required int sharePrice,
+    required int multiplier,
+    required int interest,
+    required int quorum,
+    required String myName,
+    String? myPhone,
+  }) async =>
+      (await _rpc('create_organization', {
+        'p_name': name,
+        'p_edition': edition,
+        'p_currency': currency,
+        'p_share_price': sharePrice,
+        'p_multiplier': multiplier,
+        'p_interest': interest,
+        'p_quorum': quorum,
+        'p_my_name': myName,
+        'p_my_phone': myPhone,
+        'p_consent': true,
+      }))
+          .toString();
+
+  Future<void> updateOrganization(String org, Json patch) => _rpc('update_organization', {'p_org': org, 'p': patch});
+  Future<String> seedDemo(String myName) async => (await _rpc('seed_demo', {'p_my_name': myName})).toString();
+  Future<void> claimInvite(String code) => _rpc('claim_invite', {'p_code': code, 'p_consent': true});
+  Future<List<Json>> members(String org) async => asJsonList(await _rpc('list_members', {'p_org': org}));
+
+  Future<Json> addMember(String org,
+          {required String name, String? phone, String? nationalId, required String role, String? kinName, String? kinPhone}) async =>
+      asJson(await _rpc('add_member', {
+        'p_org': org,
+        'p_name': name,
+        'p_phone': phone,
+        'p_national_id': nationalId,
+        'p_role': role,
+        'p_kin_name': kinName,
+        'p_kin_phone': kinPhone,
+      }));
+
+  Future<void> updateMember(String member, Json patch) => _rpc('update_member', {'p_member': member, 'p': patch});
+  Future<String> newMemberCode(String member) async => (await _rpc('new_member_code', {'p_member': member})).toString();
+
+  // ----- Money records -----
+  Future<Json> recordPayment(Json params) async => asJson(await _rpc('record_payment', params));
+  Future<void> reviewPayment(String id, bool approve, String note) => _rpc('review_payment', {'p_payment': id, 'p_approve': approve, 'p_note': note});
+  Future<List<Json>> payments(String org, {String? status}) async =>
+      asJsonList(await _rpc('list_payments', {'p_org': org, 'p_status': status, 'p_limit': 200}));
+  Future<void> reverseJournal(String id, String reason) => _rpc('reverse_journal', {'p_journal': id, 'p_reason': reason});
+  Future<List<Json>> journals(String org, {int limit = 200, int? cycle}) async =>
+      asJsonList(await _rpc('list_journals', {'p_org': org, 'p_limit': limit, 'p_cycle': cycle}));
+
+  // ----- Meetings -----
+  Future<List<Json>> meetings(String org) async => asJsonList(await _rpc('list_meetings', {'p_org': org}));
+  Future<void> openMeeting(String org, int cash, String c1, String c2) =>
+      _rpc('open_meeting', {'p_org': org, 'p_date': null, 'p_cash': cash, 'p_c1': c1, 'p_c2': c2});
+  Future<void> setAttendance(String meeting, String member, bool present) =>
+      _rpc('set_attendance', {'p_meeting': meeting, 'p_member': member, 'p_present': present});
+  Future<void> closeMeeting(String meeting, int cash, String c1, String c2, String minutes) =>
+      _rpc('close_meeting', {'p_meeting': meeting, 'p_cash': cash, 'p_c1': c1, 'p_c2': c2, 'p_minutes': minutes});
+
+  // ----- Loans -----
+  Future<List<Json>> loans(String org) async => asJsonList(await _rpc('list_loans', {'p_org': org}));
+  Future<void> applyLoan(String org, String member, int principal, int term, String type, String purpose) =>
+      _rpc('apply_loan', {'p_org': org, 'p_member': member, 'p_principal': principal, 'p_term': term, 'p_type': type, 'p_purpose': purpose});
+  Future<void> approveLoan(String loan, String resolution, String w1, String w2) =>
+      _rpc('approve_loan', {'p_loan': loan, 'p_resolution': resolution, 'p_w1': w1, 'p_w2': w2});
+  Future<void> rejectLoan(String loan, String reason) => _rpc('reject_loan', {'p_loan': loan, 'p_reason': reason});
+  Future<void> disburseLoan(String loan, String channel, String? ref) => _rpc('disburse_loan', {'p_loan': loan, 'p_channel': channel, 'p_ref': ref});
+  Future<List<Json>> loanSchedule(String loan) async => asJsonList(await _rpc('loan_schedule', {'p_loan': loan}));
+
+  // ----- Emergency -----
+  Future<List<Json>> emergency(String org) async => asJsonList(await _rpc('list_emergency', {'p_org': org}));
+  Future<void> requestEmergency(String org, String member, int amount, String reason) =>
+      _rpc('request_emergency', {'p_org': org, 'p_member': member, 'p_amount': amount, 'p_reason': reason});
+  Future<void> decideEmergency(String claim, bool approve, String? channel, String? ref, String note) =>
+      _rpc('decide_emergency', {'p_claim': claim, 'p_approve': approve, 'p_channel': channel, 'p_ref': ref, 'p_note': note});
+
+  // ----- Reports -----
+  Future<Json> dashboard(String org) async => asJson(await _rpc('dashboard', {'p_org': org}));
+  Future<Json> trialBalance(String org) async => asJson(await _rpc('trial_balance', {'p_org': org}));
+  Future<Json> statement(String org, String member, {int? cycle}) async =>
+      asJson(await _rpc('member_statement', {'p_org': org, 'p_member': member, 'p_cycle': cycle}));
+  Future<List<Json>> audit(String org) async => asJsonList(await _rpc('list_audit', {'p_org': org, 'p_limit': 300}));
+  Future<Json> verifyAudit(String org) async => asJson(await _rpc('verify_audit_chain', {'p_org': org}));
+  Future<Json> shareOutPreview(String org) async => asJson(await _rpc('shareout_preview', {'p_org': org}));
+  Future<void> executeShareOut(String org) => _rpc('execute_shareout', {'p_org': org});
+  Future<List<Json>> search(String org, String q) async => asJsonList(await _rpc('global_search', {'p_org': org, 'p_q': q}));
+  Future<List<Json>> platformOverview() async => asJsonList(await _rpc('platform_overview'));
+}
