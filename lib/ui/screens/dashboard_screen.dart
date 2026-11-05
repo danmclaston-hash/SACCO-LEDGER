@@ -40,7 +40,7 @@ class DashboardScreen extends StatelessWidget {
           Text(editionHints[org.s('edition')] ?? '', style: tt.bodySmall?.copyWith(color: cs.onPrimaryContainer.withValues(alpha: 0.9))),
         ]),
       ),
-      if (org.b('is_demo')) const Pill(text: 'DEMO DATA: not real money', color: warnOrange),
+      if (org.b('is_demo')) const Align(alignment: Alignment.centerLeft, child: Pill(text: 'DEMO DATA: not real money', color: warnOrange)),
       if (me != null && !st.isOfficer)
         SaccoCard(
           color: cs.secondaryContainer,

@@ -47,7 +47,9 @@ class _Root extends StatelessWidget {
     if (st.booting) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     if (!st.signedIn) return const AuthScreen();
     if (st.org == null) return const OnboardingScreen();
-    if (kIsWeb) {
+    // FORCE_MOBILE lets a developer see the phone layout in Chrome. Real web builds never set it.
+    const forceMobile = bool.fromEnvironment('FORCE_MOBILE');
+    if (kIsWeb && !forceMobile) {
       // The web address is the admin portal. Members use the phone app.
       final anyOfficer = st.orgs.any((o) => o['my_role'] != 'member');
       if (!anyOfficer) return const MembersUseAppScreen();

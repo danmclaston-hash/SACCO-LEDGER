@@ -55,7 +55,7 @@ Cash handed to an officer during an open meeting posts at once, since the room i
 
 | Gate | Pass when | Status |
 |---|---|---|
-| 1. Code | Database tests and code checks pass | Done here; full build runs on GitHub |
+| 1. Code | Database tests, code checks, and Android, iOS and web builds pass on GitHub | Done |
 | 2. Run | Supabase set up, web live, APK on your phone, one test cycle done | You, with README |
 | 3. Legal | PDPO registered, lawyer's letter (see `LICENCES.md`) | You |
 | 4. Pilot | One real group, about 30 members. Treasurer signs opening balances. One full cycle, cash matches | Move to Pro first |

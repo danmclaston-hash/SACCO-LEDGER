@@ -104,6 +104,14 @@ class _ShareOutScreenState extends State<ShareOutScreen> {
           ]),
         ]),
       ),
+      if (example == null && blockers.isNotEmpty)
+        SaccoCard(
+          color: cs.errorContainer,
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text('Not ready to close. Figures below can still change.', style: tt.labelMedium?.copyWith(fontWeight: FontWeight.bold, color: cs.onErrorContainer)),
+            for (final b in blockers) Text('• $b', style: tt.bodySmall?.copyWith(color: cs.onErrorContainer)),
+          ]),
+        ),
       const SectionTitle('Member Payout Allocation Table'),
       if (rows.isEmpty) const EmptyNote('No savings recorded yet.'),
       for (final r in rows)
@@ -125,7 +133,6 @@ class _ShareOutScreenState extends State<ShareOutScreen> {
           ]),
         ),
       if (example == null && st.canReview && rows.isNotEmpty) ...[
-        for (final b in blockers) Text('Before share-out: $b', style: TextStyle(color: cs.error)),
         FilledButton.icon(
           onPressed: blockers.isNotEmpty ? null : () => _confirm(context, st, pool),
           icon: const Icon(Icons.lock),

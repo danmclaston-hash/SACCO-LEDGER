@@ -73,7 +73,7 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 Icon(Icons.badge, size: 16, color: cs.onPrimary),
                 const SizedBox(width: 4),
-                Text(_short(roleNames[st.role] ?? st.role), style: tt.labelMedium?.copyWith(color: cs.onPrimary)),
+                Text(_short[st.role] ?? st.role, style: tt.labelMedium?.copyWith(color: cs.onPrimary)),
               ]),
             ),
             PopupMenuButton<AppLanguage>(
@@ -88,5 +88,5 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  String _short(String s) => s.length > 10 ? s.substring(0, 10) : s;
+  static const _short = {'org_admin': 'Org Admin', 'loan_officer': 'Loan Officer', 'platform_admin': 'Platform', 'treasurer': 'Treasurer', 'secretary': 'Secretary', 'auditor': 'Auditor', 'member': 'Member'};
 }

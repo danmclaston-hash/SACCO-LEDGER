@@ -63,7 +63,7 @@ class ChannelsScreen extends StatelessWidget {
         icon: const Icon(Icons.edit_note),
         label: const Text('Record a Payment'),
       ),
-      if (st.outbox.isNotEmpty) Pill(text: '${st.outbox.length} record(s) waiting for signal. They send by themselves.', color: warnOrange),
+      if (st.outbox.isNotEmpty) Align(alignment: Alignment.centerLeft, child: Pill(text: '${st.outbox.length} record(s) waiting for signal. They send by themselves.', color: warnOrange)),
       for (final f in st.outboxFailures) Text('Not accepted: $f', style: TextStyle(color: cs.error)),
       SectionTitle(st.isOfficer ? 'Latest Payment Records' : 'My Payment Records'),
       if (st.payments.isEmpty) const EmptyNote('No payment records yet.'),

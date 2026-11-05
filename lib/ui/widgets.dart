@@ -69,7 +69,7 @@ class AppPageView extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          if (st.offline) const Padding(padding: EdgeInsets.only(bottom: 16), child: Pill(text: 'Offline: showing the last saved records', color: warnOrange)),
+          if (st.offline) const Padding(padding: EdgeInsets.only(bottom: 16), child: Align(alignment: Alignment.centerLeft, child: Pill(text: 'Offline: showing the last saved records', color: warnOrange))),
           if (st.loadError != null)
             Padding(padding: const EdgeInsets.only(bottom: 16), child: Text(st.loadError!, style: TextStyle(color: Theme.of(context).colorScheme.error))),
           for (final c in children) Padding(padding: const EdgeInsets.only(bottom: 16), child: c),

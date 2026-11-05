@@ -1153,22 +1153,22 @@ begin
     (select jsonb_build_object('kind','member','id',m.id,'title',m.full_name,'subtitle','Member M' || m.member_no || ' - ' || m.role || case when v_off then coalesce(' - ' || m.phone,'') else '' end,'at',m.joined_at) x
        from members m where m.org_id = p_org and (m.full_name ilike q or 'M' || m.member_no ilike q or (v_off and (m.phone ilike q or m.national_id ilike q))) limit 10)
     union all
-    (select jsonb_build_object('kind','journal','id',j.id,'title','#' || j.journal_number || ' ' || j.description,'subtitle',j.type || ' - by ' || j.actor_name || coalesce(' - ref ' || j.external_ref,''),'at',j.created_at)
+    (select jsonb_build_object('kind','journal','id',j.id,'title','#' || j.journal_number || ' ' || j.description,'subtitle',replace(j.type,'_',' ') || ' - by ' || j.actor_name || coalesce(' - ID ' || j.external_ref,''),'at',j.created_at)
        from journals j where j.org_id = p_org and (j.description ilike q or j.external_ref ilike q or j.type ilike q or '#' || j.journal_number ilike q or j.actor_name ilike q)
          and (v_off or exists(select 1 from journal_lines l where l.journal_id = j.id and l.member_id = v_me)) order by j.journal_number desc limit 15)
     union all
-    (select jsonb_build_object('kind','payment','id',p.id,'title',p.purpose || ' ' || p.amount || ' - ' || coalesce(m.full_name,'group'),'subtitle',p.channel || ' - ' || p.status || coalesce(' - ref ' || p.external_ref,''),'at',p.submitted_at)
+    (select jsonb_build_object('kind','payment','id',p.id,'title',replace(p.purpose,'_',' ') || ' ' || to_char(p.amount,'FM999,999,999,999') || ' - ' || coalesce(m.full_name,'group'),'subtitle',replace(p.channel,'_',' ') || ' - ' || p.status || coalesce(' - ID ' || p.external_ref,''),'at',p.submitted_at)
        from payment_records p left join members m on m.id = p.member_id where p.org_id = p_org and (p.external_ref ilike q or p.purpose ilike q or p.note ilike q or p.status ilike q or p.channel ilike q or m.full_name ilike q)
          and (v_off or p.member_id = v_me or p.submitted_by = v_me) order by p.submitted_at desc limit 15)
     union all
-    (select jsonb_build_object('kind','loan','id',l.id,'title',l.loan_number || ' - ' || m.full_name,'subtitle',l.status || ' - principal ' || l.principal,'at',l.requested_at)
+    (select jsonb_build_object('kind','loan','id',l.id,'title',l.loan_number || ' - ' || m.full_name,'subtitle',replace(l.status,'_',' ') || ' - principal ' || to_char(l.principal,'FM999,999,999,999'),'at',l.requested_at)
        from loans l join members m on m.id = l.member_id where l.org_id = p_org and (l.loan_number ilike q or m.full_name ilike q or l.status ilike q or l.purpose ilike q or l.resolution_ref ilike q)
          and (v_off or l.member_id = v_me) limit 10)
     union all
     (select jsonb_build_object('kind','meeting','id',mt.id,'title','Meeting #' || mt.meeting_number,'subtitle',mt.status || ' - ' || mt.meeting_date || coalesce(' - ' || left(mt.minutes,60),''),'at',mt.opened_at)
        from meetings mt where mt.org_id = p_org and ('meeting #' || mt.meeting_number ilike q or mt.minutes ilike q or mt.meeting_date::text ilike q or mt.status ilike q) limit 10)
     union all
-    (select jsonb_build_object('kind','emergency','id',c.id,'title','Emergency claim - ' || m.full_name,'subtitle',c.status || ' - ' || c.amount || ' - ' || c.reason,'at',c.requested_at)
+    (select jsonb_build_object('kind','emergency','id',c.id,'title','Emergency claim - ' || m.full_name,'subtitle',c.status || ' - ' || to_char(c.amount,'FM999,999,999,999') || ' - ' || c.reason,'at',c.requested_at)
        from emergency_claims c join members m on m.id = c.member_id where c.org_id = p_org and (c.reason ilike q or m.full_name ilike q or c.status ilike q)
          and (v_off or c.member_id = v_me) limit 10)
     union all

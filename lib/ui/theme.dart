@@ -61,7 +61,13 @@ ThemeData _theme(ColorScheme c, Color background) => ThemeData(
       useMaterial3: true,
       colorScheme: c,
       scaffoldBackgroundColor: background,
-      navigationBarTheme: NavigationBarThemeData(backgroundColor: c.surface, elevation: 6, height: 68),
+      navigationBarTheme: NavigationBarThemeData(
+        backgroundColor: c.surface,
+        elevation: 6,
+        height: 68,
+        // Seven tabs on a small phone: keep every label on one line.
+        labelTextStyle: WidgetStatePropertyAll(TextStyle(fontSize: 10, letterSpacing: 0, color: c.onSurface)),
+      ),
       dialogTheme: DialogThemeData(backgroundColor: c.surface),
       inputDecorationTheme: const InputDecorationTheme(border: OutlineInputBorder()),
     );
