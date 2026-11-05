@@ -121,7 +121,7 @@ class Api {
   // ----- Meetings -----
   Future<List<Json>> meetings(String org) async => asJsonList(await _rpc('list_meetings', {'p_org': org}));
   Future<void> openMeeting(String org, int cash, String c1, String c2) =>
-      _rpc('open_meeting', {'p_org': org, 'p_date': null, 'p_cash': cash, 'p_c1': c1, 'p_c2': c2});
+      _rpc('open_meeting', {'p_org': org, 'p_date': DateTime.now().toIso8601String().substring(0, 10), 'p_cash': cash, 'p_c1': c1, 'p_c2': c2});
   Future<void> setAttendance(String meeting, String member, bool present) =>
       _rpc('set_attendance', {'p_meeting': meeting, 'p_member': member, 'p_present': present});
   Future<void> closeMeeting(String meeting, int cash, String c1, String c2, String minutes) =>
