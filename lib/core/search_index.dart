@@ -1,5 +1,5 @@
 /// Pages of the app. Used by navigation and by the search box.
-enum AppPage { overview, approvals, members, meetings, loans, emergency, ledger, shareOut, channels, statements, licences, settings, platform }
+enum AppPage { account, overview, approvals, members, meetings, loans, emergency, ledger, shareOut, channels, statements, licences, settings, platform }
 
 class IndexEntry {
   final AppPage page;
@@ -37,8 +37,29 @@ const appIndex = <IndexEntry>[
       officerOnly: true),
   IndexEntry(AppPage.licences, 'Licences and compliance', 'Which licences apply, your group licence and expiry',
       ['licence', 'license', 'umra', 'bank of uganda', 'bou', 'nita', 'pdpo', 'data protection', 'fia', 'aml', 'legal', 'compliance', 'registration']),
+  IndexEntry(AppPage.account, 'My Account', 'Profile, password, PIN lock, theme, text size, my data', [
+    'account',
+    'profile',
+    'my',
+    'photo',
+    'password',
+    'pin',
+    'lock',
+    'fingerprint',
+    'security',
+    'sign in',
+    'devices',
+    'theme',
+    'dark',
+    'text size',
+    'language',
+    'privacy',
+    'download',
+    'delete',
+    'close account'
+  ]),
   IndexEntry(AppPage.settings, 'Settings', 'Share price, loan limit, interest, quorum',
-      ['settings', 'share price', 'interest rate', 'multiplier', 'quorum', 'merchant', 'language', 'sign out'],
+      ['settings', 'share price', 'interest rate', 'multiplier', 'quorum', 'merchant', 'group'],
       officerOnly: true),
 ];
 

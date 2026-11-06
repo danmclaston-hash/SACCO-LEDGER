@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/search_index.dart';
 import '../state/app_state.dart';
+import 'screens/account_screen.dart';
 import 'screens/approvals_screen.dart';
 import 'screens/channels_screen.dart';
 import 'screens/dashboard_screen.dart';
@@ -19,6 +20,7 @@ import 'top_bar.dart';
 import 'widgets.dart';
 
 Widget pageBody(AppPage p) => switch (p) {
+      AppPage.account => const AccountScreen(),
       AppPage.overview => const DashboardScreen(),
       AppPage.approvals => const ApprovalsScreen(),
       AppPage.members => const MembersScreen(),
@@ -33,6 +35,14 @@ Widget pageBody(AppPage p) => switch (p) {
       AppPage.settings => const SettingsScreen(),
       AppPage.platform => const PlatformScreen(),
     };
+
+/// Short fade between pages, so a tap clearly lands. Off when the phone asks for less motion.
+Widget animatedPage(BuildContext context, AppPage p) => AnimatedSwitcher(
+      duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : const Duration(milliseconds: 180),
+      switchInCurve: Curves.easeOut,
+      switchOutCurve: Curves.easeIn,
+      child: KeyedSubtree(key: ValueKey(p), child: pageBody(p)),
+    );
 
 /// Phones: the same bottom bar as the original app.
 class MobileShell extends StatelessWidget {
@@ -61,20 +71,24 @@ class MobileShell extends StatelessWidget {
         appBar: const TopBar(),
         body: Column(children: [
           if (st.loading) const LinearProgressIndicator(minHeight: 2),
-          Expanded(child: pageBody(st.page)),
+          Expanded(child: animatedPage(context, st.page)),
         ]),
-        bottomNavigationBar: NavigationBar(
-          // Pages reached from Overview (members, approvals...) keep Overview lit.
-          selectedIndex: index < 0 ? 0 : index,
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          onDestinationSelected: (i) => st.goTo(_items[i].$1),
-          destinations: [
-            for (final e in _items)
-              NavigationDestination(
-                icon: Icon(e.$3, size: 22),
-                label: st.t(e.$2).length > 9 ? st.t(e.$2).substring(0, 9) : st.t(e.$2),
-              ),
-          ],
+        // Seven tabs: keep labels on one line even with large text. Icons and page titles still grow.
+        bottomNavigationBar: MediaQuery.withClampedTextScaling(
+          maxScaleFactor: 1.0,
+          child: NavigationBar(
+            // Pages reached from Overview (members, approvals...) keep Overview lit.
+            selectedIndex: index < 0 ? 0 : index,
+            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+            onDestinationSelected: (i) => st.goTo(_items[i].$1),
+            destinations: [
+              for (final e in _items)
+                NavigationDestination(
+                  icon: Icon(e.$3, size: 22),
+                  label: st.t(e.$2).length > 9 ? st.t(e.$2).substring(0, 9) : st.t(e.$2),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -96,8 +110,9 @@ class AdminShell extends StatelessWidget {
         (AppPage.statements, 'Statements', Icons.receipt_long),
         (AppPage.shareOut, st.t('share_out'), Icons.calculate),
         (AppPage.licences, 'Licences', Icons.verified),
-        (AppPage.settings, 'Settings', Icons.settings),
-        if (st.orgs.any((o) => o['my_role'] == 'platform_admin') || st.isPlatformAdmin) (AppPage.platform, 'All groups', Icons.domain),
+        (AppPage.settings, 'Group Settings', Icons.settings),
+        (AppPage.account, st.t('my_account'), Icons.account_circle),
+        if (st.account['is_platform_admin'] == true || st.isPlatformAdmin) (AppPage.platform, 'All groups', Icons.domain),
       ];
 
   @override
@@ -154,7 +169,7 @@ class AdminShell extends StatelessWidget {
             Expanded(
               child: Align(
                 alignment: Alignment.topCenter,
-                child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1100), child: pageBody(st.page)),
+                child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1100), child: animatedPage(context, st.page)),
               ),
             ),
           ]),

@@ -17,6 +17,7 @@ const _t = <String, Map<AppLanguage, String>>{
   'emergency': {AppLanguage.en: 'Emergency', AppLanguage.lg: "Ensawo Y'obuyambi", AppLanguage.sw: 'Mfuko wa Dharura'},
   'ledger': {AppLanguage.en: 'Ledger', AppLanguage.lg: "Ebitabo n'Okubala", AppLanguage.sw: 'Leja na Ukaguzi'},
   'share_out': {AppLanguage.en: 'Share-Out', AppLanguage.lg: 'Okugaba Ensimbi', AppLanguage.sw: 'Mugawanyo'},
+  'my_account': {AppLanguage.en: 'My Account', AppLanguage.lg: 'Akawunti Yange', AppLanguage.sw: 'Akaunti Yangu'},
   'reports': {AppLanguage.en: 'Reports', AppLanguage.lg: 'Alipoota', AppLanguage.sw: 'Ripoti'},
   'open_meeting': {AppLanguage.en: 'Open Weekly Meeting', AppLanguage.lg: 'Ggulawo Olukiiko', AppLanguage.sw: 'Fungua Mkutano'},
   'close_meeting': {AppLanguage.en: 'Close Meeting (Reconcile Cash)', AppLanguage.lg: 'Ggalawo Olukiiko', AppLanguage.sw: 'Funga Mkutano'},

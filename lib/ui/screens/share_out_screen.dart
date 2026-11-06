@@ -108,7 +108,8 @@ class _ShareOutScreenState extends State<ShareOutScreen> {
         SaccoCard(
           color: cs.errorContainer,
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Not ready to close. Figures below can still change.', style: tt.labelMedium?.copyWith(fontWeight: FontWeight.bold, color: cs.onErrorContainer)),
+            Text('Not ready to close. Figures below can still change.',
+                style: tt.labelMedium?.copyWith(fontWeight: FontWeight.bold, color: cs.onErrorContainer)),
             for (final b in blockers) Text('• $b', style: tt.bodySmall?.copyWith(color: cs.onErrorContainer)),
           ]),
         ),

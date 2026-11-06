@@ -14,7 +14,7 @@ Read also: [Simple plan](docs/PLAN.md) · [Licences](docs/LICENCES.md)
 ### Step 1: Make the database
 **Why:** every phone and browser shares this one record book.
 1. Go to [supabase.com](https://supabase.com), sign up, click **New project**. Pick the region closest to Uganda. Save the database password somewhere private. **Never share it.**
-2. Open **SQL Editor**, paste all of `supabase/migrations/20261106000000_init.sql`, click **Run**.
+2. Open **SQL Editor**. Paste all of `supabase/migrations/20261106000000_init.sql` and click **Run**. Then do the same with `20261107000000_accounts.sql`. Order matters: the second file adds My Account and needs the first.
 3. Open **Authentication → Providers (or Sign In) → Email**, turn **Confirm email** off. Members use phones, so no email can be confirmed.
 
 **Check it worked:** **Table Editor** shows `journals`, `members`, `audit_log` and others.
@@ -81,6 +81,19 @@ Database tests need Postgres: `PGHOST=localhost PGUSER=postgres PGPASSWORD=x bas
 | Admin web | Nothing extra | Deployed by the build robot |
 
 Before real groups: see [Licences](docs/LICENCES.md) and move to Supabase Pro for backups.
+
+## My Account (every user)
+Open it from your picture in the top bar.
+
+| Part | What it does |
+|---|---|
+| Profile | Name, phone, photo. Can also update your card in your groups (shown in the audit trail) |
+| Password | Change it. Asks for the current one first |
+| Security | App lock PIN (and fingerprint or face on phones), sign out of all devices, last 20 sign-ins |
+| Look and language | Auto, light or dark theme, text size, language. Saved on the account |
+| Privacy | When you agreed to the data notice, download all your data as one file, ask to close your account |
+
+Closing an account removes photo, phone and sign-in history, and takes the person out of their groups. **Money records stay**, because groups must keep proof. The owner finishes it on the web under **All groups**.
 
 ## Rules the system enforces
 Each rule lives in the database, so no app or browser can get around it. Tests are in `supabase/tests/run_tests.sql`.

@@ -69,7 +69,10 @@ class AppPageView extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          if (st.offline) const Padding(padding: EdgeInsets.only(bottom: 16), child: Align(alignment: Alignment.centerLeft, child: Pill(text: 'Offline: showing the last saved records', color: warnOrange))),
+          if (st.offline)
+            const Padding(
+                padding: EdgeInsets.only(bottom: 16),
+                child: Align(alignment: Alignment.centerLeft, child: Pill(text: 'Offline: showing the last saved records', color: warnOrange))),
           if (st.loadError != null)
             Padding(padding: const EdgeInsets.only(bottom: 16), child: Text(st.loadError!, style: TextStyle(color: Theme.of(context).colorScheme.error))),
           for (final c in children) Padding(padding: const EdgeInsets.only(bottom: 16), child: c),
@@ -178,8 +181,22 @@ class EmptyNote extends StatelessWidget {
   final String text;
   const EmptyNote(this.text, {super.key});
   @override
-  Widget build(BuildContext context) =>
-      Text(text, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant));
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      decoration: BoxDecoration(
+        border: Border.all(color: cs.outlineVariant),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(children: [
+        ExcludeSemantics(child: Icon(Icons.inbox_outlined, color: cs.onSurfaceVariant)),
+        const SizedBox(width: 12),
+        Expanded(child: Text(text, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant))),
+      ]),
+    );
+  }
 }
 
 class KeyValue extends StatelessWidget {

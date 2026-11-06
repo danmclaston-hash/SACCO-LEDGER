@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:sacco_ledger/core/app_lock.dart';
 import 'package:sacco_ledger/core/money.dart';
 import 'package:sacco_ledger/core/risk.dart';
 import 'package:sacco_ledger/core/search_index.dart';
@@ -93,6 +94,31 @@ void main() {
     test('hides officer pages from members', () {
       expect(searchAppIndex('checker', officer: false), isEmpty);
       expect(searchAppIndex('checker', officer: true).first.page, AppPage.approvals);
+    });
+  });
+
+  group('app lock', () {
+    test('right PIN opens, wrong PIN does not', () {
+      final salt = PinLock.newSalt();
+      final h = PinLock.hash('2580', salt);
+      expect(PinLock.check('2580', salt, h), isTrue);
+      expect(PinLock.check('2581', salt, h), isFalse);
+    });
+    test('same PIN gives a different hash on another phone', () {
+      expect(PinLock.hash('2580', PinLock.newSalt()) == PinLock.hash('2580', PinLock.newSalt()), isFalse);
+    });
+    test('PIN must be 4 to 6 numbers', () {
+      expect(PinLock.validPin('1234'), isTrue);
+      expect(PinLock.validPin('123456'), isTrue);
+      expect(PinLock.validPin('123'), isFalse);
+      expect(PinLock.validPin('12a4'), isFalse);
+      expect(PinLock.validPin('1234567'), isFalse);
+    });
+    test('initials', () {
+      expect(initials('Ann Namubiru'), 'AN');
+      expect(initials('ben'), 'B');
+      expect(initials('  '), '?');
+      expect(initials('Okecho Danmark Laston'), 'OL');
     });
   });
 }

@@ -63,6 +63,10 @@ Cash handed to an officer during an open meeting posts at once, since the room i
 
 **Stop rule:** if the trial balance ever fails, stop adding features and fix that first.
 
+## Accounts
+
+Each person has their own login and a My Account page. The PIN lock lives only on the phone. The sign-in list is written by the app after sign-in, so it shows where the app was used. It is not a full security log.
+
 ## Known limits (honest)
 
 - Opening balances: enter each member's old savings as a normal cash record. No bulk import yet.

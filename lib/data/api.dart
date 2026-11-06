@@ -56,7 +56,36 @@ class Api {
     }
   }
 
-  Future<void> signOut() => _c.auth.signOut();
+  /// [everywhere] also ends sessions on every other phone and browser.
+  Future<void> signOut({bool everywhere = false}) => _c.auth.signOut(scope: everywhere ? SignOutScope.global : SignOutScope.local);
+
+  /// Checks the current password first, so a borrowed unlocked phone cannot change it.
+  Future<void> changePassword(String signInId, String current, String next) async {
+    try {
+      await _c.auth.signInWithPassword(email: signInId, password: current);
+    } on AuthException {
+      throw const ApiError('Current password is wrong.');
+    } catch (e) {
+      throw const ApiError('No connection. Check your internet and try again.', isNetwork: true);
+    }
+    try {
+      await _c.auth.updateUser(UserAttributes(password: next));
+    } on AuthException catch (e) {
+      throw ApiError(e.message);
+    } catch (e) {
+      throw const ApiError('No connection. Check your internet and try again.', isNetwork: true);
+    }
+  }
+
+  // ----- My account -----
+  Future<Json> account() async => asJson(await _rpc('get_my_account'));
+  Future<void> updateMyProfile(Json patch) => _rpc('update_my_profile', {'p': patch});
+  Future<void> recordSignIn(String platform, String device) => _rpc('record_sign_in', {'p_platform': platform, 'p_device': device});
+  Future<Json> exportMyData() async => asJson(await _rpc('export_my_data'));
+  Future<void> requestDeletion(String reason) => _rpc('request_account_deletion', {'p_reason': reason});
+  Future<void> cancelDeletion() => _rpc('cancel_account_deletion');
+  Future<List<Json>> deletionRequests() async => asJsonList(await _rpc('list_deletion_requests'));
+  Future<void> completeDeletion(String id, String note) => _rpc('complete_account_deletion', {'p_request': id, 'p_note': note});
 
   Future<bool> resetPassword(String email, String code, String password) async =>
       await _rpc('reset_password_with_code', {'p_email': email, 'p_code': code, 'p_new_password': password}) == true;

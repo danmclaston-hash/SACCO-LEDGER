@@ -3,8 +3,11 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart' show ThemeMode;
+import 'package:local_auth/local_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../core/app_lock.dart';
 import '../core/i18n.dart';
 import '../core/json.dart';
 import '../core/search_index.dart';
@@ -44,6 +47,12 @@ class AppState extends ChangeNotifier {
   int ledgerTab = 0;
   String? statementMemberId;
   StreamSubscription? _authSub;
+  Json account = {};
+  ThemeMode themeMode = ThemeMode.system;
+  double textScale = 1.0;
+  bool locked = false;
+  int pinTries = 0;
+  DateTime? _hiddenAt;
   SharedPreferences? _prefs;
 
   String get orgId => org?.s('id') ?? '';
@@ -79,8 +88,7 @@ class AppState extends ChangeNotifier {
 
   Future<void> boot() async {
     _prefs = await SharedPreferences.getInstance();
-    final lang = _prefs?.getString('lang');
-    language = AppLanguage.values.firstWhere((l) => l.name == lang, orElse: () => AppLanguage.en);
+    _applyLook(asJson(jsonDecode(_prefs?.getString('look') ?? '{}')));
     _loadOutbox();
     _authSub = api.authChanges.listen((e) async {
       final id = e.session?.user.id;
@@ -91,7 +99,10 @@ class AppState extends ChangeNotifier {
         await loadOrgs();
       }
     });
-    if (signedIn) await loadOrgs();
+    if (signedIn) {
+      locked = hasPin; // a reopened app asks for the PIN first
+      await loadOrgs();
+    }
     booting = false;
     notifyListeners();
   }
@@ -110,10 +121,149 @@ class AppState extends ChangeNotifier {
     page = AppPage.overview;
   }
 
-  void setLanguage(AppLanguage l) {
-    language = l;
-    _prefs?.setString('lang', l.name);
+  void setLanguage(AppLanguage l) => updateLook(language: l);
+
+  // ----- Look: saved on this phone at once, and on the account so it follows the person -----
+  void _applyLook(Json j) {
+    themeMode = switch (j.s('theme')) { 'light' => ThemeMode.light, 'dark' => ThemeMode.dark, _ => ThemeMode.system };
+    final ts = double.tryParse(j.s('text_scale'));
+    textScale = ts == null ? 1.0 : ts.clamp(0.85, 1.6);
+    language = AppLanguage.values.firstWhere((l) => l.name == j.s('language'), orElse: () => AppLanguage.en);
+  }
+
+  Json get _lookJson => {'theme': themeMode.name, 'text_scale': textScale, 'language': language.name};
+
+  Future<String?> updateLook({ThemeMode? theme, double? scale, AppLanguage? language}) async {
+    if (theme != null) themeMode = theme;
+    if (scale != null) textScale = scale;
+    if (language != null) this.language = language;
     notifyListeners();
+    await _prefs?.setString('look', jsonEncode(_lookJson));
+    if (!signedIn) return null;
+    try {
+      await api.updateMyProfile(_lookJson);
+      return null;
+    } on ApiError catch (e) {
+      return e.isNetwork ? null : e.message; // offline: kept on the phone, sent next time
+    }
+  }
+
+  Future<void> loadAccount() async {
+    try {
+      account = await api.account();
+      _applyLook(account);
+      await _prefs?.setString('look', jsonEncode(_lookJson));
+    } on ApiError {
+      // keep what the phone remembers
+    }
+    notifyListeners();
+  }
+
+  Future<String?> updateProfile(Json patch) async {
+    try {
+      await api.updateMyProfile(patch);
+      await loadAccount();
+      if (patch['apply_to_groups'] == true) await loadOrgs(select: org?.s('id'));
+      return null;
+    } on ApiError catch (e) {
+      return e.message;
+    }
+  }
+
+  Future<String?> changePassword(String current, String next) async {
+    try {
+      await api.changePassword(account.s('sign_in_id'), current, next);
+      return null;
+    } on ApiError catch (e) {
+      return e.message;
+    }
+  }
+
+  /// Called once after each successful sign-in, so the person can see where their account was used.
+  Future<void> noteSignIn() async {
+    final platform = kIsWeb ? 'web' : defaultTargetPlatform.name;
+    try {
+      await api.recordSignIn(platform, kIsWeb ? 'Browser' : 'Phone app');
+    } on ApiError {
+      // not important enough to block sign-in
+    }
+  }
+
+  // ----- App lock (this device only) -----
+  String get _lockKey => 'lock_${api.user?.id}';
+  Json get _lock => asJson(jsonDecode(_prefs?.getString(_lockKey) ?? '{}'));
+  bool get hasPin => _lock.s('hash').isNotEmpty;
+  bool get useBiometrics => _lock.b('bio');
+
+  Future<void> setPin(String pin) async {
+    final salt = PinLock.newSalt();
+    await _prefs?.setString(_lockKey, jsonEncode({'salt': salt, 'hash': PinLock.hash(pin, salt), 'bio': useBiometrics}));
+    notifyListeners();
+  }
+
+  Future<void> removePin() async {
+    await _prefs?.remove(_lockKey);
+    notifyListeners();
+  }
+
+  Future<void> setBiometrics(bool on) async {
+    final l = _lock;
+    l['bio'] = on;
+    await _prefs?.setString(_lockKey, jsonEncode(l));
+    notifyListeners();
+  }
+
+  /// true = unlocked. After [maxPinTries] wrong PINs the person is signed out and must use their password.
+  Future<bool> unlockWithPin(String pin) async {
+    final l = _lock;
+    if (PinLock.check(pin, l.s('salt'), l.s('hash'))) {
+      locked = false;
+      pinTries = 0;
+      notifyListeners();
+      return true;
+    }
+    pinTries++;
+    if (pinTries >= maxPinTries) {
+      pinTries = 0;
+      await signOut();
+    }
+    notifyListeners();
+    return false;
+  }
+
+  Future<bool> biometricsAvailable() async {
+    if (kIsWeb) return false;
+    try {
+      final a = LocalAuthentication();
+      return await a.isDeviceSupported() && await a.canCheckBiometrics;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<bool> unlockWithBiometrics() async {
+    try {
+      final ok = await LocalAuthentication().authenticate(localizedReason: 'Unlock SACCO Ledger', biometricOnly: true);
+      if (ok) {
+        locked = false;
+        pinTries = 0;
+        notifyListeners();
+      }
+      return ok;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  void appHidden() => _hiddenAt ??= DateTime.now();
+
+  void appShown() {
+    final t = _hiddenAt;
+    _hiddenAt = null;
+    if (signedIn && hasPin && t != null && DateTime.now().difference(t) >= lockAfter) {
+      locked = true;
+      notifyListeners();
+    }
   }
 
   void goTo(AppPage p, {int? tab, String? memberId}) {
@@ -137,6 +287,7 @@ class AppState extends ChangeNotifier {
         loadError = e.message;
       }
     }
+    unawaited(loadAccount());
     final want = select ?? _prefs?.getString('org') ?? org?.s('id');
     org = orgs.isEmpty ? null : orgs.firstWhere((o) => o.s('id') == want, orElse: () => orgs.first);
     if (org != null) await refresh();
@@ -276,8 +427,14 @@ class AppState extends ChangeNotifier {
     await _saveOutbox();
   }
 
-  Future<void> signOut() async {
-    await api.signOut();
+  Future<void> signOut({bool everywhere = false}) async {
+    try {
+      await api.signOut(everywhere: everywhere);
+    } catch (_) {
+      // signing out on this phone must work even with no signal
+    }
+    locked = false;
+    account = {};
     await _prefs?.remove('org');
     // A shared phone must not keep the last person's records.
     for (final k in _prefs?.getKeys().where((k) => k.startsWith('cache_') || k == 'orgs').toList() ?? <String>[]) {

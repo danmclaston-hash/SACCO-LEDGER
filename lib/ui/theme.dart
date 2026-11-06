@@ -41,8 +41,8 @@ const _dark = ColorScheme(
   onPrimaryContainer: Color(0xFF70F7E6),
   secondary: saccoGoldLight,
   onSecondary: Color(0xFF412D00),
-  secondaryContainer: Color(0xFF4A4458),
-  onSecondaryContainer: Color(0xFFE8DEF8),
+  secondaryContainer: Color(0xFF5C4300),
+  onSecondaryContainer: Color(0xFFFFDEA6),
   tertiary: Color(0xFF80CBC4),
   onTertiary: Color(0xFF00201B),
   error: Color(0xFFF2B8B5),
@@ -51,10 +51,10 @@ const _dark = ColorScheme(
   onErrorContainer: Color(0xFFF9DEDC),
   surface: Color(0xFF17221F),
   onSurface: Color(0xFFE0E3E1),
-  surfaceContainerHighest: Color(0xFF49454F),
-  onSurfaceVariant: Color(0xFFCAC4D0),
-  outline: Color(0xFF938F99),
-  outlineVariant: Color(0xFF49454F),
+  surfaceContainerHighest: Color(0xFF26332F),
+  onSurfaceVariant: Color(0xFFBFC9C5),
+  outline: Color(0xFF899390),
+  outlineVariant: Color(0xFF3F4945),
 );
 
 ThemeData _theme(ColorScheme c, Color background) => ThemeData(
@@ -70,6 +70,16 @@ ThemeData _theme(ColorScheme c, Color background) => ThemeData(
       ),
       dialogTheme: DialogThemeData(backgroundColor: c.surface),
       inputDecorationTheme: const InputDecorationTheme(border: OutlineInputBorder()),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      ),
+      // Comfortable tap size on every button.
+      filledButtonTheme: FilledButtonThemeData(style: FilledButton.styleFrom(minimumSize: const Size(64, 44))),
+      outlinedButtonTheme: OutlinedButtonThemeData(style: OutlinedButton.styleFrom(minimumSize: const Size(64, 44))),
+      textButtonTheme: TextButtonThemeData(style: TextButton.styleFrom(minimumSize: const Size(48, 44))),
+      dividerTheme: DividerThemeData(color: c.outlineVariant, space: 16),
     );
 
 final lightTheme = _theme(_light, const Color(0xFFFAFBF9));

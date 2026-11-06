@@ -1,10 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/money.dart';
 import '../../data/api.dart';
 import '../theme.dart';
 import '../widgets.dart';
+import 'account_screen.dart';
 
 const dataNotice = 'SACCO Ledger keeps records of your group\'s transactions: your name, phone, and what you paid or borrowed. '
     'Your group officers can see them. We never hold your money. Records are kept so your group can prove what happened. '
@@ -44,9 +46,13 @@ class _AuthScreenState extends State<AuthScreen> {
       switch (mode) {
         case _Mode.signIn:
           await st.api.signIn(email, pass.text);
+          TextInput.finishAutofillContext();
+          await st.noteSignIn();
           await st.loadOrgs();
         case _Mode.signUp:
           await st.api.signUp(email, pass.text);
+          TextInput.finishAutofillContext();
+          await st.noteSignIn();
           await st.loadOrgs();
         case _Mode.reset:
           final ok = await st.api.resetPassword(email, code.text, pass.text);
@@ -70,7 +76,7 @@ class _AuthScreenState extends State<AuthScreen> {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     return Scaffold(
-      backgroundColor: cs.primary,
+      backgroundColor: saccoEmerald,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -84,11 +90,19 @@ class _AuthScreenState extends State<AuthScreen> {
                 Text(kIsWeb ? 'Administrator portal' : 'Every shilling, on the record', style: tt.bodyMedium?.copyWith(color: saccoGoldLight)),
                 const SizedBox(height: 20),
                 SaccoCard(
-                  child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  child: AutofillGroup(
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                     Text(switch (mode) { _Mode.signIn => 'Sign in', _Mode.signUp => 'Create account', _Mode.reset => 'Forgot password' },
                         style: tt.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                     gap,
-                    TextField(controller: id, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Phone or email')),
+                    TextField(
+                      controller: id,
+                      keyboardType: TextInputType.emailAddress,
+                      textInputAction: TextInputAction.next,
+                      autofillHints: const [AutofillHints.username],
+                      decoration: const InputDecoration(
+                          labelText: 'Phone or email', helperText: 'Phone like 0772 123456, or your email', prefixIcon: Icon(Icons.person_outline)),
+                    ),
                     gap,
                     if (mode == _Mode.reset) ...[
                       TextField(
@@ -100,9 +114,17 @@ class _AuthScreenState extends State<AuthScreen> {
                     TextField(
                       controller: pass,
                       obscureText: hide,
+                      textInputAction: TextInputAction.done,
+                      autofillHints: [mode == _Mode.signIn ? AutofillHints.password : AutofillHints.newPassword],
                       decoration: InputDecoration(
                         labelText: mode == _Mode.reset ? 'New password' : 'Password',
-                        suffixIcon: IconButton(icon: Icon(hide ? Icons.visibility : Icons.visibility_off), onPressed: () => setState(() => hide = !hide)),
+                        helperText: mode == _Mode.signIn ? null : 'At least 6 characters',
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        suffixIcon: IconButton(
+                          tooltip: hide ? 'Show password' : 'Hide password',
+                          icon: Icon(hide ? Icons.visibility : Icons.visibility_off),
+                          onPressed: () => setState(() => hide = !hide),
+                        ),
                       ),
                       onSubmitted: (_) => submit(),
                     ),
@@ -119,7 +141,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       TextButton(onPressed: () => setState(() => mode = _Mode.signUp), child: const Text('New here? Create account')),
                       TextButton(onPressed: () => setState(() => mode = _Mode.reset), child: const Text('Forgot password?')),
                     ],
-                  ]),
+                  ])),
                 ),
                 const SizedBox(height: 16),
                 Text('We never hold your money. We keep the records.', textAlign: TextAlign.center, style: tt.bodySmall?.copyWith(color: cs.onPrimary)),
@@ -228,7 +250,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final st = StateScope.of(context);
     final cs = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(backgroundColor: cs.primary, foregroundColor: cs.onPrimary, title: const Text('Welcome'), actions: [
+      appBar: AppBar(backgroundColor: saccoEmerald, foregroundColor: Colors.white, title: const Text('Welcome'), actions: [
+        IconButton(icon: const Icon(Icons.account_circle), tooltip: 'My Account', onPressed: () => openAccount(context)),
         IconButton(icon: const Icon(Icons.logout), tooltip: 'Sign out', onPressed: st.signOut),
       ]),
       body: Center(
