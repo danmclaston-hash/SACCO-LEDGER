@@ -185,4 +185,19 @@ void main() {
     expect(find.text(AppPage.channels.title), findsNothing);
     expect(find.text(AppPage.platform.title), findsNothing);
   });
+
+  testWidgets('extra data loads once per reload, not on every redraw', (t) async {
+    final st = inGroup('member');
+    var calls = 0;
+    await t.pumpWidget(app(st, Scaffold(body: Loaded<int>(load: () async => ++calls, builder: (_, n) => Text('load $n')))));
+    await t.pumpAndSettle();
+    st.goTo(AppPage.overview); // redraws everything that watches the app state
+    await t.pumpAndSettle();
+    expect(calls, 1);
+    st.version++; // what every reload does
+    st.goTo(AppPage.overview);
+    await t.pumpAndSettle();
+    expect(calls, 2);
+    expect(find.text('load 2'), findsOneWidget);
+  });
 }

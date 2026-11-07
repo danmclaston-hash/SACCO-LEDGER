@@ -55,8 +55,8 @@ Future<void> openOrCopy(BuildContext context, Uri uri, {required String copy, re
 }
 
 /// Fetches extra data for one part of a page, with the usual spinner and error.
-/// Fetches again after every reload of the app's data, and when [key] changes.
-class Loaded<T> extends StatelessWidget {
+/// Fetches again after every reload of the app's data, and when [id] changes. Never just because the page redrew.
+class Loaded<T> extends StatefulWidget {
   final Future<T> Function() load;
   final Widget Function(BuildContext context, T data) builder;
   final Object? id;
@@ -67,18 +67,32 @@ class Loaded<T> extends StatelessWidget {
   const Loaded({super.key, required this.load, required this.builder, this.id, this.waiting, this.error});
 
   @override
+  State<Loaded<T>> createState() => _LoadedState<T>();
+}
+
+class _LoadedState<T> extends State<Loaded<T>> {
+  String? _for;
+  late Future<T> _future;
+
+  @override
   Widget build(BuildContext context) {
     final st = StateScope.of(context);
+    final key = '${st.orgId}-${st.version}-${widget.id}';
+    if (key != _for) {
+      _for = key;
+      _future = widget.load();
+    }
+    // A new reload keeps showing the old numbers until the new ones arrive; another group or [id] starts clean.
     return FutureBuilder<T>(
-      key: ValueKey('${st.orgId}-${st.version}-$id'),
-      future: load(),
+      key: ValueKey('${st.orgId}-${widget.id}'),
+      future: _future,
       builder: (context, snap) {
         if (snap.hasError) {
-          if (error != null) return error!(snap.error!);
+          if (widget.error != null) return widget.error!(snap.error!);
           return Padding(padding: const EdgeInsets.all(16), child: Text(snap.error.toString(), style: TextStyle(color: Theme.of(context).colorScheme.error)));
         }
-        if (!snap.hasData) return waiting ?? const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()));
-        return builder(context, snap.data as T);
+        if (!snap.hasData) return widget.waiting ?? const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()));
+        return widget.builder(context, snap.data as T);
       },
     );
   }
