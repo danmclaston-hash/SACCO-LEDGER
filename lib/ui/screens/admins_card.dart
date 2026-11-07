@@ -14,7 +14,6 @@ class AdminsCard extends StatefulWidget {
 }
 
 class _AdminsCardState extends State<AdminsCard> {
-  int reload = 0;
   bool busy = false;
   final email = TextEditingController();
   final search = TextEditingController();
@@ -29,14 +28,11 @@ class _AdminsCardState extends State<AdminsCard> {
 
   Future<void> _run(Future<String> Function() fn) async {
     setState(() => busy = true);
-    try {
-      final msg = await fn();
-      if (mounted) showMsg(context, msg);
-      reload++;
-    } catch (e) {
-      if (mounted) showMsg(context, e.toString(), error: true);
-    }
-    if (mounted) setState(() => busy = false);
+    var msg = '';
+    await runAndTell(context, () async => msg = await fn());
+    if (!mounted) return;
+    if (msg.isNotEmpty) showMsg(context, msg);
+    setState(() => busy = false);
   }
 
   Future<void> _add(String e) => _run(() async {
@@ -65,13 +61,10 @@ class _AdminsCardState extends State<AdminsCard> {
     final st = StateScope.of(context);
     final tt = Theme.of(context).textTheme;
     final cs = Theme.of(context).colorScheme;
-    return FutureBuilder<Json>(
-      key: ValueKey(reload),
-      future: st.api.platformAdmins(),
-      builder: (context, snap) {
-        if (snap.hasError) return SaccoCard(child: Text(snap.error.toString()));
-        if (!snap.hasData) return const SizedBox.shrink();
-        final d = snap.data!;
+    return Loaded<Json>(
+      load: st.api.platformAdmins,
+      waiting: const SizedBox.shrink(),
+      builder: (context, d) {
         final owner = d.b('me_owner');
         return SaccoCard(
           child: Column(

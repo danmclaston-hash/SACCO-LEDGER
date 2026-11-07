@@ -37,19 +37,3 @@ class PinLock {
 /// How long the app may sit in the background before it asks for the PIN again.
 const lockAfter = Duration(seconds: 60);
 const maxPinTries = 5;
-
-/// Text sizes offered on the account page.
-const textSizes = <(double, String)>[(0.9, 'Small'), (1.0, 'Normal'), (1.15, 'Large'), (1.3, 'Extra large')];
-
-/// "Ann Namubiru" -> "AN", "ben" -> "B".
-String initials(String name) {
-  final parts = name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
-  if (parts.isEmpty) return '?';
-  final first = parts.first.characters;
-  if (parts.length == 1) return first.toUpperCase();
-  return (first + parts.last.characters).toUpperCase();
-}
-
-extension on String {
-  String get characters => isEmpty ? '' : this[0];
-}

@@ -74,7 +74,7 @@ class _TourDialogState extends State<_TourDialog> {
   void _finish({required bool done}) {
     final st = StateScope.of(context);
     if (done) {
-      st.updatePrefs(tourDone: true);
+      st.updateSettings(tourDone: true);
     } else {
       st.tourLaterThisTime();
     }

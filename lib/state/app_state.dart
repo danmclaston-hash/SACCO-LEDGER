@@ -9,10 +9,11 @@ import 'package:supabase_flutter/supabase_flutter.dart' show AuthChangeEvent;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/app_lock.dart';
+import '../core/catalog.dart';
 import '../core/countries.dart';
 import '../core/i18n.dart';
 import '../core/json.dart';
-import '../core/search_index.dart';
+import '../core/pages.dart';
 import '../data/api.dart';
 
 String newKey() {
@@ -26,30 +27,38 @@ class AppState extends ChangeNotifier {
   final Api api;
   AppState(this.api);
 
-  static const _officerRoles = {'org_admin', 'treasurer', 'secretary', 'loan_officer', 'auditor', 'platform_admin'};
+  /// Everything one group's screens show. Add a dataset here and it is loaded, cached for offline and cleared on sign-out.
+  static final Map<String, Future<Object> Function(Api, String)> _groupData = {
+    'dash': (a, id) => a.dashboard(id),
+    'members': (a, id) => a.members(id),
+    'journals': (a, id) => a.journals(id),
+    'meetings': (a, id) => a.meetings(id),
+    'loans': (a, id) => a.loans(id),
+    'payments': (a, id) => a.payments(id),
+    'claims': (a, id) => a.emergency(id),
+    'goals': (a, id) => a.goals(id),
+    'allocation': (a, id) => a.allocation(id),
+    'flows': (a, id) => a.flows(id),
+  };
 
   bool booting = true;
   bool loading = false;
   bool offline = false;
   String? loadError;
+
+  /// Goes up after every reload, so screens that fetch their own extra data fetch again.
+  int version = 0;
   bool get signedIn => api.user != null;
   List<Json> orgs = [];
   Json? org;
-  Json dash = {};
-  List<Json> members = [];
-  List<Json> journals = [];
-  List<Json> meetings = [];
-  List<Json> loans = [];
-  List<Json> payments = [];
-  List<Json> claims = [];
-  List<Json> goals = [];
-  Json allocation = {};
-  List<Json> flows = [];
+  Json _data = {};
   List<Json> outbox = [];
   List<String> outboxFailures = [];
   AppLanguage language = AppLanguage.en;
   AppPage page = AppPage.overview;
   int ledgerTab = 0;
+
+  /// Whose statement the Statements page shows. Null means my own.
   String? statementMemberId;
   StreamSubscription? _authSub;
   Json account = {};
@@ -70,49 +79,42 @@ class AppState extends ChangeNotifier {
   DateTime? _hiddenAt;
   SharedPreferences? _prefs;
 
+  Json get dash => _data['dash'] as Json? ?? const {};
+  List<Json> get members => _list('members');
+  List<Json> get journals => _list('journals');
+  List<Json> get meetings => _list('meetings');
+  List<Json> get loans => _list('loans');
+  List<Json> get payments => _list('payments');
+  List<Json> get claims => _list('claims');
+  List<Json> get goals => _list('goals');
+  Json get allocation => _data['allocation'] as Json? ?? const {};
+  List<Json> get flows => _list('flows');
+  List<Json> _list(String k) => _data[k] as List<Json>? ?? const [];
+
   String get orgId => org?.s('id') ?? '';
   String get currency => org?.s('currency_code') ?? 'UGX';
-  String get role => org?.s('my_role') ?? 'member';
+  Role get role => Role.parse(org?.s('my_role'));
   String? get myMemberId => org?.n('my_member_id');
-  String t(String key) => translate(key, language);
+  String t(String text) => translate(text, language);
 
-  bool get isOfficer => _officerRoles.contains(role);
-  bool get isPlatformAdmin => role == 'platform_admin';
-  bool get canReview => role == 'org_admin' || role == 'treasurer';
-  bool get canManageMembers => role == 'org_admin' || role == 'secretary';
-  bool get canRunMeetings => role == 'org_admin' || role == 'treasurer' || role == 'secretary';
-  bool get canRecordForOthers => canRunMeetings;
-  bool get canApproveLoans => role == 'org_admin' || role == 'loan_officer';
-  bool get canDisburse => role == 'org_admin' || role == 'treasurer';
-  bool get canApplyForOthers => canRunMeetings || role == 'loan_officer';
-  bool get isOrgAdmin => role == 'org_admin';
+  /// The platform owner's view of every group: given by the account, or by the platform role in this group.
+  bool get canSeeAllGroups => account.b('is_platform_admin') || role == Role.platformAdmin;
+
+  bool canSee(AppPage p) => switch (p.audience) {
+        Audience.everyone => true,
+        Audience.officers => role.isOfficer,
+        Audience.platform => canSeeAllGroups,
+      };
+
   List<Json> get activeGoals => goals.where((g) => g.s('status') == 'active').toList();
-  String? goalName(String? id) {
-    if (id == null) return null;
-    for (final g in goals) {
-      if (g.s('id') == id) return g.s('name');
-    }
-    return null;
-  }
-
-  Json? get openMeeting {
-    for (final m in meetings) {
-      if (m.s('status') == 'open') return m;
-    }
-    return null;
-  }
-
+  String? goalName(String? id) => goals.where((g) => g.s('id') == id).firstOrNull?.s('name');
+  Json? get openMeeting => meetings.where((m) => m.s('status') == 'open').firstOrNull;
   List<Json> get activeMembers => members.where((m) => m.b('is_active')).toList();
-  Json? get me {
-    for (final m in members) {
-      if (m.s('id') == myMemberId) return m;
-    }
-    return null;
-  }
+  Json? get me => members.where((m) => m.s('id') == myMemberId).firstOrNull;
 
   Future<void> boot() async {
     _prefs = await SharedPreferences.getInstance();
-    _applyLook(asJson(jsonDecode(_prefs?.getString('look') ?? '{}')));
+    _applySettings(asJson(jsonDecode(_prefs?.getString('look') ?? '{}')));
     _loadOutbox();
     _authSub = api.authChanges.listen((e) async {
       final id = e.session?.user.id;
@@ -122,12 +124,12 @@ class AppState extends ChangeNotifier {
       } else {
         // Every new sign-in (password or Google) goes in the person's sign-in list.
         if (e.event == AuthChangeEvent.signedIn && !booting) unawaited(noteSignIn());
-        if (orgs.isEmpty && !booting) await loadOrgs();
+        if (orgs.isEmpty && !booting) await refresh();
       }
     });
     if (signedIn) {
       locked = hasPin; // a reopened app asks for the PIN first
-      await loadOrgs();
+      await refresh();
     }
     booting = false;
     notifyListeners();
@@ -142,16 +144,13 @@ class AppState extends ChangeNotifier {
   void _clear() {
     orgs = [];
     org = null;
-    dash = {};
-    members = journals = meetings = loans = payments = claims = goals = flows = [];
-    allocation = {};
+    _data = {};
+    statementMemberId = null;
     page = AppPage.overview;
   }
 
-  void setLanguage(AppLanguage l) => updateLook(language: l);
-
-  // ----- Look: saved on this phone at once, and on the account so it follows the person -----
-  void _applyLook(Json j) {
+  // ----- Settings: saved on this phone at once, and on the account so they follow the person -----
+  void _applySettings(Json j) {
     themeMode = switch (j.s('theme')) {
       'light' => ThemeMode.light,
       'dark' => ThemeMode.dark,
@@ -160,34 +159,33 @@ class AppState extends ChangeNotifier {
     final ts = double.tryParse(j.s('text_scale'));
     textScale = ts == null ? 1.0 : ts.clamp(0.85, 1.6);
     language = AppLanguage.values.firstWhere((l) => l.name == j.s('language'), orElse: () => AppLanguage.en);
+    // The phone keeps these at the top level; the account keeps them under "prefs".
     final p = j['prefs'] is Map ? j.m('prefs') : j;
     if (p['country'] != null) country = countryByCode(p.s('country')).code;
     if (p['show_tips'] != null) showTips = p['show_tips'] == true;
     if (p['tour_done'] != null) tourDone = p['tour_done'] == true;
   }
 
-  Json get _lookJson => {
-        'theme': themeMode.name,
-        'text_scale': textScale,
-        'language': language.name,
-        'country': country,
-        'show_tips': showTips,
-        'tour_done': tourDone,
-      };
+  Json get _look => {'theme': themeMode.name, 'text_scale': textScale, 'language': language.name};
+  Json get _prefsJson => {'country': country, 'show_tips': showTips, 'tour_done': tourDone};
 
   /// The group's phone code (+256...), or the person's own country before they join a group.
   String get dial => countryByCode(org?.n('country_code') ?? country).dial;
 
-  /// Saves country, (i) tips and tour on this phone at once, and on the account.
-  Future<String?> updatePrefs({String? country, bool? showTips, bool? tourDone}) async {
+  /// Changes how the app looks and behaves for this person. Offline, it is kept on the phone and sent next time.
+  Future<String?> updateSettings({ThemeMode? theme, double? scale, AppLanguage? language, String? country, bool? showTips, bool? tourDone}) async {
+    if (theme != null) themeMode = theme;
+    if (scale != null) textScale = scale;
+    if (language != null) this.language = language;
     if (country != null) this.country = country;
     if (showTips != null) this.showTips = showTips;
     if (tourDone != null) this.tourDone = tourDone;
     notifyListeners();
-    await _prefs?.setString('look', jsonEncode(_lookJson));
+    await _prefs?.setString('look', jsonEncode({..._look, ..._prefsJson}));
     if (!signedIn) return null;
     try {
-      await api.updateMyPrefs({'country': this.country, 'show_tips': this.showTips, 'tour_done': this.tourDone});
+      if (theme != null || scale != null || language != null) await api.updateMyProfile(_look);
+      if (country != null || showTips != null || tourDone != null) await api.updateMyPrefs(_prefsJson);
       return null;
     } on ApiError catch (e) {
       return e.isNetwork ? null : e.message;
@@ -199,41 +197,15 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<String?> updateLook({ThemeMode? theme, double? scale, AppLanguage? language}) async {
-    if (theme != null) themeMode = theme;
-    if (scale != null) textScale = scale;
-    if (language != null) this.language = language;
-    notifyListeners();
-    await _prefs?.setString('look', jsonEncode(_lookJson));
-    if (!signedIn) return null;
-    try {
-      await api.updateMyProfile(_lookJson);
-      return null;
-    } on ApiError catch (e) {
-      return e.isNetwork ? null : e.message; // offline: kept on the phone, sent next time
-    }
-  }
-
   Future<void> loadAccount() async {
     try {
       account = await api.account();
-      _applyLook(account);
-      await _prefs?.setString('look', jsonEncode(_lookJson));
+      _applySettings(account);
+      await _prefs?.setString('look', jsonEncode({..._look, ..._prefsJson}));
     } on ApiError {
       // keep what the phone remembers
     }
     notifyListeners();
-  }
-
-  Future<String?> updateProfile(Json patch) async {
-    try {
-      await api.updateMyProfile(patch);
-      await loadAccount();
-      if (patch['apply_to_groups'] == true) await loadOrgs(select: org?.s('id'));
-      return null;
-    } on ApiError catch (e) {
-      return e.message;
-    }
   }
 
   Future<String?> changePassword(String current, String next) async {
@@ -279,13 +251,17 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void _unlock() {
+    locked = false;
+    pinTries = 0;
+    notifyListeners();
+  }
+
   /// true = unlocked. After [maxPinTries] wrong PINs the person is signed out and must use their password.
   Future<bool> unlockWithPin(String pin) async {
     final l = _lock;
     if (PinLock.check(pin, l.s('salt'), l.s('hash'))) {
-      locked = false;
-      pinTries = 0;
-      notifyListeners();
+      _unlock();
       return true;
     }
     pinTries++;
@@ -310,11 +286,7 @@ class AppState extends ChangeNotifier {
   Future<bool> unlockWithBiometrics() async {
     try {
       final ok = await LocalAuthentication().authenticate(localizedReason: 'Unlock SACCO Ledger', biometricOnly: true);
-      if (ok) {
-        locked = false;
-        pinTries = 0;
-        notifyListeners();
-      }
+      if (ok) _unlock();
       return ok;
     } catch (_) {
       return false;
@@ -339,107 +311,52 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> loadOrgs({String? select}) async {
+  Future<void> selectOrg(Json o) async {
+    page = AppPage.overview;
+    statementMemberId = null;
+    await refresh(select: o.s('id'));
+  }
+
+  /// Reloads my groups, the chosen group's records and my account. With no signal, shows the last saved copy.
+  Future<void> refresh({String? select}) async {
+    loading = true;
+    notifyListeners();
+    final accountLoad = loadAccount();
     try {
+      await flushOutbox();
       orgs = await api.myMemberships();
-      offline = false;
       await _prefs?.setString('orgs', jsonEncode(orgs));
+      await _pickOrg(select);
+      if (org != null) {
+        final id = orgId;
+        final loaded = await Future.wait([for (final load in _groupData.values) load(api, id)]);
+        _data = Map.fromIterables(_groupData.keys, loaded);
+        await _prefs?.setString('cache_$id', jsonEncode(_data));
+      }
+      offline = false;
+      loadError = null;
     } on ApiError catch (e) {
       if (e.isNetwork) {
         offline = true;
         final c = _prefs?.getString('orgs');
         if (c != null) orgs = asJsonList(jsonDecode(c));
+        await _pickOrg(select);
+        final cached = asJson(jsonDecode(_prefs?.getString('cache_$orgId') ?? '{}'));
+        _data = {for (final e in cached.entries) e.key: e.value is List ? asJsonList(e.value) : asJson(e.value)};
       } else {
         loadError = e.message;
       }
     }
-    unawaited(loadAccount());
-    final want = select ?? _prefs?.getString('org') ?? org?.s('id');
-    org = orgs.isEmpty ? null : orgs.firstWhere((o) => o.s('id') == want, orElse: () => orgs.first);
-    if (org != null) await refresh();
+    await accountLoad;
+    version++;
+    loading = false;
     notifyListeners();
   }
 
-  Future<void> selectOrg(Json o) async {
-    org = o;
-    page = AppPage.overview;
-    await _prefs?.setString('org', o.s('id'));
-    await refresh();
-  }
-
-  Future<void> refresh() async {
-    if (org == null) return;
-    loading = true;
-    notifyListeners();
-    final id = orgId;
-    try {
-      await flushOutbox();
-      final r = await Future.wait<dynamic>([
-        api.dashboard(id),
-        api.members(id),
-        api.journals(id),
-        api.meetings(id),
-        api.loans(id),
-        api.payments(id),
-        api.emergency(id),
-        api.goals(id),
-        api.allocation(id),
-        api.flows(id),
-      ]);
-      dash = r[0] as Json;
-      members = r[1] as List<Json>;
-      journals = r[2] as List<Json>;
-      meetings = r[3] as List<Json>;
-      loans = r[4] as List<Json>;
-      payments = r[5] as List<Json>;
-      claims = r[6] as List<Json>;
-      goals = r[7] as List<Json>;
-      allocation = r[8] as Json;
-      flows = r[9] as List<Json>;
-      offline = false;
-      loadError = null;
-      await _prefs?.setString(
-        'cache_$id',
-        jsonEncode({
-          'dash': dash,
-          'members': members,
-          'journals': journals,
-          'meetings': meetings,
-          'loans': loans,
-          'payments': payments,
-          'claims': claims,
-          'goals': goals,
-          'allocation': allocation,
-          'flows': flows
-        }),
-      );
-    } on ApiError catch (e) {
-      if (e.isNetwork) {
-        offline = true;
-        _loadCache(id);
-      } else {
-        loadError = e.message;
-      }
-    } finally {
-      loading = false;
-      notifyListeners();
-    }
-  }
-
-  void _loadCache(String id) {
-    final c = _prefs?.getString('cache_$id');
-    if (c == null) return;
-    final j = asJson(jsonDecode(c));
-    dash = j.m('dash');
-    members = j.l('members');
-    journals = j.l('journals');
-    meetings = j.l('meetings');
-    loans = j.l('loans');
-    payments = j.l('payments');
-    claims = j.l('claims');
-    goals = j.l('goals');
-    allocation = j.m('allocation');
-    flows = j.l('flows');
+  Future<void> _pickOrg(String? select) async {
+    final want = select ?? org?.s('id') ?? _prefs?.getString('org');
+    org = orgs.where((o) => o.s('id') == want).firstOrNull ?? orgs.firstOrNull;
+    if (org != null) await _prefs?.setString('org', orgId);
   }
 
   /// Runs one change, reloads, returns null if fine or the error text to show.
@@ -468,7 +385,6 @@ class AppState extends ChangeNotifier {
     required int amount,
     required String channel,
     String? ref,
-    String? payerPhone,
     String? loanId,
     String? note,
     String? goalId,
@@ -480,7 +396,7 @@ class AppState extends ChangeNotifier {
       'p_amount': amount,
       'p_channel': channel,
       'p_ref': ref,
-      'p_payer_phone': payerPhone,
+      'p_payer_phone': null,
       'p_loan': loanId,
       'p_note': note,
       'p_idem': newKey(), // same key on retry means it can never be recorded twice
@@ -504,12 +420,12 @@ class AppState extends ChangeNotifier {
     final left = <Json>[];
     for (final p in outbox) {
       try {
-        await api.recordPayment({...p, 'p_goal': p['p_goal']});
+        await api.recordPayment(p);
       } on ApiError catch (e) {
         if (e.isNetwork) {
           left.add(p);
         } else {
-          outboxFailures = [...outboxFailures, '${p.s('p_purpose')} ${p.i('p_amount')}: ${e.message}'];
+          outboxFailures = [...outboxFailures, '${Purpose.labelOf(p.s('p_purpose'))} ${p.i('p_amount')}: ${e.message}'];
         }
       }
     }

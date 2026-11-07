@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/catalog.dart';
 import '../../core/json.dart';
 import '../../core/money.dart';
 import '../../state/app_state.dart';
@@ -42,7 +43,7 @@ class EmergencyScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: FilledButton(
-                      onPressed: st.myMemberId == null ? null : () => showRecordPayment(context, purpose: 'emergency_contribution'),
+                      onPressed: st.myMemberId == null ? null : () => showPaymentDialog(context, purpose: Purpose.emergencyContribution),
                       child: const Text('Contribute'),
                     ),
                   ),
@@ -91,7 +92,7 @@ class EmergencyScreen extends StatelessWidget {
                     'Decided by ${c.s('decided_by_name')}${c.n('decision_note') != null ? ': ${c.s('decision_note')}' : ''}',
                     style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
                   ),
-                if (c.s('status') == 'pending' && st.canReview)
+                if (c.s('status') == 'pending' && st.role.handlesMoney)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
@@ -117,7 +118,7 @@ class EmergencyScreen extends StatelessWidget {
         title: 'Claim Emergency Relief',
         confirm: 'Send Claim',
         fields: (ctx, set) => [
-          if (st.canRecordForOthers)
+          if (st.role.canRunMeetings)
             MemberPicker(label: 'Beneficiary Member', value: member, members: st.activeMembers, onChanged: (v) => set(() => member = v)),
           MoneyField(controller: amount, label: 'Relief Amount', currency: st.currency),
           TextField(
@@ -140,13 +141,12 @@ class EmergencyScreen extends StatelessWidget {
 
   Future<void> _reject(BuildContext context, AppState st, Json c) async {
     final r = await askText(context, title: 'Reject claim', label: 'Why?', confirm: 'Reject');
-    if (r == null) return;
-    final err = await st.act(() => st.api.decideEmergency(c.s('id'), false, null, null, r));
-    if (err != null && context.mounted) showMsg(context, err, error: true);
+    if (r == null || !context.mounted) return;
+    await runAndTell(context, () => st.api.decideEmergency(c.s('id'), false, null, null, r));
   }
 
   void _pay(BuildContext context, AppState st, Json c) {
-    var channel = 'cash';
+    var channel = Channel.cash;
     final ref = TextEditingController();
     showDialog(
       context: context,
@@ -155,14 +155,10 @@ class EmergencyScreen extends StatelessWidget {
         confirm: 'Record',
         fields: (ctx, set) => [
           Text('Pay ${Money.format(c.i('amount'), st.currency)} to ${c.s('member_name')} from the group\'s own money, then record it here.'),
-          ChannelPicker(value: channel, onChanged: (v) => set(() => channel = v)),
-          if (channel != 'cash')
-            TextField(
-              controller: ref,
-              decoration: const InputDecoration(labelText: 'Transaction ID'),
-            ),
+          ChannelFields(value: channel, ref: ref, onChanged: (v) => set(() => channel = v)),
         ],
-        onConfirm: (ctx) => runAndClose(ctx, st, () => st.api.decideEmergency(c.s('id'), true, channel, ref.text, ''), done: 'Relief recorded.'),
+        onConfirm: (ctx) => runAndClose(ctx, st, () => st.api.decideEmergency(c.s('id'), true, channel.code, ChannelFields.refFor(channel, ref), ''),
+            done: 'Relief recorded.'),
       ),
     );
   }

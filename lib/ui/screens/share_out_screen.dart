@@ -13,41 +13,39 @@ class ShareOutScreen extends StatefulWidget {
   State<ShareOutScreen> createState() => _ShareOutScreenState();
 }
 
-class _ShareOutScreenState extends State<ShareOutScreen> {
-  String? example; // 'A' or 'B' shows the worked examples
+/// A worked example: made-up members, so people can check the rule by hand.
+class _Example {
+  final String name;
+  final String button;
+  final int pool;
+  final int emergency;
+  final List<ShareOutInput> members;
+  const _Example(this.name, this.button, this.pool, this.emergency, this.members);
+}
 
-  static const exA = [ShareOutInput('ann', 'Ann Namubiru', 20000), ShareOutInput('ben', 'Ben Okello', 10000), ShareOutInput('cy', 'Cy Mugisha', 10000)];
-  static const exB = [ShareOutInput('a', 'Member A', 10), ShareOutInput('b', 'Member B', 10), ShareOutInput('c', 'Member C', 10)];
+const _examples = [
+  _Example('A', 'Example A (Ann, Ben, Cy)', 40083, 5000,
+      [ShareOutInput('ann', 'Ann Namubiru', 20000), ShareOutInput('ben', 'Ben Okello', 10000), ShareOutInput('cy', 'Cy Mugisha', 10000)]),
+  _Example('B', 'Example B (Pool 100 -> 34, 33, 33)', 100, 0, [ShareOutInput('a', 'Member A', 10), ShareOutInput('b', 'Member B', 10), ShareOutInput('c', 'Member C', 10)]),
+];
+
+class _ShareOutScreenState extends State<ShareOutScreen> {
+  _Example? example;
 
   @override
   Widget build(BuildContext context) {
     final st = StateScope.of(context);
-    return FutureBuilder<Json>(
-      key: ValueKey('${st.orgId}-${st.journals.length}-${st.org?.i('cycle_number')}'),
-      future: st.api.shareOutPreview(st.orgId),
-      builder: (context, snap) {
-        if (snap.hasError) return AppPageView(children: [Text(snap.error.toString())]);
-        if (!snap.hasData) return const Center(child: CircularProgressIndicator());
-        return _body(context, st, snap.data!);
-      },
-    );
+    return Loaded<Json>(load: () => st.api.shareOutPreview(st.orgId), builder: (context, live) => _body(context, st, live));
   }
 
   Widget _body(BuildContext context, AppState st, Json live) {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
-    final int pool;
-    final List<ShareOutRow> rows;
-    if (example == 'A') {
-      pool = 40083;
-      rows = ShareOut.calculate(pool, exA);
-    } else if (example == 'B') {
-      pool = 100;
-      rows = ShareOut.calculate(pool, exB);
-    } else {
-      pool = live.i('pool');
-      rows = [for (final p in live.l('payouts')) ShareOutRow(p.s('member_id'), p.s('full_name'), p.i('savings'), p.i('payout'), p.b('bonus'))];
-    }
+    final ex = example;
+    final pool = ex?.pool ?? live.i('pool');
+    final rows = ex != null
+        ? ShareOut.calculate(ex.pool, ex.members)
+        : [for (final p in live.l('payouts')) ShareOutRow(p.s('member_id'), p.s('full_name'), p.i('savings'), p.i('payout'), p.b('bonus'))];
     final sum = rows.fold<int>(0, (a, r) => a + r.payout);
     final exact = sum == pool && rows.isNotEmpty;
     final blockers = (live['blockers'] as List?) ?? const [];
@@ -64,7 +62,7 @@ class _ShareOutScreenState extends State<ShareOutScreen> {
                 children: [
                   Expanded(
                     child: Text(
-                      example == null ? 'Cycle ${st.org!.i('cycle_number')} Share-Out' : 'Worked Example $example',
+                      ex == null ? 'Cycle ${st.org!.i('cycle_number')} Share-Out' : 'Worked Example ${ex.name}',
                       style: tt.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: cs.onPrimaryContainer),
                     ),
                   ),
@@ -94,7 +92,7 @@ class _ShareOutScreenState extends State<ShareOutScreen> {
                     children: [
                       Text('Emergency Pot (Carried)', style: tt.labelSmall),
                       Text(
-                        Money.format(example == 'A' ? 5000 : (example == 'B' ? 0 : live.i('emergency')), st.currency),
+                        Money.format(ex?.emergency ?? live.i('emergency'), st.currency),
                         style: tt.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                       ),
                     ],
@@ -138,15 +136,14 @@ class _ShareOutScreenState extends State<ShareOutScreen> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  OutlinedButton(onPressed: () => setState(() => example = 'A'), child: const Text('Example A (Ann, Ben, Cy)')),
-                  OutlinedButton(onPressed: () => setState(() => example = 'B'), child: const Text('Example B (Pool 100 -> 34, 33, 33)')),
-                  if (example != null) TextButton(onPressed: () => setState(() => example = null), child: const Text('Reset to Live Group')),
+                  for (final e in _examples) OutlinedButton(onPressed: () => setState(() => example = e), child: Text(e.button)),
+                  if (ex != null) TextButton(onPressed: () => setState(() => example = null), child: const Text('Reset to Live Group')),
                 ],
               ),
             ],
           ),
         ),
-        if (example == null && blockers.isNotEmpty)
+        if (ex == null && blockers.isNotEmpty)
           SaccoCard(
             color: cs.errorContainer,
             child: Column(
@@ -193,7 +190,7 @@ class _ShareOutScreenState extends State<ShareOutScreen> {
               ],
             ),
           ),
-        if (example == null && st.canReview && rows.isNotEmpty) ...[
+        if (ex == null && st.role.handlesMoney && rows.isNotEmpty) ...[
           FilledButton.icon(
             onPressed: blockers.isNotEmpty ? null : () => _confirm(context, st, pool),
             icon: const Icon(Icons.lock),
@@ -216,10 +213,7 @@ class _ShareOutScreenState extends State<ShareOutScreen> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           FilledButton(
-            onPressed: () => runAndClose(ctx, st, () async {
-              await st.api.executeShareOut(st.orgId);
-              await st.loadOrgs(select: st.orgId);
-            }, done: 'Cycle closed.'),
+            onPressed: () => runAndClose(ctx, st, () => st.api.executeShareOut(st.orgId), done: 'Cycle closed.'),
             child: const Text('Confirm'),
           ),
         ],

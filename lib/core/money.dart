@@ -12,27 +12,29 @@ class Money {
     return b.toString();
   }
 
-  static String format(int minor, [String currency = 'UGX']) {
+  /// The number without the currency, as a person would type it: 10000 -> "10,000", KES 1050 -> "10.50".
+  static String plain(int minor, [String currency = 'UGX']) {
     final sign = minor < 0 ? '-' : '';
-    if (decimals(currency) == 2) {
-      final a = minor.abs();
-      return '$currency $sign${_commas(a ~/ 100)}.${(a % 100).toString().padLeft(2, '0')}';
-    }
-    return '$currency $sign${_commas(minor)}';
+    final a = minor.abs();
+    if (decimals(currency) == 2) return '$sign${_commas(a ~/ 100)}.${(a % 100).toString().padLeft(2, '0')}';
+    return '$sign${_commas(a)}';
   }
 
-  /// "10,000" -> 10000 (UGX). "10.50" -> 1050 (KES). Returns null if not a valid positive amount.
-  static int? parse(String text, [String currency = 'UGX']) {
+  static String format(int minor, [String currency = 'UGX']) => '$currency ${plain(minor, currency)}';
+
+  /// "10,000" -> 10000 (UGX). "10.50" -> 1050 (KES). Returns null if not a valid amount.
+  /// Zero is refused unless [allowZero], like an empty cash box.
+  static int? parse(String text, [String currency = 'UGX', bool allowZero = false]) {
     final t = text.replaceAll(',', '').replaceAll(' ', '').trim();
+    int? v;
     if (decimals(currency) == 0) {
-      final v = int.tryParse(t);
-      return (v == null || v <= 0) ? null : v;
+      v = RegExp(r'^\d+$').hasMatch(t) ? int.parse(t) : null;
+    } else if (RegExp(r'^\d+(\.\d{1,2})?$').hasMatch(t)) {
+      final parts = t.split('.');
+      v = int.parse(parts[0]) * 100 + int.parse(parts.length == 2 ? parts[1].padRight(2, '0') : '00');
     }
-    if (!RegExp(r'^\d+(\.\d{1,2})?$').hasMatch(t)) return null;
-    final parts = t.split('.');
-    final cents = parts.length == 2 ? parts[1].padRight(2, '0') : '00';
-    final v = int.parse(parts[0]) * 100 + int.parse(cents);
-    return v <= 0 ? null : v;
+    if (v == null || v < 0 || (v == 0 && !allowZero)) return null;
+    return v;
   }
 
   static String maskPhone(String? phone) {
@@ -49,6 +51,10 @@ class Money {
 }
 
 class Phones {
+  /// Members sign in with phone + password, with no SMS cost. The login system needs an email,
+  /// so a phone becomes a private address that no mail is ever sent to.
+  static const _privateDomain = '@phone.saccoledger.app';
+
   /// 0772 123456 -> 256772123456. Same rule as the database.
   /// [dial] is the country code (256 Uganda, 254 Kenya, 255 Tanzania, 250 Rwanda).
   /// A number typed with its own country code (+254...) keeps it.
@@ -61,30 +67,45 @@ class Phones {
     return d;
   }
 
-  /// Members sign in with phone + password, with no SMS cost. The login system needs an email,
-  /// so a phone becomes a private address that no mail is ever sent to.
+  /// A normalized number of a sensible length. The database checks the same 11 to 13 digits.
+  static bool isValidNumber(String? normalized) => normalized != null && normalized.length >= 11 && normalized.length <= 13;
+
   static String loginEmail(String input, {String dial = '256'}) {
     final t = input.trim().toLowerCase();
     if (t.contains('@')) return t;
-    return '${normalize(t, dial: dial) ?? t}@phone.saccoledger.app';
+    return '${normalize(t, dial: dial) ?? t}$_privateDomain';
   }
+
+  /// What a person signs in with, in their own words: "phone +256..." or their email.
+  static String signInLabel(String loginId) =>
+      loginId.endsWith(_privateDomain) ? 'phone +${loginId.substring(0, loginId.length - _privateDomain.length)}' : loginId;
 
   static bool looksValid(String input, {String dial = '256'}) {
     final t = input.trim();
     if (t.contains('@')) return RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(t);
-    final n = normalize(t, dial: dial);
-    return n != null && n.length >= 11 && n.length <= 13;
+    return isValidNumber(normalize(t, dial: dial));
   }
 }
 
 class Dates {
   static const _months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
+  static String monthShort(int month) => _months[(month - 1).clamp(0, 11)];
+
+  /// Today at midnight, so schedules start on a whole day.
+  static DateTime today() {
+    final n = DateTime.now();
+    return DateTime(n.year, n.month, n.day);
+  }
+
+  /// 2026-11-07, the way the database writes a day.
+  static String iso(DateTime d) => '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+
   static String day(dynamic v) {
     final d = v is DateTime ? v : DateTime.tryParse(v?.toString() ?? '');
     if (d == null) return '-';
     final l = d.toLocal();
-    return '${l.day} ${_months[l.month - 1]} ${l.year}';
+    return '${l.day} ${monthShort(l.month)} ${l.year}';
   }
 
   static String dayTime(dynamic v) {

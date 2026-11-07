@@ -64,7 +64,7 @@ void main() {
     expect(find.textContaining('end of a cycle'), findsOneWidget);
     await t.tapAt(const Offset(20, 20)); // close the explanation
     await t.pumpAndSettle();
-    await st.updatePrefs(showTips: false);
+    await st.updateSettings(showTips: false);
     await t.pumpWidget(app(st, const Scaffold(body: SectionTitle('Ledger', info: 'ledger'))));
     expect(find.byIcon(Icons.info_outline), findsNothing);
   });

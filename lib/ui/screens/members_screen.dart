@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/catalog.dart';
 import '../../core/json.dart';
 import '../../core/money.dart';
-import '../../core/search_index.dart';
+import '../../core/pages.dart';
 import '../../state/app_state.dart';
 import '../widgets.dart';
 
 class MembersScreen extends StatelessWidget {
   const MembersScreen({super.key});
-
-  static const roles = ['member', 'org_admin', 'treasurer', 'secretary', 'loan_officer', 'auditor'];
 
   @override
   Widget build(BuildContext context) {
@@ -20,9 +19,9 @@ class MembersScreen extends StatelessWidget {
     return AppPageView(
       children: [
         SectionTitle(
-          '${st.t('members')} (${st.members.length})',
-          trailing: st.canManageMembers
-              ? FilledButton.icon(onPressed: () => _add(context, st), icon: const Icon(Icons.person_add, size: 16), label: const Text('Add'))
+          '${st.t(AppPage.members.title)} (${st.members.length})',
+          trailing: st.role.canManageMembers
+              ? FilledButton.icon(onPressed: () => _form(context, st), icon: const Icon(Icons.person_add, size: 16), label: const Text('Add'))
               : null,
         ),
         if (st.members.isEmpty) const EmptyNote('No members yet.'),
@@ -48,7 +47,7 @@ class MembersScreen extends StatelessWidget {
                   ],
                 ),
                 Text(
-                  '${roleNames[m.s('role')]} • ${Money.maskPhone(m.n('phone'))} • NIN ${Money.maskNationalId(m.n('national_id'))}',
+                  '${Role.labelOf(m.s('role'))} • ${Money.maskPhone(m.n('phone'))} • NIN ${Money.maskNationalId(m.n('national_id'))}',
                   style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
                 ),
                 Text(
@@ -81,15 +80,11 @@ class MembersScreen extends StatelessWidget {
                       onPressed: () => st.goTo(AppPage.statements, memberId: m.s('id')),
                       child: const Text('Statement'),
                     ),
-                    if (st.canManageMembers) ...[
-                      TextButton(onPressed: () => _edit(context, st, m), child: const Text('Edit')),
+                    if (st.role.canManageMembers) ...[
+                      TextButton(onPressed: () => _form(context, st, m: m), child: const Text('Edit')),
                       TextButton(
-                        onPressed: () async {
-                          final err = await st.act(() async {
-                            await st.api.newMemberCode(m.s('id'));
-                          });
-                          if (context.mounted) showMsg(context, err ?? 'New code made. It works for joining or for a forgotten password.', error: err != null);
-                        },
+                        onPressed: () => runAndTell(context, () => st.api.newMemberCode(m.s('id')),
+                            done: 'New code made. It works for joining or for a forgotten password.'),
                         child: const Text('New code'),
                       ),
                     ],
@@ -102,103 +97,60 @@ class MembersScreen extends StatelessWidget {
     );
   }
 
-  void _add(BuildContext context, AppState st) {
-    final name = TextEditingController();
-    final phone = TextEditingController();
-    final nin = TextEditingController();
+  /// The same questions for a new member and for editing one.
+  void _form(BuildContext context, AppState st, {Json? m}) {
+    final name = TextEditingController(text: m?.s('full_name'));
+    final phone = TextEditingController(text: m?.s('phone'));
+    final nin = TextEditingController(text: m?.s('national_id'));
     final kin = TextEditingController();
     final kinPhone = TextEditingController();
-    var role = 'member';
+    var role = Role.parse(m?.s('role'));
+    var active = m?.b('is_active') ?? true;
     showDialog(
       context: context,
       builder: (_) => FormDialog(
-        title: 'Add Member',
-        confirm: 'Add',
+        title: m == null ? 'Add Member' : 'Edit ${m.s('full_name')}',
+        confirm: m == null ? 'Add' : 'Save',
         fields: (ctx, set) => [
-          TextField(
-            controller: name,
-            decoration: const InputDecoration(labelText: 'Full name'),
-          ),
-          TextField(
-            controller: phone,
-            keyboardType: TextInputType.phone,
-            decoration: const InputDecoration(labelText: 'Phone'),
-          ),
-          TextField(
-            controller: nin,
-            decoration: const InputDecoration(labelText: 'National ID (NIN), optional'),
-          ),
-          if (st.isOrgAdmin)
-            DropdownButtonFormField<String>(
+          TextField(controller: name, decoration: const InputDecoration(labelText: 'Full name')),
+          TextField(controller: phone, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Phone')),
+          TextField(controller: nin, decoration: InputDecoration(labelText: m == null ? 'National ID (NIN), optional' : 'National ID (NIN)')),
+          if (st.role.isOrgAdmin)
+            DropdownButtonFormField<Role>(
               initialValue: role,
               decoration: const InputDecoration(labelText: 'Role'),
-              items: [for (final r in roles) DropdownMenuItem(value: r, child: Text(roleNames[r]!))],
+              items: [for (final r in Role.assignable) DropdownMenuItem(value: r, child: Text(r.label))],
               onChanged: (v) => set(() => role = v ?? role),
             ),
-          TextField(
-            controller: kin,
-            decoration: const InputDecoration(labelText: 'Next of kin, optional'),
-          ),
-          TextField(
-            controller: kinPhone,
-            keyboardType: TextInputType.phone,
-            decoration: const InputDecoration(labelText: 'Next of kin phone, optional'),
-          ),
+          if (m == null) ...[
+            TextField(controller: kin, decoration: const InputDecoration(labelText: 'Next of kin, optional')),
+            TextField(controller: kinPhone, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Next of kin phone, optional')),
+          ] else
+            SwitchListTile(contentPadding: EdgeInsets.zero, title: const Text('Active'), value: active, onChanged: (v) => set(() => active = v)),
         ],
-        onConfirm: (ctx) => runAndClose(ctx, st, () async {
-          await st.api.addMember(st.orgId,
-              name: name.text,
-              phone: Phones.normalize(phone.text, dial: st.dial),
-              nationalId: nin.text,
-              role: role,
-              kinName: kin.text,
-              kinPhone: Phones.normalize(kinPhone.text, dial: st.dial));
-        }, done: 'Member added. Their invite code is on their card.'),
-      ),
-    );
-  }
-
-  void _edit(BuildContext context, AppState st, Json m) {
-    final name = TextEditingController(text: m.s('full_name'));
-    final phone = TextEditingController(text: m.s('phone'));
-    final nin = TextEditingController(text: m.s('national_id'));
-    var role = m.s('role');
-    var active = m.b('is_active');
-    showDialog(
-      context: context,
-      builder: (_) => FormDialog(
-        title: 'Edit ${m.s('full_name')}',
-        confirm: 'Save',
-        fields: (ctx, set) => [
-          TextField(
-            controller: name,
-            decoration: const InputDecoration(labelText: 'Full name'),
-          ),
-          TextField(
-            controller: phone,
-            keyboardType: TextInputType.phone,
-            decoration: const InputDecoration(labelText: 'Phone'),
-          ),
-          TextField(
-            controller: nin,
-            decoration: const InputDecoration(labelText: 'National ID (NIN)'),
-          ),
-          if (st.isOrgAdmin)
-            DropdownButtonFormField<String>(
-              initialValue: role,
-              decoration: const InputDecoration(labelText: 'Role'),
-              items: [for (final r in roles) DropdownMenuItem(value: r, child: Text(roleNames[r]!))],
-              onChanged: (v) => set(() => role = v ?? role),
-            ),
-          SwitchListTile(contentPadding: EdgeInsets.zero, title: const Text('Active'), value: active, onChanged: (v) => set(() => active = v)),
-        ],
-        onConfirm: (ctx) => runAndClose(
-          ctx,
-          st,
-          () => st.api.updateMember(m.s('id'),
-              {'full_name': name.text, 'phone': Phones.normalize(phone.text, dial: st.dial) ?? '', 'national_id': nin.text, 'role': role, 'is_active': active}),
-          done: 'Saved.',
-        ),
+        onConfirm: (ctx) => m == null
+            ? runAndClose(
+                ctx,
+                st,
+                () => st.api.addMember(st.orgId,
+                    name: name.text,
+                    phone: Phones.normalize(phone.text, dial: st.dial),
+                    nationalId: nin.text,
+                    role: role.code,
+                    kinName: kin.text,
+                    kinPhone: Phones.normalize(kinPhone.text, dial: st.dial)),
+                done: 'Member added. Their invite code is on their card.')
+            : runAndClose(
+                ctx,
+                st,
+                () => st.api.updateMember(m.s('id'), {
+                  'full_name': name.text,
+                  'phone': Phones.normalize(phone.text, dial: st.dial) ?? '',
+                  'national_id': nin.text,
+                  'role': role.code,
+                  'is_active': active,
+                }),
+                done: 'Saved.'),
       ),
     );
   }

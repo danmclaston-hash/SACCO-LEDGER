@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../core/catalog.dart';
 import '../core/glossary.dart';
 import '../core/json.dart';
 import '../core/money.dart';
@@ -11,36 +14,6 @@ class StateScope extends InheritedNotifier<AppState> {
   const StateScope({super.key, required AppState state, required super.child}) : super(notifier: state);
   static AppState of(BuildContext c) => c.dependOnInheritedWidgetOfExactType<StateScope>()!.notifier!;
 }
-
-const channelNames = {'mtn_momo': 'MTN MoMo', 'airtel_money': 'Airtel Money', 'bank': 'Bank', 'cash': 'Cash'};
-
-/// Channels a person can pick by hand. Online ones below are set only by the server, after the gateway confirms.
-const allChannelNames = {...channelNames, 'flutterwave': 'Flutterwave (verified)', 'pesapal': 'Pesapal (verified)'};
-const gatewayNames = {'flutterwave': 'Flutterwave', 'pesapal': 'Pesapal'};
-const purposeNames = {
-  'shares': 'Buy shares',
-  'savings': 'Savings deposit',
-  'fine': 'Fine',
-  'loan_repayment': 'Loan repayment',
-  'emergency_contribution': 'Emergency contribution',
-  'withdrawal': 'Savings withdrawal',
-  'expense': 'Group expense',
-};
-const roleNames = {
-  'org_admin': 'Organization Admin',
-  'treasurer': 'Treasurer',
-  'secretary': 'Secretary',
-  'loan_officer': 'Loan Officer',
-  'auditor': 'Auditor',
-  'member': 'Member',
-  'platform_admin': 'Platform Admin',
-};
-const editionNames = {'tier_1_vsla': 'Tier 1: Community Groups', 'tier_2_sacco': 'Tier 2: Digital SACCO', 'tier_3_intelligent': 'Tier 3: Intelligent Finance'};
-const editionHints = {
-  'tier_1_vsla': 'VSLA meetings, attendance, quorum, shares, fines, emergency fund, cycle share-out',
-  'tier_2_sacco': 'Individual accounts, deposits, withdrawals, loan products, repayment schedules',
-  'tier_3_intelligent': 'Full SACCO plus portfolio risk dashboards and risk flags',
-};
 
 void showMsg(BuildContext context, String msg, {bool error = false}) {
   ScaffoldMessenger.of(context)
@@ -60,6 +33,54 @@ Future<void> runAndClose(BuildContext dialogCtx, AppState st, Future<void> Funct
   } else {
     nav.pop();
     if (done != null) outer.showSnackBar(SnackBar(content: Text(done)));
+  }
+}
+
+/// Runs a change from a page and says how it went: [done] if fine, the rule's reason if refused.
+Future<bool> runAndTell(BuildContext context, Future<void> Function() fn, {String? done}) async {
+  final err = await StateScope.of(context).act(fn);
+  if (context.mounted && (err != null || done != null)) showMsg(context, err ?? done!, error: err != null);
+  return err == null;
+}
+
+/// Opens a link or the phone dialer. If the phone cannot, copies it so the person can paste it.
+Future<void> openOrCopy(BuildContext context, Uri uri, {required String copy, required String failMessage, bool external = false}) async {
+  var opened = false;
+  try {
+    opened = await launchUrl(uri, mode: external ? LaunchMode.externalApplication : LaunchMode.platformDefault);
+  } catch (_) {}
+  if (opened || !context.mounted) return;
+  await Clipboard.setData(ClipboardData(text: copy));
+  if (context.mounted) showMsg(context, failMessage);
+}
+
+/// Fetches extra data for one part of a page, with the usual spinner and error.
+/// Fetches again after every reload of the app's data, and when [key] changes.
+class Loaded<T> extends StatelessWidget {
+  final Future<T> Function() load;
+  final Widget Function(BuildContext context, T data) builder;
+  final Object? id;
+
+  /// What shows while loading, and instead of an error. A spinner and the error text unless given.
+  final Widget? waiting;
+  final Widget Function(Object error)? error;
+  const Loaded({super.key, required this.load, required this.builder, this.id, this.waiting, this.error});
+
+  @override
+  Widget build(BuildContext context) {
+    final st = StateScope.of(context);
+    return FutureBuilder<T>(
+      key: ValueKey('${st.orgId}-${st.version}-$id'),
+      future: load(),
+      builder: (context, snap) {
+        if (snap.hasError) {
+          if (error != null) return error!(snap.error!);
+          return Padding(padding: const EdgeInsets.all(16), child: Text(snap.error.toString(), style: TextStyle(color: Theme.of(context).colorScheme.error)));
+        }
+        if (!snap.hasData) return waiting ?? const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()));
+        return builder(context, snap.data as T);
+      },
+    );
   }
 }
 
@@ -317,7 +338,7 @@ class MemberPicker extends StatelessWidget {
           for (final m in members)
             DropdownMenuItem(
               value: m.s('id'),
-              child: Text('${m.s('full_name')} (${roleNames[m.s('role')] ?? m.s('role')})', overflow: TextOverflow.ellipsis),
+              child: Text('${m.s('full_name')} (${Role.labelOf(m.s('role'))})', overflow: TextOverflow.ellipsis),
             ),
         ],
         onChanged: onChanged,
@@ -355,7 +376,7 @@ class BrandChip extends StatelessWidget {
   Widget build(BuildContext context) => Row(mainAxisSize: MainAxisSize.min, children: [
         BrandMark(channel, size: 16),
         const SizedBox(width: 6),
-        Text(allChannelNames[channel] ?? channel, style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
+        Text(Channel.labelOf(channel), style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
       ]);
 }
 
@@ -377,21 +398,37 @@ class BrandButton extends StatelessWidget {
   }
 }
 
-class ChannelPicker extends StatelessWidget {
-  final String value;
-  final ValueChanged<String> onChanged;
-  const ChannelPicker({super.key, required this.value, required this.onChanged});
+/// How the money moved, and its transaction ID unless it was cash.
+class ChannelFields extends StatelessWidget {
+  final Channel value;
+  final ValueChanged<Channel> onChanged;
+  final TextEditingController ref;
+  const ChannelFields({super.key, required this.value, required this.onChanged, required this.ref});
+
+  /// The ID to send: none for cash.
+  static String? refFor(Channel c, TextEditingController ref) => c.needsRef ? ref.text.trim() : null;
+
   @override
-  Widget build(BuildContext context) => DropdownButtonFormField<String>(
-        initialValue: value,
-        isExpanded: true,
-        decoration: const InputDecoration(labelText: 'How the money moved'),
-        items: [
-          for (final e in channelNames.entries)
-            DropdownMenuItem(value: e.key, child: Row(children: [BrandMark(e.key), const SizedBox(width: 10), Text(e.value)])),
+  Widget build(BuildContext context) => Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        DropdownButtonFormField<Channel>(
+          initialValue: value,
+          isExpanded: true,
+          decoration: const InputDecoration(labelText: 'How the money moved'),
+          items: [
+            for (final c in Channel.byHand)
+              DropdownMenuItem(value: c, child: Row(children: [BrandMark(c.code), const SizedBox(width: 10), Text(c.label)])),
+          ],
+          onChanged: (v) => onChanged(v ?? value),
+        ),
+        if (value.needsRef) ...[
+          gap,
+          TextField(
+            controller: ref,
+            textCapitalization: TextCapitalization.characters,
+            decoration: const InputDecoration(labelText: 'Transaction ID from the SMS'),
+          ),
         ],
-        onChanged: (v) => onChanged(v ?? value),
-      );
+      ]);
 }
 
 class MoneyField extends StatelessWidget {

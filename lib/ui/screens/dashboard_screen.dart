@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../../core/catalog.dart';
 import '../../core/json.dart';
+import '../../core/pages.dart';
 import '../../core/risk.dart';
-import '../../core/search_index.dart';
 import '../charts.dart';
+import '../shells.dart';
 import '../theme.dart';
-import 'goals_screen.dart';
 import '../widgets.dart';
+import 'goals_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -23,6 +25,7 @@ class DashboardScreen extends StatelessWidget {
     final pending = d.i('pending_payments') + d.i('pending_loans') + d.i('pending_emergency');
     final recent = st.journals.take(4).toList();
     final me = st.me;
+    final edition = Edition.parse(org.s('edition'));
 
     return AppPageView(
       children: [
@@ -43,7 +46,7 @@ class DashboardScreen extends StatelessWidget {
                           style: tt.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: cs.onPrimaryContainer),
                         ),
                         Text(
-                          'Cycle ${org.i('cycle_number')} • ${editionNames[org.s('edition')]}',
+                          'Cycle ${org.i('cycle_number')} • ${edition.label}',
                           style: tt.bodyMedium?.copyWith(color: cs.onPrimaryContainer.withValues(alpha: 0.8)),
                         ),
                       ],
@@ -56,7 +59,7 @@ class DashboardScreen extends StatelessWidget {
                 ],
               ),
               gap,
-              Text(editionHints[org.s('edition')] ?? '', style: tt.bodySmall?.copyWith(color: cs.onPrimaryContainer.withValues(alpha: 0.9))),
+              Text(edition.hint, style: tt.bodySmall?.copyWith(color: cs.onPrimaryContainer.withValues(alpha: 0.9))),
             ],
           ),
         ),
@@ -65,7 +68,7 @@ class DashboardScreen extends StatelessWidget {
             alignment: Alignment.centerLeft,
             child: Pill(text: 'DEMO DATA: not real money', color: warnOrange),
           ),
-        if (me != null && !st.isOfficer)
+        if (me != null && !st.role.isOfficer)
           SaccoCard(
             color: cs.secondaryContainer,
             child: Column(
@@ -80,7 +83,7 @@ class DashboardScreen extends StatelessWidget {
               ],
             ),
           ),
-        if (st.isOfficer && pending > 0)
+        if (st.role.isOfficer && pending > 0)
           SaccoCard(
             color: cs.errorContainer,
             child: Row(
@@ -156,22 +159,14 @@ class DashboardScreen extends StatelessWidget {
           runSpacing: 8,
           children: [
             FilledButton.icon(
-              onPressed: st.isPlatformAdmin ? null : () => st.goTo(AppPage.channels),
+              onPressed: st.myMemberId == null ? null : () => st.goTo(AppPage.channels),
               icon: const Icon(Icons.add_circle_outline, size: 16),
               label: const Text('Record Payment'),
             ),
-            FilledButton.tonalIcon(onPressed: () => st.goTo(AppPage.meetings), icon: const Icon(Icons.groups, size: 16), label: const Text('Meeting')),
-            FilledButton.tonalIcon(onPressed: () => st.goTo(AppPage.goals), icon: const Icon(Icons.flag, size: 16), label: Text(st.t('goals'))),
-            OutlinedButton.icon(onPressed: () => st.goTo(AppPage.loans), icon: const Icon(Icons.credit_score, size: 16), label: const Text('Loans')),
-            OutlinedButton.icon(onPressed: () => st.goTo(AppPage.statements), icon: const Icon(Icons.receipt_long, size: 16), label: const Text('Statements')),
-            if (st.isOfficer)
-              OutlinedButton.icon(onPressed: () => st.goTo(AppPage.approvals), icon: const Icon(Icons.fact_check, size: 16), label: const Text('Approvals')),
-            if (st.isOfficer)
-              OutlinedButton.icon(onPressed: () => st.goTo(AppPage.members), icon: const Icon(Icons.people, size: 16), label: Text(st.t('members'))),
-            OutlinedButton.icon(onPressed: () => st.goTo(AppPage.licences), icon: const Icon(Icons.verified, size: 16), label: const Text('Licences')),
-            if (st.isOfficer)
-              OutlinedButton.icon(onPressed: () => st.goTo(AppPage.settings), icon: const Icon(Icons.settings, size: 16), label: const Text('Settings')),
-            if (!st.isOfficer) OutlinedButton.icon(onPressed: st.signOut, icon: const Icon(Icons.logout, size: 16), label: const Text('Sign out')),
+            for (final p in const [AppPage.meetings, AppPage.goals]) FilledButton.tonalIcon(onPressed: () => st.goTo(p), icon: Icon(pageIcon(p), size: 16), label: Text(st.t(p.title))),
+            for (final p in const [AppPage.loans, AppPage.statements, AppPage.approvals, AppPage.members, AppPage.licences, AppPage.settings])
+              if (st.canSee(p)) OutlinedButton.icon(onPressed: () => st.goTo(p), icon: Icon(pageIcon(p), size: 16), label: Text(st.t(p.title))),
+            if (!st.role.isOfficer) OutlinedButton.icon(onPressed: st.signOut, icon: const Icon(Icons.logout, size: 16), label: const Text('Sign out')),
           ],
         ),
         // Goals running now: one line each, tap to open.
@@ -181,9 +176,9 @@ class DashboardScreen extends StatelessWidget {
         ],
         // How the group is doing: simple charts from checked records only.
         if (st.flows.any((f) => f.i('paid_in') > 0 || f.i('paid_out') > 0 || f.i('savings') > 0)) ...[
-          SectionTitle(st.isOfficer ? 'How the group is doing' : 'How I am doing'),
-          MoneyFlowChart(flows: st.flows, currency: st.currency, mine: !st.isOfficer),
-          SavingsGrowthChart(flows: st.flows, currency: st.currency, mine: !st.isOfficer),
+          SectionTitle(st.role.isOfficer ? 'How the group is doing' : 'How I am doing'),
+          MoneyFlowChart(flows: st.flows, currency: st.currency, mine: !st.role.isOfficer),
+          SavingsGrowthChart(flows: st.flows, currency: st.currency, mine: !st.role.isOfficer),
         ],
         SaccoCard(
           elevation: 2,
@@ -231,7 +226,7 @@ class DashboardScreen extends StatelessWidget {
                   Text('Advice (Heuristic Rules)', style: tt.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
                 ],
               ),
-              Text(st.t('ai_notice'), style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant.withValues(alpha: 0.7))),
+              Text(st.t('AI suggests, never acts on money'), style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant.withValues(alpha: 0.7))),
               const SizedBox(height: 8),
               for (final f in flags)
                 Padding(
@@ -272,7 +267,7 @@ class DashboardScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SectionTitle(
-              st.isOfficer ? 'Recent Journal Postings' : 'My Recent Records',
+              st.role.isOfficer ? 'Recent Journal Postings' : 'My Recent Records',
               trailing: TextButton(onPressed: () => st.goTo(AppPage.ledger), child: const Text('View Full Ledger')),
             ),
             if (recent.isEmpty) const EmptyNote('No journal entries recorded yet.'),

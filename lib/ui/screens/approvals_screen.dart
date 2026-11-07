@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/catalog.dart';
 import '../../core/json.dart';
 import '../../core/money.dart';
 import '../../state/app_state.dart';
@@ -20,11 +21,10 @@ class ApprovalsScreen extends StatelessWidget {
       var note = '';
       if (!approve) {
         final r = await askText(context, title: 'Reject this record', label: 'Why?', confirm: 'Reject');
-        if (r == null) return;
+        if (r == null || !context.mounted) return;
         note = r;
       }
-      final err = await st.act(() => st.api.reviewPayment(p.s('id'), approve, note));
-      if (context.mounted) showMsg(context, err ?? (approve ? 'Confirmed and posted to the ledger.' : 'Rejected.'), error: err != null);
+      await runAndTell(context, () => st.api.reviewPayment(p.s('id'), approve, note), done: approve ? 'Confirmed and posted to the ledger.' : 'Rejected.');
     }
 
     return AppPageView(
@@ -33,14 +33,14 @@ class ApprovalsScreen extends StatelessWidget {
           'Waiting for review (${pending.length})',
           trailing: st.myMemberId == null
               ? null
-              : TextButton.icon(onPressed: () => showRecordPayment(context), icon: const Icon(Icons.add), label: const Text('Record')),
+              : TextButton.icon(onPressed: () => showPaymentDialog(context), icon: const Icon(Icons.add), label: const Text('Record')),
         ),
         if (pending.isEmpty) const EmptyNote('Nothing waiting. All records are checked.'),
         for (final p in pending)
           PaymentTile(
             p,
             actions: [
-              if (st.canReview) ...[
+              if (st.role.handlesMoney) ...[
                 TextButton(onPressed: () => decide(p, false), child: const Text('Reject')),
                 const SizedBox(width: 8),
                 FilledButton(onPressed: () => decide(p, true), child: const Text('Confirm')),
@@ -51,9 +51,9 @@ class ApprovalsScreen extends StatelessWidget {
         for (final p in done)
           PaymentTile(p, actions: [
             // Fix a forgotten or wrong goal label. The money does not move; the audit trail keeps who and why.
-            if (st.canRunMeetings &&
+            if (st.role.canRunMeetings &&
                 p.s('status') == 'confirmed' &&
-                (p.s('purpose') == 'shares' || p.s('purpose') == 'savings') &&
+                Purpose.parse(p.s('purpose')).takesGoal &&
                 (st.activeGoals.isNotEmpty || p.n('goal_id') != null))
               TextButton.icon(onPressed: () => _relabel(context, st, p), icon: const Icon(Icons.flag_outlined, size: 16), label: const Text('Goal label')),
           ]),

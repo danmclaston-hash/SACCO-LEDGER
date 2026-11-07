@@ -4,8 +4,10 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 
+import '../../core/catalog.dart';
 import '../../core/json.dart';
 import '../../core/money.dart';
+import '../../core/pages.dart';
 import '../../state/app_state.dart';
 import '../widgets.dart';
 
@@ -17,128 +19,126 @@ class StatementsScreen extends StatefulWidget {
 }
 
 class _StatementsScreenState extends State<StatementsScreen> {
-  String? memberId;
   int? cycle;
 
   @override
   Widget build(BuildContext context) {
     final st = StateScope.of(context);
-    final cs = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
-    if (st.statementMemberId != null) {
-      memberId = st.statementMemberId;
-      st.statementMemberId = null;
-    }
-    memberId ??= st.myMemberId ?? (st.members.isNotEmpty ? st.members.first.s('id') : null);
+    final memberId = st.statementMemberId ?? st.myMemberId ?? st.members.firstOrNull?.s('id');
     final cycles = st.org!.i('cycle_number');
     if (memberId == null) return const AppPageView(children: [EmptyNote('No members yet.')]);
 
-    return FutureBuilder<Json>(
-      key: ValueKey('$memberId-$cycle-${st.journals.length}'),
-      future: st.api.statement(st.orgId, memberId!, cycle: cycle),
-      builder: (context, snap) {
-        return AppPageView(
-          children: [
-            if (st.isOfficer)
-              MemberPicker(key: ValueKey(memberId), label: 'Member', value: memberId, members: st.members, onChanged: (v) => setState(() => memberId = v)),
-            DropdownButtonFormField<int?>(
-              initialValue: cycle,
-              decoration: const InputDecoration(labelText: 'Cycle'),
-              items: [
-                const DropdownMenuItem<int?>(value: null, child: Text('All cycles')),
-                for (var c = cycles; c >= 1; c--) DropdownMenuItem<int?>(value: c, child: Text('Cycle $c')),
-              ],
-              onChanged: (v) => setState(() => cycle = v),
+    return AppPageView(
+      children: [
+        if (st.role.isOfficer)
+          MemberPicker(
+              key: ValueKey(memberId), label: 'Member', value: memberId, members: st.members, onChanged: (v) => st.goTo(AppPage.statements, memberId: v)),
+        DropdownButtonFormField<int?>(
+          initialValue: cycle,
+          decoration: const InputDecoration(labelText: 'Cycle'),
+          items: [
+            const DropdownMenuItem<int?>(value: null, child: Text('All cycles')),
+            for (var c = cycles; c >= 1; c--) DropdownMenuItem<int?>(value: c, child: Text('Cycle $c')),
+          ],
+          onChanged: (v) => setState(() => cycle = v),
+        ),
+        Loaded<Json>(
+          id: '$memberId-$cycle',
+          load: () => st.api.statement(st.orgId, memberId, cycle: cycle),
+          builder: (context, data) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            for (final w in _statement(context, st, data)) Padding(padding: const EdgeInsets.only(bottom: 16), child: w),
+          ]),
+        ),
+      ],
+    );
+  }
+
+  List<Widget> _statement(BuildContext context, AppState st, Json data) {
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    return [
+      Row(
+        children: [
+          Expanded(
+            child: BalanceStatCard(
+              title: 'Savings',
+              amount: money(context, data.i('savings')),
+              subtitle: 'Shares and deposits',
+              icon: Icons.savings,
+              color: cs.surfaceContainerHighest,
             ),
-            if (snap.hasError) Text(snap.error.toString(), style: TextStyle(color: cs.error)),
-            if (!snap.hasData && !snap.hasError) const Center(child: CircularProgressIndicator()),
-            if (snap.hasData) ...[
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: BalanceStatCard(
+              title: 'Loan Left',
+              amount: money(context, data.i('loan_balance')),
+              subtitle: 'Fines paid ${money(context, data.i('fines'))}',
+              icon: Icons.request_quote,
+              color: cs.surfaceContainerHighest,
+            ),
+          ),
+        ],
+      ),
+      Wrap(
+        spacing: 8,
+        children: [
+          FilledButton.tonalIcon(
+            onPressed: () => _pdf(st, data),
+            icon: const Icon(Icons.picture_as_pdf, size: 16),
+            label: const Text('Print / PDF'),
+          ),
+          OutlinedButton.icon(
+            onPressed: () async {
+              await Clipboard.setData(ClipboardData(text: _csv(data)));
+              if (context.mounted) showMsg(context, 'Copied as CSV. Paste it in a spreadsheet.');
+            },
+            icon: const Icon(Icons.table_chart, size: 16),
+            label: const Text('Copy CSV'),
+          ),
+        ],
+      ),
+      if (data.l('rows').isEmpty) const EmptyNote('No transactions in this period.'),
+      for (final r in data.l('rows').reversed)
+        SaccoCard(
+          radius: 12,
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Row(
                 children: [
                   Expanded(
-                    child: BalanceStatCard(
-                      title: 'Savings',
-                      amount: money(context, snap.data!.i('savings')),
-                      subtitle: 'Shares and deposits',
-                      icon: Icons.savings,
-                      color: cs.surfaceContainerHighest,
+                    child: Text(
+                      r.s('description'),
+                      style: tt.bodySmall?.copyWith(fontWeight: FontWeight.bold, decoration: r.b('is_reversed') ? TextDecoration.lineThrough : null),
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: BalanceStatCard(
-                      title: 'Loan Left',
-                      amount: money(context, snap.data!.i('loan_balance')),
-                      subtitle: 'Fines paid ${money(context, snap.data!.i('fines'))}',
-                      icon: Icons.request_quote,
-                      color: cs.surfaceContainerHighest,
-                    ),
+                  Text(
+                    r.i('credit') > 0 ? '+${money(context, r.i('credit'))}' : '-${money(context, r.i('debit'))}',
+                    style: tt.bodySmall?.copyWith(fontWeight: FontWeight.bold, color: cs.primary),
                   ),
                 ],
               ),
-              Wrap(
-                spacing: 8,
-                children: [
-                  FilledButton.tonalIcon(
-                    onPressed: () => _pdf(st, snap.data!),
-                    icon: const Icon(Icons.picture_as_pdf, size: 16),
-                    label: const Text('Print / PDF'),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: () async {
-                      await Clipboard.setData(ClipboardData(text: _csv(snap.data!)));
-                      if (context.mounted) showMsg(context, 'Copied as CSV. Paste it in a spreadsheet.');
-                    },
-                    icon: const Icon(Icons.table_chart, size: 16),
-                    label: const Text('Copy CSV'),
-                  ),
-                ],
+              Text(
+                '${Dates.dayTime(r['date'])} • #${r.i('journal_number')} • Cycle ${r.i('cycle_number')} • ${r.s('account_name')}',
+                style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
               ),
-              if (snap.data!.l('rows').isEmpty) const EmptyNote('No transactions in this period.'),
-              for (final r in snap.data!.l('rows').reversed)
-                SaccoCard(
-                  radius: 12,
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              r.s('description'),
-                              style: tt.bodySmall?.copyWith(fontWeight: FontWeight.bold, decoration: r.b('is_reversed') ? TextDecoration.lineThrough : null),
-                            ),
-                          ),
-                          Text(
-                            r.i('credit') > 0 ? '+${money(context, r.i('credit'))}' : '-${money(context, r.i('debit'))}',
-                            style: tt.bodySmall?.copyWith(fontWeight: FontWeight.bold, color: cs.primary),
-                          ),
-                        ],
-                      ),
-                      Text(
-                        '${Dates.dayTime(r['date'])} • #${r.i('journal_number')} • Cycle ${r.i('cycle_number')} • ${r.s('account_name')}',
-                        style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
-                      ),
-                      Text(
-                        'Recorded by ${r.s('recorded_by')}${r.n('channel') != null ? ' • ${allChannelNames[r.s('channel')]}' : ''}${r.n('external_ref') != null ? ' • ID ${r.s('external_ref')}' : ''}',
-                        style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
-                      ),
-                    ],
-                  ),
-                ),
-              for (final p in snap.data!.l('payouts'))
-                SaccoCard(
-                  radius: 12,
-                  padding: const EdgeInsets.all(12),
-                  color: cs.secondaryContainer,
-                  child: Text('Cycle ${p.i('cycle_number')} share-out: ${money(context, p.i('payout'))} (saved ${money(context, p.i('savings'))})'),
-                ),
+              Text(
+                'Recorded by ${r.s('recorded_by')}${r.n('channel') != null ? ' • ${Channel.labelOf(r.s('channel'))}' : ''}${r.n('external_ref') != null ? ' • ID ${r.s('external_ref')}' : ''}',
+                style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
+              ),
             ],
-          ],
-        );
-      },
-    );
+          ),
+        ),
+      for (final p in data.l('payouts'))
+        SaccoCard(
+          radius: 12,
+          padding: const EdgeInsets.all(12),
+          color: cs.secondaryContainer,
+          child: Text('Cycle ${p.i('cycle_number')} share-out: ${money(context, p.i('payout'))} (saved ${money(context, p.i('savings'))})'),
+        ),
+    ];
   }
 
   String _csv(Json s) {

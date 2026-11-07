@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:url_launcher/url_launcher.dart';
 
+import '../../core/catalog.dart';
 import '../../core/json.dart';
 import '../../core/money.dart';
 import '../theme.dart';
@@ -13,16 +12,8 @@ import 'online_pay.dart';
 class ChannelsScreen extends StatelessWidget {
   const ChannelsScreen({super.key});
 
-  Future<void> dial(BuildContext context, String code) async {
-    var opened = false;
-    try {
-      opened = await launchUrl(Uri.parse('tel:${code.replaceAll('#', '%23')}'));
-    } catch (_) {}
-    if (!opened && context.mounted) {
-      await Clipboard.setData(ClipboardData(text: code));
-      if (context.mounted) showMsg(context, 'Phone could not open the dialer. Code copied: dial $code yourself.');
-    }
-  }
+  Future<void> dial(BuildContext context, String code) => openOrCopy(context, Uri.parse('tel:${code.replaceAll('#', '%23')}'),
+      copy: code, failMessage: 'Phone could not open the dialer. Code copied: dial $code yourself.');
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +69,7 @@ class ChannelsScreen extends StatelessWidget {
         ),
         const OnlinePayCard(),
         FilledButton.icon(
-          onPressed: st.myMemberId == null ? null : () => showRecordPayment(context),
+          onPressed: st.myMemberId == null ? null : () => showPaymentDialog(context),
           icon: const Icon(Icons.edit_note),
           label: const Text('Record a Payment'),
         ),
@@ -88,7 +79,7 @@ class ChannelsScreen extends StatelessWidget {
             child: Pill(text: '${st.outbox.length} record(s) waiting for signal. They send by themselves.', color: warnOrange),
           ),
         for (final f in st.outboxFailures) Text('Not accepted: $f', style: TextStyle(color: cs.error)),
-        SectionTitle(st.isOfficer ? 'Latest Payment Records' : 'My Payment Records', info: 'two_person'),
+        SectionTitle(st.role.isOfficer ? 'Latest Payment Records' : 'My Payment Records', info: 'two_person'),
         if (st.payments.isEmpty) const EmptyNote('No payment records yet.'),
         for (final p in st.payments.take(30)) PaymentTile(p),
       ],
@@ -114,7 +105,7 @@ class PaymentTile extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  '${purposeNames[p.s('purpose')]} • ${money(context, p.i('amount'))}',
+                  '${Purpose.labelOf(p.s('purpose'))} • ${money(context, p.i('amount'))}',
                   style: tt.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: cs.primary),
                 ),
               ),
@@ -155,25 +146,30 @@ class PaymentTile extends StatelessWidget {
   }
 }
 
-Future<void> showRecordPayment(BuildContext context,
-    {String purpose = 'shares', String channel = 'mtn_momo', String? loanId, String? memberId, String? goalId}) async {
-  await showDialog(context: context, builder: (_) => _RecordPaymentDialog(purpose, channel, loanId, memberId, goalId));
-}
+/// Records a payment made by hand. With [online], starts a checked online payment instead and
+/// returns {id, tx_ref, checkout_url}. The questions are the same either way.
+Future<Json?> showPaymentDialog(BuildContext context,
+        {bool online = false, Purpose? purpose, Channel channel = Channel.mtnMomo, String? loanId, String? memberId, String? goalId}) =>
+    showDialog<Json>(
+      context: context,
+      builder: (_) => _PaymentDialog(online, purpose ?? (online ? Purpose.savings : Purpose.shares), channel, loanId, memberId, goalId),
+    );
 
-class _RecordPaymentDialog extends StatefulWidget {
-  final String purpose;
-  final String channel;
+class _PaymentDialog extends StatefulWidget {
+  final bool online;
+  final Purpose purpose;
+  final Channel channel;
   final String? loanId;
   final String? memberId;
   final String? goalId;
-  const _RecordPaymentDialog(this.purpose, this.channel, this.loanId, this.memberId, this.goalId);
+  const _PaymentDialog(this.online, this.purpose, this.channel, this.loanId, this.memberId, this.goalId);
   @override
-  State<_RecordPaymentDialog> createState() => _RecordPaymentDialogState();
+  State<_PaymentDialog> createState() => _PaymentDialogState();
 }
 
-class _RecordPaymentDialogState extends State<_RecordPaymentDialog> {
-  late String purpose = widget.purpose;
-  late String channel = widget.channel;
+class _PaymentDialogState extends State<_PaymentDialog> {
+  late Purpose purpose = widget.purpose;
+  late Channel channel = widget.channel;
   late String? loanId = widget.loanId;
   late String? goalId = widget.goalId;
   String? memberId;
@@ -183,36 +179,39 @@ class _RecordPaymentDialogState extends State<_RecordPaymentDialog> {
   final note = TextEditingController();
 
   @override
+  void dispose() {
+    for (final c in [amount, shares, ref, note]) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final st = StateScope.of(context);
+    final online = widget.online;
     memberId ??= widget.memberId ?? st.myMemberId;
     final price = st.org!.i('share_price');
     final count = int.tryParse(shares.text.trim()) ?? 0;
-    final purposes = [
-      'shares',
-      'savings',
-      'fine',
-      'loan_repayment',
-      'emergency_contribution',
-      if (st.canReview) ...['withdrawal', 'expense'],
-    ];
     final memberLoans = st.loans.where((l) => l.s('member_id') == memberId && l.s('status') == 'active').toList();
-    if (!memberLoans.any((l) => l.s('id') == loanId)) loanId = memberLoans.isEmpty ? null : memberLoans.first.s('id');
+    if (!memberLoans.any((l) => l.s('id') == loanId)) loanId = memberLoans.firstOrNull?.s('id');
 
     return FormDialog(
-      title: 'Record a Payment',
-      confirm: 'Record',
+      title: online ? 'Pay online' : 'Record a Payment',
+      confirm: online ? 'Go to payment' : 'Record',
       fields: (ctx, _) => [
-        DropdownButtonFormField<String>(
+        DropdownButtonFormField<Purpose>(
           initialValue: purpose,
           isExpanded: true,
           decoration: const InputDecoration(labelText: 'What is it for?'),
-          items: [for (final p in purposes) DropdownMenuItem(value: p, child: Text(purposeNames[p]!))],
+          items: [
+            for (final p in Purpose.choices(handlesMoney: st.role.handlesMoney, online: online)) DropdownMenuItem(value: p, child: Text(p.label)),
+          ],
           onChanged: (v) => setState(() => purpose = v ?? purpose),
         ),
-        if (purpose != 'expense' && st.canRecordForOthers)
+        if (purpose.forMember && st.role.canRunMeetings)
           MemberPicker(label: 'Member', value: memberId, members: st.activeMembers, onChanged: (v) => setState(() => memberId = v)),
-        if (purpose == 'loan_repayment')
+        if (purpose.takesLoan)
           memberLoans.isEmpty
               ? const EmptyNote('This member has no active loan.')
               : DropdownButtonFormField<String>(
@@ -226,7 +225,7 @@ class _RecordPaymentDialogState extends State<_RecordPaymentDialog> {
                   ],
                   onChanged: (v) => setState(() => loanId = v),
                 ),
-        if (purpose == 'shares') ...[
+        if (purpose == Purpose.shares) ...[
           TextField(
             controller: shares,
             keyboardType: TextInputType.number,
@@ -236,8 +235,7 @@ class _RecordPaymentDialogState extends State<_RecordPaymentDialog> {
           Text('Total: ${money(context, count * price)}', style: const TextStyle(fontWeight: FontWeight.bold)),
         ] else
           MoneyField(controller: amount, label: 'Amount', currency: st.currency),
-        // Savings can carry a goal label. The money still goes into the one savings account.
-        if ((purpose == 'shares' || purpose == 'savings') && st.activeGoals.isNotEmpty)
+        if (purpose.takesGoal && st.activeGoals.isNotEmpty)
           DropdownButtonFormField<String?>(
             initialValue: st.activeGoals.any((g) => g.s('id') == goalId) ? goalId : null,
             isExpanded: true,
@@ -248,39 +246,38 @@ class _RecordPaymentDialogState extends State<_RecordPaymentDialog> {
             ],
             onChanged: (v) => setState(() => goalId = v),
           ),
-        ChannelPicker(value: channel, onChanged: (v) => setState(() => channel = v)),
-        if (channel != 'cash')
-          TextField(
-            controller: ref,
-            textCapitalization: TextCapitalization.characters,
-            decoration: const InputDecoration(labelText: 'Transaction ID from the SMS'),
-          ),
-        if (purpose == 'fine' || purpose == 'expense' || purpose == 'withdrawal')
-          TextField(
-            controller: note,
-            decoration: const InputDecoration(labelText: 'Reason'),
-          ),
+        if (online)
+          const EmptyNote('Next: a secure payment page opens. Pay there with mobile money or card. Then come back here.')
+        else ...[
+          ChannelFields(value: channel, ref: ref, onChanged: (v) => setState(() => channel = v)),
+          if (purpose.needsReason) TextField(controller: note, decoration: const InputDecoration(labelText: 'Reason')),
+        ],
       ],
       onConfirm: (ctx) async {
         final nav = Navigator.of(ctx);
         final messenger = ScaffoldMessenger.of(nav.context);
-        final value = purpose == 'shares' ? count * price : Money.parse(amount.text, st.currency);
-        if (value == null || value <= 0) {
-          showMsg(ctx, 'Enter a valid amount.', error: true);
+        final value = purpose == Purpose.shares ? count * price : Money.parse(amount.text, st.currency);
+        final loan = purpose.takesLoan ? loanId : null;
+        final goal = purpose.takesGoal ? goalId : null;
+        if (value == null || value <= 0) return showMsg(ctx, 'Enter a valid amount.', error: true);
+        if (purpose.takesLoan && loan == null) return showMsg(ctx, 'Choose a loan.', error: true);
+        if (online) {
+          try {
+            nav.pop(await st.api.startOnlinePayment(st.orgId, memberId: memberId!, purpose: purpose.code, amount: value, loanId: loan, goalId: goal));
+          } catch (e) {
+            if (ctx.mounted) showMsg(ctx, e.toString(), error: true);
+          }
           return;
         }
-        if (channel != 'cash' && ref.text.trim().isEmpty) {
-          showMsg(ctx, 'Enter the transaction ID.', error: true);
-          return;
-        }
+        if (channel.needsRef && ref.text.trim().isEmpty) return showMsg(ctx, 'Enter the transaction ID.', error: true);
         final err = await st.recordPayment(
-          memberId: purpose == 'expense' ? null : memberId,
-          purpose: purpose,
+          memberId: purpose.forMember ? memberId : null,
+          purpose: purpose.code,
           amount: value,
-          channel: channel,
-          ref: channel == 'cash' ? null : ref.text.trim(),
-          loanId: purpose == 'loan_repayment' ? loanId : null,
-          goalId: purpose == 'shares' || purpose == 'savings' ? goalId : null,
+          channel: channel.code,
+          ref: ChannelFields.refFor(channel, ref),
+          loanId: loan,
+          goalId: goal,
           note: note.text.trim(),
         );
         if (err == null || err == 'queued') {

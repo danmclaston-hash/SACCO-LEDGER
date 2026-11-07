@@ -2,7 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'core/catalog.dart';
 import 'core/config.dart';
+import 'core/json.dart';
 import 'data/api.dart';
 import 'state/app_state.dart';
 import 'ui/screens/auth_screen.dart';
@@ -94,7 +96,7 @@ class _Root extends StatelessWidget {
     const forceMobile = bool.fromEnvironment('FORCE_MOBILE');
     if (kIsWeb && !forceMobile) {
       // The web address is the admin portal. Members use the phone app.
-      final anyOfficer = st.orgs.any((o) => o['my_role'] != 'member');
+      final anyOfficer = st.orgs.any((o) => Role.parse(o.s('my_role')).isOfficer);
       if (!anyOfficer) return const MembersUseAppScreen();
       return const TourGate(child: AdminShell());
     }

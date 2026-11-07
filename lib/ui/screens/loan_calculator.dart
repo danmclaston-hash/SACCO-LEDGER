@@ -17,7 +17,7 @@ class LoanRulesEditor extends StatefulWidget {
 
 class _LoanRulesEditorState extends State<LoanRulesEditor> {
   late final rate = TextEditingController(text: _num(widget.value.rate));
-  late final lateAmount = TextEditingController(text: widget.value.lateAmount == 0 ? '' : Money.format(widget.value.lateAmount, widget.currency).substring(4));
+  late final lateAmount = TextEditingController(text: widget.value.lateAmount == 0 ? '' : Money.plain(widget.value.lateAmount, widget.currency));
   late final latePct = TextEditingController(text: widget.value.latePct == 0 ? '' : _num(widget.value.latePct));
   late final cap = TextEditingController(text: widget.value.capPct == null ? '' : _num(widget.value.capPct!));
 
@@ -332,8 +332,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> {
     final t = tryOther ? (terms ?? group) : group;
     final p = Money.parse(amount.text, st.currency) ?? 0;
     final n = (int.tryParse(months.text.trim()) ?? 0).clamp(0, 60);
-    final today = DateTime.now();
-    final start = DateTime(today.year, today.month, today.day);
+    final start = Dates.today();
     final s = loanSchedule(p, n, t, start);
     String m(int v) => Money.format(v, st.currency);
     final firstPay = s.isEmpty ? 0 : s.first.total;
@@ -429,7 +428,7 @@ class _LoanRulesCardState extends State<LoanRulesCard> {
         LoanRulesEditor(
           key: ValueKey(loadedFor),
           value: t,
-          enabled: st.isOrgAdmin,
+          enabled: st.role.isOrgAdmin,
           currency: st.currency,
           onChanged: (v) => setState(() => draft = v),
         ),
@@ -441,25 +440,21 @@ class _LoanRulesCardState extends State<LoanRulesCard> {
           term: 3,
           terms: t,
           currency: st.currency,
-          start: DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day),
+          start: Dates.today(),
         ),
-        if (st.isOrgAdmin) ...[
+        if (st.role.isOrgAdmin) ...[
           gap,
           FilledButton(
             onPressed: busy || !changed
                 ? null
                 : () async {
                     setState(() => busy = true);
-                    final err = await st.act(() async {
-                      await st.api.setLoanRules(st.orgId, t.toJson());
-                      await st.loadOrgs(select: st.orgId);
-                    });
+                    final ok = await runAndTell(context, () => st.api.setLoanRules(st.orgId, t.toJson()), done: 'Loan rules saved. New loans will use them.');
                     if (!context.mounted) return;
                     setState(() {
                       busy = false;
-                      if (err == null) loadedFor = null; // reload from the saved group
+                      if (ok) loadedFor = null; // reload from the saved group
                     });
-                    showMsg(context, err ?? 'Loan rules saved. New loans will use them.', error: err != null);
                   },
             child: Text(changed ? 'Save loan rules' : 'Saved'),
           ),

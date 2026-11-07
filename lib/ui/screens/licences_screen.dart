@@ -39,10 +39,9 @@ class LicencesScreen extends StatelessWidget {
             showMsg(ctx, 'Write the date like 2026-12-31.', error: true);
             return;
           }
-          await runAndClose(ctx, st, () async {
-            await st.api.updateOrganization(st.orgId, {'licence_type': type.text, 'licence_number': number.text, 'licence_expiry': expiry.text.trim()});
-            await st.loadOrgs(select: st.orgId);
-          }, done: 'Saved.');
+          await runAndClose(
+              ctx, st, () => st.api.updateOrganization(st.orgId, {'licence_type': type.text, 'licence_number': number.text, 'licence_expiry': expiry.text.trim()}),
+              done: 'Saved.');
         },
       ),
     );
@@ -87,7 +86,7 @@ class LicencesScreen extends StatelessWidget {
                 KeyValue('Number', o.s('licence_number')),
                 KeyValue('Expires', Dates.day(o['licence_expiry'])),
               ],
-              if (st.isOrgAdmin)
+              if (st.role.isOrgAdmin)
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(onPressed: () => _edit(context), child: const Text('Update')),

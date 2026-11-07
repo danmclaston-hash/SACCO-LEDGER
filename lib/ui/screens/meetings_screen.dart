@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/catalog.dart';
 import '../../core/json.dart';
 import '../../core/money.dart';
 import '../../state/app_state.dart';
@@ -48,16 +49,16 @@ class MeetingsScreen extends StatelessWidget {
                   Pill(text: open != null ? 'OPEN' : 'IDLE', color: open != null ? okGreen : Colors.grey),
                 ],
               ),
-              if (st.canRunMeetings) ...[
+              if (st.role.canRunMeetings) ...[
                 gap,
                 if (open == null)
-                  FilledButton.icon(onPressed: () => _openDialog(context, st), icon: const Icon(Icons.play_arrow), label: Text(st.t('open_meeting')))
+                  FilledButton.icon(onPressed: () => _openDialog(context, st), icon: const Icon(Icons.play_arrow), label: Text(st.t('Open Weekly Meeting')))
                 else
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(foregroundColor: cs.error),
                     onPressed: () => _closeDialog(context, st, open),
                     icon: const Icon(Icons.stop),
-                    label: Text(st.t('close_meeting')),
+                    label: Text(st.t('Close Meeting (Reconcile Cash)')),
                   ),
               ],
             ],
@@ -76,7 +77,7 @@ class MeetingsScreen extends StatelessWidget {
                       child: Text('Attendance & Quorum', style: tt.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                     ),
                     Pill(
-                      text: hasQuorum ? st.t('quorum_reached') : 'Need $quorum%: $present/$total',
+                      text: hasQuorum ? st.t('Quorum Reached') : 'Need $quorum%: $present/$total',
                       color: hasQuorum ? okGreenBg : warnOrange,
                       foreground: hasQuorum ? okGreen : Colors.white,
                     ),
@@ -98,7 +99,7 @@ class MeetingsScreen extends StatelessWidget {
                 gap,
                 for (final a in attendance)
                   InkWell(
-                    onTap: st.canRunMeetings ? () => st.act(() => st.api.setAttendance(open.s('id'), a.s('member_id'), !a.b('present'))) : null,
+                    onTap: st.role.canRunMeetings ? () => st.act(() => st.api.setAttendance(open.s('id'), a.s('member_id'), !a.b('present'))) : null,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 6),
                       child: Row(
@@ -106,7 +107,7 @@ class MeetingsScreen extends StatelessWidget {
                           Icon(a.b('present') ? Icons.check_circle : Icons.radio_button_unchecked, size: 20, color: a.b('present') ? okGreen : cs.outline),
                           const SizedBox(width: 8),
                           Expanded(child: Text(a.s('name'), style: tt.bodyMedium)),
-                          Text(roleNames[a.s('role')] ?? '', style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant)),
+                          Text(Role.labelOf(a.s('role')), style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant)),
                         ],
                       ),
                     ),
@@ -114,7 +115,7 @@ class MeetingsScreen extends StatelessWidget {
               ],
             ),
           ),
-          if (st.canRunMeetings)
+          if (st.role.canRunMeetings)
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -125,22 +126,22 @@ class MeetingsScreen extends StatelessWidget {
                   runSpacing: 8,
                   children: [
                     FilledButton.tonalIcon(
-                      onPressed: () => showRecordPayment(context, purpose: 'shares', channel: 'cash'),
+                      onPressed: () => showPaymentDialog(context, purpose: Purpose.shares, channel: Channel.cash),
                       icon: const Icon(Icons.add_circle_outline, size: 16),
                       label: const Text('Buy Shares'),
                     ),
                     FilledButton.tonalIcon(
-                      onPressed: () => showRecordPayment(context, purpose: 'fine', channel: 'cash'),
+                      onPressed: () => showPaymentDialog(context, purpose: Purpose.fine, channel: Channel.cash),
                       icon: const Icon(Icons.gavel, size: 16),
                       label: const Text('Collect Fine'),
                     ),
                     FilledButton.tonalIcon(
-                      onPressed: () => showRecordPayment(context, purpose: 'loan_repayment', channel: 'cash'),
+                      onPressed: () => showPaymentDialog(context, purpose: Purpose.loanRepayment, channel: Channel.cash),
                       icon: const Icon(Icons.payments, size: 16),
                       label: const Text('Loan Repayment'),
                     ),
                     FilledButton.tonalIcon(
-                      onPressed: () => showRecordPayment(context, purpose: 'emergency_contribution', channel: 'cash'),
+                      onPressed: () => showPaymentDialog(context, purpose: Purpose.emergencyContribution, channel: Channel.cash),
                       icon: const Icon(Icons.health_and_safety, size: 16),
                       label: const Text('Emergency'),
                     ),
@@ -169,7 +170,7 @@ class MeetingsScreen extends StatelessWidget {
                     Flexible(
                       child: Text('Meeting #${m.i('meeting_number')} • ${Dates.day(m['meeting_date'])}', style: const TextStyle(fontWeight: FontWeight.bold)),
                     ),
-                    Pill(text: st.t('cash_reconciled'), color: okGreenBg, foreground: okGreen),
+                    Pill(text: st.t('Cash Reconciled'), color: okGreenBg, foreground: okGreen),
                   ],
                 ),
                 Text('Closing Cash Box: ${money(context, m.i('closing_cash'))}', style: tt.bodySmall?.copyWith(color: cs.primary)),
@@ -184,7 +185,7 @@ class MeetingsScreen extends StatelessWidget {
 
   void _openDialog(BuildContext context, AppState st) {
     final members = st.activeMembers;
-    final cash = TextEditingController(text: (st.dash.i('cash_box')).toString());
+    final cash = TextEditingController(text: Money.plain(st.dash.i('cash_box'), st.currency));
     String? c1 = st.myMemberId;
     String? c2;
     showDialog(
@@ -199,7 +200,7 @@ class MeetingsScreen extends StatelessWidget {
           MemberPicker(label: 'Counter 2', value: c2, members: members, onChanged: (v) => set(() => c2 = v)),
         ],
         onConfirm: (ctx) async {
-          final v = cash.text.trim() == '0' ? 0 : Money.parse(cash.text, st.currency);
+          final v = Money.parse(cash.text, st.currency, true);
           if (v == null || c1 == null || c2 == null) {
             showMsg(ctx, 'Enter the cash and choose two counters.', error: true);
             return;
@@ -233,7 +234,7 @@ class MeetingsScreen extends StatelessWidget {
           ),
         ],
         onConfirm: (ctx) async {
-          final v = cash.text.trim() == '0' ? 0 : Money.parse(cash.text, st.currency);
+          final v = Money.parse(cash.text, st.currency, true);
           if (v == null || c1 == null || c2 == null) {
             showMsg(ctx, 'Enter the cash and choose two counters.', error: true);
             return;

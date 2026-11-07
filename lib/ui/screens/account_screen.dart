@@ -7,7 +7,9 @@ import 'package:image/image.dart' as img;
 import 'package:share_plus/share_plus.dart';
 
 import '../../core/app_lock.dart';
+import '../../core/catalog.dart';
 import '../../core/i18n.dart';
+import '../../core/names.dart';
 import '../../core/json.dart';
 import '../../core/money.dart';
 import '../../state/app_state.dart';
@@ -124,14 +126,14 @@ class _Header extends StatelessWidget {
                   style: tt.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 2),
-                Text(_signInLabel(a.s('sign_in_id')), style: tt.bodySmall?.copyWith(color: saccoGoldLight)),
+                Text('Signs in with ${Phones.signInLabel(a.s('sign_in_id'))}', style: tt.bodySmall?.copyWith(color: saccoGoldLight)),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 6,
                   runSpacing: 6,
                   children: [
                     for (final g in groups)
-                      Pill(text: '${g.s('org_name')} • ${roleNames[g.s('role')] ?? g.s('role')}', color: Colors.white.withValues(alpha: 0.16)),
+                      Pill(text: '${g.s('org_name')} • ${Role.labelOf(g.s('role'))}', color: Colors.white.withValues(alpha: 0.16)),
                     if (a.b('is_platform_admin')) const Pill(text: 'Platform Admin', color: saccoGold, foreground: Colors.black),
                   ],
                 ),
@@ -142,13 +144,6 @@ class _Header extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Phone sign-ins are stored as a private address; show the phone the person typed.
-String _signInLabel(String id) {
-  const suffix = '@phone.saccoledger.app';
-  if (id.endsWith(suffix)) return 'Signs in with phone +${id.substring(0, id.length - suffix.length)}';
-  return 'Signs in with $id';
 }
 
 // ---------------------------------------------------------------- shared bits
@@ -238,10 +233,7 @@ class _ProfileCard extends StatelessWidget {
           trailing: a.n('avatar') == null
               ? null
               : TextButton(
-                  onPressed: () async {
-                    final err = await st.updateProfile({'avatar': ''});
-                    if (context.mounted) showMsg(context, err ?? 'Photo removed.', error: err != null);
-                  },
+                  onPressed: () => runAndTell(context, () => st.api.updateMyProfile({'avatar': ''}), done: 'Photo removed.'),
                   child: const Text('Remove'),
                 ),
         ),
@@ -281,8 +273,7 @@ class _ProfileCard extends StatelessWidget {
                   decoration: const InputDecoration(labelText: 'Phone', helperText: 'Like 0772 123456'),
                   validator: (v) {
                     final n = Phones.normalize(v, dial: st.dial);
-                    if (n == null) return null;
-                    return n.length >= 11 && n.length <= 13 ? null : 'Phone looks wrong.';
+                    return n == null || Phones.isValidNumber(n) ? null : 'Phone looks wrong.';
                   },
                 ),
               ],
@@ -300,8 +291,7 @@ class _ProfileCard extends StatelessWidget {
         onConfirm: (ctx) async {
           if (!(key.currentState?.validate() ?? false)) return;
           final nav = Navigator.of(ctx);
-          final err = await st
-              .updateProfile({'full_name': name.text.trim(), 'phone': Phones.normalize(phone.text, dial: st.dial) ?? '', 'apply_to_groups': applyToGroups});
+          final err = await st.act(() => st.api.updateMyProfile({'full_name': name.text.trim(), 'phone': Phones.normalize(phone.text, dial: st.dial) ?? '', 'apply_to_groups': applyToGroups}));
           if (err != null) {
             if (ctx.mounted) showMsg(ctx, err, error: true);
             return;
@@ -327,8 +317,7 @@ class _ProfileCard extends StatelessWidget {
     final square = img.copyCrop(decoded, x: (decoded.width - side) ~/ 2, y: (decoded.height - side) ~/ 2, width: side, height: side);
     final small = img.copyResize(square, width: 256, height: 256, interpolation: img.Interpolation.average);
     final jpg = img.encodeJpg(small, quality: 80);
-    final err = await st.updateProfile({'avatar': base64Encode(jpg)});
-    if (context.mounted) showMsg(context, err ?? 'Photo saved.', error: err != null);
+    if (context.mounted) await runAndTell(context, () => st.api.updateMyProfile({'avatar': base64Encode(jpg)}), done: 'Photo saved.');
   }
 
   void _changePassword(BuildContext context, AppState st) {
@@ -560,6 +549,8 @@ class _SecurityCardState extends State<_SecurityCard> {
 
 // ---------------------------------------------------------------- look and language
 
+const _textSizes = <(double, String)>[(0.9, 'Small'), (1.0, 'Normal'), (1.15, 'Large'), (1.3, 'Extra large')];
+
 class _LookCard extends StatelessWidget {
   const _LookCard();
 
@@ -592,7 +583,7 @@ class _LookCard extends StatelessWidget {
               ButtonSegment(value: ThemeMode.dark, label: Text('Dark'), icon: Icon(Icons.dark_mode)),
             ],
             selected: {st.themeMode},
-            onSelectionChanged: (s) => save(st.updateLook(theme: s.first)),
+            onSelectionChanged: (s) => save(st.updateSettings(theme: s.first)),
           ),
         ),
         label('Text size'),
@@ -600,11 +591,11 @@ class _LookCard extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           children: [
-            for (final (v, name) in textSizes)
+            for (final (v, name) in _textSizes)
               ChoiceChip(
                 label: Text(name),
                 selected: (st.textScale - v).abs() < 0.01,
-                onSelected: (_) => save(st.updateLook(scale: v)),
+                onSelected: (_) => save(st.updateSettings(scale: v)),
               ),
           ],
         ),
@@ -621,7 +612,7 @@ class _LookCard extends StatelessWidget {
               ChoiceChip(
                 label: Text(l.label),
                 selected: st.language == l,
-                onSelected: (_) => save(st.updateLook(language: l)),
+                onSelected: (_) => save(st.updateSettings(language: l)),
               ),
           ],
         ),
@@ -629,7 +620,7 @@ class _LookCard extends StatelessWidget {
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
           value: st.showTips,
-          onChanged: (v) => save(st.updatePrefs(showTips: v)),
+          onChanged: (v) => save(st.updateSettings(showTips: v)),
           title: const Text('Explain words with (i) buttons'),
           subtitle: const Text('Small buttons next to words like share-out and ledger.'),
         ),
@@ -686,13 +677,7 @@ class _PrivacyCard extends StatelessWidget {
             title: 'Account closing requested',
             subtitle: 'Asked on ${Dates.day(req['requested_at'])}. Changed your mind?',
             trailing: TextButton(
-              onPressed: () async {
-                final err = await st.act(() async {
-                  await st.api.cancelDeletion();
-                  await st.loadAccount();
-                });
-                if (context.mounted) showMsg(context, err ?? 'Request cancelled.', error: err != null);
-              },
+              onPressed: () => runAndTell(context, st.api.cancelDeletion, done: 'Request cancelled.'),
               child: const Text('Cancel'),
             ),
           )
@@ -712,7 +697,7 @@ class _PrivacyCard extends StatelessWidget {
     try {
       final data = await st.api.exportMyData();
       final bytes = utf8.encode(const JsonEncoder.withIndent('  ').convert(data));
-      final name = 'my-sacco-ledger-data-${DateTime.now().toIso8601String().substring(0, 10)}.json';
+      final name = 'my-sacco-ledger-data-${Dates.iso(DateTime.now())}.json';
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile.fromData(Uint8List.fromList(bytes), mimeType: 'application/json', name: name)],
@@ -746,10 +731,7 @@ class _PrivacyCard extends StatelessWidget {
             decoration: const InputDecoration(labelText: 'Why? (optional)'),
           ),
         ],
-        onConfirm: (ctx) => runAndClose(ctx, st, () async {
-          await st.api.requestDeletion(reason.text);
-          await st.loadAccount();
-        }, done: 'Request sent. You can cancel it until it is done.'),
+        onConfirm: (ctx) => runAndClose(ctx, st, () => st.api.requestDeletion(reason.text), done: 'Request sent. You can cancel it until it is done.'),
       ),
     );
   }

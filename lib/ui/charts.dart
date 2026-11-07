@@ -30,11 +30,8 @@ String compactMoney(int v) {
   return '$v';
 }
 
-const _months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-String _monthLabel(String ym) {
-  final m = int.tryParse(ym.split('-').last) ?? 1;
-  return _months[(m - 1).clamp(0, 11)];
-}
+/// "2026-11" -> "Nov".
+String _monthLabel(String ym) => Dates.monthShort(int.tryParse(ym.split('-').last) ?? 1);
 
 double _niceMax(int v) {
   if (v <= 0) return 1;
@@ -310,7 +307,7 @@ class GoalChart extends StatelessWidget {
     final neutral = ChartColors.neutral(context);
     String dayLabel(double v) {
       final d = start.add(Duration(days: v.round()));
-      return '${d.day} ${_months[d.month - 1]}';
+      return '${d.day} ${Dates.monthShort(d.month)}';
     }
 
     return ChartCard(

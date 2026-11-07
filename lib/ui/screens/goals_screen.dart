@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/catalog.dart';
 import '../../core/goal_math.dart';
 import '../../core/json.dart';
 import '../../core/money.dart';
@@ -21,11 +22,11 @@ class GoalsScreen extends StatelessWidget {
       if (st.allocation.i('total') > 0) AllocationBar(allocation: st.allocation, currency: st.currency),
       const GoalCalculator(),
       SectionTitle('Group goals (${active.length})',
-          trailing: st.canRunMeetings
+          trailing: st.role.canRunMeetings
               ? FilledButton.icon(onPressed: () => showCreateGoal(context), icon: const Icon(Icons.flag, size: 16), label: const Text('New goal'))
               : null),
       if (active.isEmpty)
-        EmptyNote(st.canRunMeetings ? 'No goals yet. Use the calculator above, then save it as a goal.' : 'No goals yet. Your officers can set one.'),
+        EmptyNote(st.role.canRunMeetings ? 'No goals yet. Use the calculator above, then save it as a goal.' : 'No goals yet. Your officers can set one.'),
       for (final g in active) GoalCard(g),
       if (closed.isNotEmpty) ...[
         const SectionTitle('Finished goals'),
@@ -150,7 +151,7 @@ class _GoalCalculatorState extends State<GoalCalculator> {
           duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : const Duration(milliseconds: 160),
           child: result ?? Text('Fill in the goal and the boxes above to see the answer.', style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
         ),
-        if (plan != null && st.canRunMeetings) ...[
+        if (plan != null && st.role.canRunMeetings) ...[
           const SizedBox(height: 8),
           OutlinedButton.icon(
             onPressed: () =>
@@ -246,7 +247,7 @@ class GoalCard extends StatelessWidget {
               ),
             ),
           if (g.i('pending') > 0) Text('${m(g.i('pending'))} more waits for checking.', style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
-          if (!st.isOfficer) Text('My part: ${m(g.i('mine'))}', style: tt.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
+          if (!st.role.isOfficer) Text('My part: ${m(g.i('mine'))}', style: tt.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
         ]),
       ),
     );
@@ -291,12 +292,12 @@ void showGoalDetails(BuildContext context, Json g) {
             FilledButton.icon(
               onPressed: () {
                 Navigator.pop(sheetCtx);
-                showRecordPayment(context, purpose: 'savings', goalId: g.s('id'));
+                showPaymentDialog(context, purpose: Purpose.savings, goalId: g.s('id'));
               },
               icon: const Icon(Icons.add),
               label: const Text('Pay toward this goal'),
             ),
-          if (g.s('status') == 'active' && st.canRunMeetings) ...[
+          if (g.s('status') == 'active' && st.role.canRunMeetings) ...[
             const SizedBox(height: 8),
             OutlinedButton(
               onPressed: () async {

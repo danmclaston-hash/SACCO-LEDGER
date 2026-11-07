@@ -2,8 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sacco_ledger/core/app_lock.dart';
 import 'package:sacco_ledger/core/goal_math.dart';
 import 'package:sacco_ledger/core/money.dart';
+import 'package:sacco_ledger/core/names.dart';
 import 'package:sacco_ledger/core/risk.dart';
-import 'package:sacco_ledger/core/search_index.dart';
+import 'package:sacco_ledger/core/pages.dart';
 import 'package:sacco_ledger/core/share_out.dart';
 
 void main() {
@@ -104,14 +105,16 @@ void main() {
   });
 
   group('app index', () {
+    bool member(AppPage p) => p.audience == Audience.everyone;
+    bool officer(AppPage p) => p.audience != Audience.platform;
     test('finds pages by words', () {
-      expect(searchAppIndex('licence', officer: false).first.page, AppPage.licences);
-      expect(searchAppIndex('momo', officer: false).first.page, AppPage.channels);
-      expect(searchAppIndex('x', officer: false), isEmpty);
+      expect(searchPages('licence', member).first, AppPage.licences);
+      expect(searchPages('momo', member).first, AppPage.channels);
+      expect(searchPages('x', member), isEmpty);
     });
     test('hides officer pages from members', () {
-      expect(searchAppIndex('checker', officer: false), isEmpty);
-      expect(searchAppIndex('checker', officer: true).first.page, AppPage.approvals);
+      expect(searchPages('checker', member), isEmpty);
+      expect(searchPages('checker', officer).first, AppPage.approvals);
     });
   });
 

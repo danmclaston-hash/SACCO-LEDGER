@@ -92,20 +92,19 @@ final darkTheme = _theme(_dark, const Color(0xFF101715));
 // Logos are NOT drawn here: they belong to MTN, Airtel and Safaricom. To show the real logos,
 // put the official files you have permission to use in assets/brands/ (see the README there).
 class Brand {
-  final String name;
   final Color color;
   final Color onColor;
   final IconData icon;
   final String? logo; // asset path, shown only if the file is there
-  const Brand(this.name, this.color, this.onColor, this.icon, [this.logo]);
+  const Brand(this.color, this.onColor, this.icon, [this.logo]);
 }
 
+/// The look of each payment channel (core/catalog.dart), by its code.
 const brands = <String, Brand>{
-  'mtn_momo': Brand('MTN MoMo', Color(0xFFFFCB05), Color(0xFF000000), Icons.phone_android, 'assets/brands/mtn.png'),
-  'airtel_money': Brand('Airtel Money', Color(0xFFE40000), Color(0xFFFFFFFF), Icons.phone_android, 'assets/brands/airtel.png'),
-  'mpesa': Brand('M-Pesa', Color(0xFF00A650), Color(0xFFFFFFFF), Icons.phone_android, 'assets/brands/mpesa.png'),
-  'bank': Brand('Bank', Color(0xFF1F4E79), Color(0xFFFFFFFF), Icons.account_balance),
-  'cash': Brand('Cash', Color(0xFF2E7D32), Color(0xFFFFFFFF), Icons.payments_outlined),
-  'flutterwave': Brand('Flutterwave', Color(0xFFF5A623), Color(0xFF000000), Icons.verified_user, 'assets/brands/flutterwave.png'),
-  'pesapal': Brand('Pesapal', Color(0xFF26338F), Color(0xFFFFFFFF), Icons.verified_user, 'assets/brands/pesapal.png'),
+  'mtn_momo': Brand(Color(0xFFFFCB05), Color(0xFF000000), Icons.phone_android, 'assets/brands/mtn.png'),
+  'airtel_money': Brand(Color(0xFFE40000), Color(0xFFFFFFFF), Icons.phone_android, 'assets/brands/airtel.png'),
+  'bank': Brand(Color(0xFF1F4E79), Color(0xFFFFFFFF), Icons.account_balance),
+  'cash': Brand(Color(0xFF2E7D32), Color(0xFFFFFFFF), Icons.payments_outlined),
+  'flutterwave': Brand(Color(0xFFF5A623), Color(0xFF000000), Icons.verified_user, 'assets/brands/flutterwave.png'),
+  'pesapal': Brand(Color(0xFF26338F), Color(0xFFFFFFFF), Icons.verified_user, 'assets/brands/pesapal.png'),
 };

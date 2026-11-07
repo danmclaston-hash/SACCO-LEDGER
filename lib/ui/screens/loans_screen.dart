@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/catalog.dart';
 import '../../core/json.dart';
 import '../../core/loan_math.dart';
 import '../../core/money.dart';
@@ -106,7 +107,6 @@ class LoansScreen extends StatelessWidget {
     final group = LoanTerms.fromGroup(st.org!);
     var terms = group;
     var custom = false;
-    final today = DateTime.now();
     showDialog(
       context: context,
       builder: (_) => FormDialog(
@@ -116,7 +116,7 @@ class LoansScreen extends StatelessWidget {
           final m = st.members.where((x) => x.s('id') == member);
           final savings = m.isEmpty ? 0 : m.first.i('savings');
           return [
-            if (st.canApplyForOthers) MemberPicker(label: 'Borrower', value: member, members: st.activeMembers, onChanged: (v) => set(() => member = v)),
+            if (st.role.canApplyForOthers) MemberPicker(label: 'Borrower', value: member, members: st.activeMembers, onChanged: (v) => set(() => member = v)),
             Text(
               'Savings ${Money.format(savings, st.currency)}. Limit ${Money.format(savings * st.org!.i('max_loan_multiplier'), st.currency)}, less current loans.',
             ),
@@ -136,10 +136,10 @@ class LoansScreen extends StatelessWidget {
               term: (int.tryParse(term.text.trim()) ?? 0).clamp(0, 60),
               terms: custom ? terms : group,
               currency: st.currency,
-              start: DateTime(today.year, today.month, today.day),
+              start: Dates.today(),
               showSchedule: true,
             ),
-            if (st.canApproveLoans) ...[
+            if (st.role.canApproveLoans) ...[
               SwitchListTile(
                 contentPadding: EdgeInsets.zero,
                 value: custom,
@@ -158,7 +158,7 @@ class LoansScreen extends StatelessWidget {
             showMsg(ctx, 'Enter amount and term (1 to 60 months).', error: true);
             return;
           }
-          await runAndClose(ctx, st, () => st.api.applyLoan2(st.orgId, member!, p, t, custom ? terms.toJson() : null, purpose.text),
+          await runAndClose(ctx, st, () => st.api.applyLoan(st.orgId, member!, p, t, custom ? terms.toJson() : null, purpose.text),
               done: 'Application sent for approval.');
         },
       ),
@@ -266,14 +266,14 @@ class _LoanCard extends StatelessWidget {
               TextButton(onPressed: () => _schedule(context, st), child: const Text('Schedule')),
               if (l.s('late_fee_type') != 'none' && (status == 'active' || status == 'paid'))
                 TextButton(onPressed: () => _lateFees(context, st), child: const Text('Late fees')),
-              if (status == 'pending_approval' && st.canApproveLoans) ...[
+              if (status == 'pending_approval' && st.role.canApproveLoans) ...[
                 OutlinedButton(onPressed: () => _reject(context, st), child: const Text('Reject')),
                 FilledButton(onPressed: () => _approve(context, st), child: const Text('Approve')),
               ],
-              if (status == 'approved' && st.canDisburse) FilledButton(onPressed: () => _disburse(context, st), child: const Text('Disburse')),
-              if (status == 'active' && st.myMemberId != null && (st.canRecordForOthers || l.s('member_id') == st.myMemberId))
+              if (status == 'approved' && st.role.handlesMoney) FilledButton(onPressed: () => _disburse(context, st), child: const Text('Disburse')),
+              if (status == 'active' && st.myMemberId != null && (st.role.canRunMeetings || l.s('member_id') == st.myMemberId))
                 FilledButton.tonal(
-                  onPressed: () => showRecordPayment(context, purpose: 'loan_repayment', loanId: l.s('id'), memberId: l.s('member_id')),
+                  onPressed: () => showPaymentDialog(context, purpose: Purpose.loanRepayment, loanId: l.s('id'), memberId: l.s('member_id')),
                   child: const Text('Repay'),
                 ),
             ],
@@ -285,9 +285,8 @@ class _LoanCard extends StatelessWidget {
 
   Future<void> _reject(BuildContext context, AppState st) async {
     final r = await askText(context, title: 'Reject loan', label: 'Why?', confirm: 'Reject');
-    if (r == null) return;
-    final err = await st.act(() => st.api.rejectLoan(l.s('id'), r));
-    if (err != null && context.mounted) showMsg(context, err, error: true);
+    if (r == null || !context.mounted) return;
+    await runAndTell(context, () => st.api.rejectLoan(l.s('id'), r));
   }
 
   void _approve(BuildContext context, AppState st) {
@@ -321,7 +320,7 @@ class _LoanCard extends StatelessWidget {
   }
 
   void _disburse(BuildContext context, AppState st) {
-    var channel = 'cash';
+    var channel = Channel.cash;
     final ref = TextEditingController();
     showDialog(
       context: context,
@@ -330,14 +329,10 @@ class _LoanCard extends StatelessWidget {
         confirm: 'Record Pay-out',
         fields: (ctx, set) => [
           Text('Pay ${Money.format(l.i('principal'), st.currency)} to ${l.s('borrower')} from the group\'s own money, then record it here.'),
-          ChannelPicker(value: channel, onChanged: (v) => set(() => channel = v)),
-          if (channel != 'cash')
-            TextField(
-              controller: ref,
-              decoration: const InputDecoration(labelText: 'Transaction ID'),
-            ),
+          ChannelFields(value: channel, ref: ref, onChanged: (v) => set(() => channel = v)),
         ],
-        onConfirm: (ctx) => runAndClose(ctx, st, () => st.api.disburseLoan(l.s('id'), channel, ref.text), done: 'Pay-out recorded.'),
+        onConfirm: (ctx) =>
+            runAndClose(ctx, st, () => st.api.disburseLoan(l.s('id'), channel.code, ChannelFields.refFor(channel, ref)), done: 'Pay-out recorded.'),
       ),
     );
   }
@@ -350,12 +345,9 @@ class _LoanCard extends StatelessWidget {
         title: Text('Late fees ${l.s('loan_number')}'),
         content: SizedBox(
           width: 460,
-          child: FutureBuilder<Json>(
-            future: st.api.lateFeeReport(l.s('id')),
-            builder: (c, snap) {
-              if (snap.hasError) return Text(snap.error.toString());
-              if (!snap.hasData) return const SizedBox(height: 60, child: Center(child: CircularProgressIndicator()));
-              final r = snap.data!;
+          child: Loaded<Json>(
+            load: () => st.api.lateFeeReport(l.s('id')),
+            builder: (c, r) {
               final tt = Theme.of(c).textTheme;
               return SingleChildScrollView(
                 child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
@@ -384,7 +376,7 @@ class _LoanCard extends StatelessWidget {
           ),
         ),
         actions: [
-          if (st.canDisburse && l.s('member_id') != st.myMemberId && l.i('late_fees_due') > 0)
+          if (st.role.handlesMoney && l.s('member_id') != st.myMemberId && l.i('late_fees_due') > 0)
             TextButton(
               onPressed: () async {
                 Navigator.pop(ctx);
@@ -399,7 +391,7 @@ class _LoanCard extends StatelessWidget {
   }
 
   Future<void> _forgive(BuildContext context, AppState st) async {
-    final amount = TextEditingController(text: Money.format(l.i('late_fees_due'), st.currency).substring(4));
+    final amount = TextEditingController(text: Money.plain(l.i('late_fees_due'), st.currency));
     final reason = TextEditingController();
     await showDialog<void>(
       context: context,
@@ -430,11 +422,9 @@ class _LoanCard extends StatelessWidget {
         title: Text('Schedule ${l.s('loan_number')}'),
         content: SizedBox(
           width: 460,
-          child: FutureBuilder<List<Json>>(
-            future: st.api.loanSchedule(l.s('id')),
-            builder: (c, snap) {
-              if (snap.hasError) return Text(snap.error.toString());
-              if (!snap.hasData) return const SizedBox(height: 60, child: Center(child: CircularProgressIndicator()));
+          child: Loaded<List<Json>>(
+            load: () => st.api.loanSchedule(l.s('id')),
+            builder: (c, rows) {
               return SingleChildScrollView(
                 child: DataTable(
                   columnSpacing: 12,
@@ -445,7 +435,7 @@ class _LoanCard extends StatelessWidget {
                     DataColumn(label: Text('Left'), numeric: true),
                   ],
                   rows: [
-                    for (final s in snap.data!)
+                    for (final s in rows)
                       DataRow(
                         cells: [
                           DataCell(Text('${s.i('installment')}')),

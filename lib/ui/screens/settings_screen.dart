@@ -38,7 +38,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final st = StateScope.of(context);
     final o = st.org!;
     _load(o);
-    final edit = st.isOrgAdmin;
+    final edit = st.role.isOrgAdmin;
     return AppPageView(
       children: [
         const SectionTitle('Group Settings'),
@@ -55,13 +55,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           items: [for (final c in countries) DropdownMenuItem(value: c.code, child: Text('${c.flag}  ${c.name}  (+${c.dial})'))],
           onChanged: !edit
               ? null
-              : (v) async {
-                  if (v == null) return;
-                  final err = await st.act(() async {
-                    await st.api.setOrgCountry(st.orgId, v);
-                    await st.loadOrgs(select: st.orgId); // the group's details come with the group list
-                  });
-                  if (context.mounted) showMsg(context, err ?? 'Country saved.', error: err != null);
+              : (v) {
+                  if (v != null) runAndTell(context, () => st.api.setOrgCountry(st.orgId, v), done: 'Country saved.');
                 },
         ),
         TextField(
@@ -106,24 +101,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ? null
                 : () async {
                     setState(() => busy = true);
-                    final err = await st.act(() async {
-                      await st.api.updateOrganization(st.orgId, {
-                        'name': name.text,
-                        'share_price': int.tryParse(share.text.trim()),
-                        'max_loan_multiplier': int.tryParse(mult.text.trim()),
-                        'meeting_quorum_pct': int.tryParse(quorum.text.trim()),
-                        'mtn_merchant_code': mtn.text.trim(),
-                        'airtel_merchant_code': airtel.text.trim(),
-                      });
-                      await st.loadOrgs(select: st.orgId);
-                    });
+                    await runAndTell(
+                        context,
+                        () => st.api.updateOrganization(st.orgId, {
+                              'name': name.text,
+                              'share_price': int.tryParse(share.text.trim()),
+                              'max_loan_multiplier': int.tryParse(mult.text.trim()),
+                              'meeting_quorum_pct': int.tryParse(quorum.text.trim()),
+                              'mtn_merchant_code': mtn.text.trim(),
+                              'airtel_merchant_code': airtel.text.trim(),
+                            }),
+                        done: 'Saved.');
                     if (mounted) setState(() => busy = false);
-                    if (context.mounted) showMsg(context, err ?? 'Saved.', error: err != null);
                   },
             child: const Text('Save'),
           ),
         const LoanRulesCard(),
-        if (st.canReview) const GatewaySetupCard(),
+        if (st.role.handlesMoney) const GatewaySetupCard(),
         const Divider(),
         OutlinedButton.icon(onPressed: st.signOut, icon: const Icon(Icons.logout), label: const Text('Sign out')),
       ],

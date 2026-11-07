@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../core/json.dart';
+import '../core/money.dart';
 
 /// A message safe to show the user. Rule errors from the database are written for people.
 class ApiError implements Exception {
@@ -15,31 +16,28 @@ class ApiError implements Exception {
 class Api {
   SupabaseClient get _c => Supabase.instance.client;
 
-  Future<dynamic> _rpc(String name, [Map<String, dynamic>? params]) async {
+  /// Turns every failure into an [ApiError]: the server's own words if it answered, "no connection" if it did not.
+  static Future<T> _guard<T>(Future<T> Function() call, {String Function(AuthException)? auth}) async {
     try {
-      return await _c.rpc(name, params: params);
+      return await call();
+    } on ApiError {
+      rethrow;
     } on PostgrestException catch (e) {
       throw ApiError(e.message);
     } on AuthException catch (e) {
-      throw ApiError(e.message);
+      throw ApiError(auth == null ? e.message : auth(e));
+    } on FunctionException catch (e) {
+      final d = e.details;
+      throw ApiError(d is Map && d['error'] != null ? d['error'].toString() : 'The payment server said no (${e.status}). Try again.');
     } catch (e) {
       throw const ApiError('No connection. Check your internet and try again.', isNetwork: true);
     }
   }
 
-  /// Calls a server function (online payments). Same friendly errors as the database.
-  Future<Json> _fn(String name, Json body) async {
-    try {
-      final r = await _c.functions.invoke(name, body: body);
-      return asJson(r.data);
-    } on FunctionException catch (e) {
-      final d = e.details;
-      final msg = d is Map && d['error'] != null ? d['error'].toString() : 'The payment server said no (${e.status}). Try again.';
-      throw ApiError(msg);
-    } catch (e) {
-      throw const ApiError('No connection. Check your internet and try again.', isNetwork: true);
-    }
-  }
+  Future<dynamic> _rpc(String name, [Map<String, dynamic>? params]) => _guard(() => _c.rpc(name, params: params));
+
+  /// Calls a server function (online payments).
+  Future<Json> _fn(String name, Json body) => _guard(() async => asJson((await _c.functions.invoke(name, body: body)).data));
 
   // ----- Sign in -----
   User? get user {
@@ -52,67 +50,32 @@ class Api {
 
   Stream<AuthState> get authChanges => _c.auth.onAuthStateChange;
 
-  Future<void> signIn(String email, String password) async {
-    try {
-      await _c.auth.signInWithPassword(email: email, password: password);
-    } on AuthException catch (e) {
-      throw ApiError(e.message);
-    } catch (e) {
-      throw const ApiError('No connection. Check your internet and try again.', isNetwork: true);
-    }
-  }
+  Future<void> signIn(String email, String password) => _guard(() => _c.auth.signInWithPassword(email: email, password: password));
 
   /// Google sign-in. Web comes back to the same page; phones come back through the app link.
   static const mobileRedirect = 'com.saccoledger.app://login-callback';
 
-  Future<void> signInWithGoogle({required bool web}) async {
-    try {
-      await _c.auth.signInWithOAuth(
-        OAuthProvider.google,
-        redirectTo: web ? '${Uri.base.origin}${Uri.base.path}' : mobileRedirect,
-        authScreenLaunchMode: web ? LaunchMode.platformDefault : LaunchMode.externalApplication,
+  Future<void> signInWithGoogle({required bool web}) => _guard(
+        () => _c.auth.signInWithOAuth(
+          OAuthProvider.google,
+          redirectTo: web ? '${Uri.base.origin}${Uri.base.path}' : mobileRedirect,
+          authScreenLaunchMode: web ? LaunchMode.platformDefault : LaunchMode.externalApplication,
+        ),
+        auth: (e) => e.message.contains('not enabled') ? 'Google sign-in is not switched on yet. Use phone or email for now.' : e.message,
       );
-    } on AuthException catch (e) {
-      throw ApiError(e.message.contains('not enabled') ? 'Google sign-in is not switched on yet. Use phone or email for now.' : e.message);
-    } catch (e) {
-      throw const ApiError('No connection. Check your internet and try again.', isNetwork: true);
-    }
-  }
 
-  Future<void> signUp(String email, String password) async {
-    try {
-      final r = await _c.auth.signUp(email: email, password: password);
-      if (r.session == null) {
-        throw const ApiError('Account made, but sign-in is off. Turn off "Confirm email" in Supabase (see README).');
-      }
-    } on AuthException catch (e) {
-      throw ApiError(e.message);
-    } on ApiError {
-      rethrow;
-    } catch (e) {
-      throw const ApiError('No connection. Check your internet and try again.', isNetwork: true);
-    }
-  }
+  Future<void> signUp(String email, String password) => _guard(() async {
+        final r = await _c.auth.signUp(email: email, password: password);
+        if (r.session == null) throw const ApiError('Account made, but sign-in is off. Turn off "Confirm email" in Supabase (see README).');
+      });
 
   /// [everywhere] also ends sessions on every other phone and browser.
   Future<void> signOut({bool everywhere = false}) => _c.auth.signOut(scope: everywhere ? SignOutScope.global : SignOutScope.local);
 
   /// Checks the current password first, so a borrowed unlocked phone cannot change it.
   Future<void> changePassword(String signInId, String current, String next) async {
-    try {
-      await _c.auth.signInWithPassword(email: signInId, password: current);
-    } on AuthException {
-      throw const ApiError('Current password is wrong.');
-    } catch (e) {
-      throw const ApiError('No connection. Check your internet and try again.', isNetwork: true);
-    }
-    try {
-      await _c.auth.updateUser(UserAttributes(password: next));
-    } on AuthException catch (e) {
-      throw ApiError(e.message);
-    } catch (e) {
-      throw const ApiError('No connection. Check your internet and try again.', isNetwork: true);
-    }
+    await _guard(() => _c.auth.signInWithPassword(email: signInId, password: current), auth: (_) => 'Current password is wrong.');
+    await _guard(() => _c.auth.updateUser(UserAttributes(password: next)));
   }
 
   // ----- My account -----
@@ -199,7 +162,7 @@ class Api {
   // ----- Meetings -----
   Future<List<Json>> meetings(String org) async => asJsonList(await _rpc('list_meetings', {'p_org': org}));
   Future<void> openMeeting(String org, int cash, String c1, String c2) =>
-      _rpc('open_meeting', {'p_org': org, 'p_date': DateTime.now().toIso8601String().substring(0, 10), 'p_cash': cash, 'p_c1': c1, 'p_c2': c2});
+      _rpc('open_meeting', {'p_org': org, 'p_date': Dates.iso(DateTime.now()), 'p_cash': cash, 'p_c1': c1, 'p_c2': c2});
   Future<void> setAttendance(String meeting, String member, bool present) =>
       _rpc('set_attendance', {'p_meeting': meeting, 'p_member': member, 'p_present': present});
   Future<void> closeMeeting(String meeting, int cash, String c1, String c2, String minutes) =>
@@ -207,14 +170,12 @@ class Api {
 
   // ----- Loans -----
   Future<List<Json>> loans(String org) async => asJsonList(await _rpc('list_loans', {'p_org': org}));
-  Future<void> applyLoan(String org, String member, int principal, int term, String type, String purpose) =>
-      _rpc('apply_loan', {'p_org': org, 'p_member': member, 'p_principal': principal, 'p_term': term, 'p_type': type, 'p_purpose': purpose});
   Future<void> approveLoan(String loan, String resolution, String w1, String w2) =>
       _rpc('approve_loan', {'p_loan': loan, 'p_resolution': resolution, 'p_w1': w1, 'p_w2': w2});
   Future<void> rejectLoan(String loan, String reason) => _rpc('reject_loan', {'p_loan': loan, 'p_reason': reason});
   Future<void> disburseLoan(String loan, String channel, String? ref) => _rpc('disburse_loan', {'p_loan': loan, 'p_channel': channel, 'p_ref': ref});
   Future<List<Json>> loanSchedule(String loan) async => asJsonList(await _rpc('loan_schedule', {'p_loan': loan}));
-  Future<String> applyLoan2(String org, String member, int principal, int term, Json? terms, String purpose) async =>
+  Future<String> applyLoan(String org, String member, int principal, int term, Json? terms, String purpose) async =>
       (await _rpc('apply_loan2', {'p_org': org, 'p_member': member, 'p_principal': principal, 'p_term': term, 'p_terms': terms, 'p_purpose': purpose}))
           .toString();
   Future<void> setLoanRules(String org, Json rules) => _rpc('set_loan_rules', {'p_org': org, 'p': rules});
@@ -238,8 +199,8 @@ class Api {
         'p_org': org,
         'p_name': name,
         'p_target': target,
-        'p_start': _day(start),
-        'p_end': end == null ? null : _day(end),
+        'p_start': Dates.iso(start),
+        'p_end': end == null ? null : Dates.iso(end),
         'p_frequency': frequency,
         'p_per_person': perPerson,
       }))
@@ -247,7 +208,6 @@ class Api {
   Future<void> closeGoal(String goal) => _rpc('close_goal', {'p_goal': goal});
   Future<void> setPaymentGoal(String payment, String? goal, String reason) =>
       _rpc('set_payment_goal', {'p_payment': payment, 'p_goal': goal, 'p_reason': reason});
-  static String _day(DateTime d) => '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
   // ----- Reports -----
   Future<Json> dashboard(String org) async => asJson(await _rpc('dashboard', {'p_org': org}));

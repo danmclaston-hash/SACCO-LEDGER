@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/json.dart';
 import '../../core/money.dart';
-import '../../core/search_index.dart';
+import '../../core/pages.dart';
 import '../../data/api.dart';
 import '../../state/app_state.dart';
 import '../widgets.dart';
@@ -29,7 +29,7 @@ class _SearchScreenState extends State<SearchScreen> {
   final q = TextEditingController();
   Timer? _debounce;
   List<Json> results = [];
-  List<IndexEntry> pages = [];
+  List<AppPage> pages = [];
   bool busy = false;
   String? error;
 
@@ -45,7 +45,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
   void onChanged(AppState st, String text) {
     _debounce?.cancel();
-    setState(() => pages = searchAppIndex(text, officer: st.isOfficer));
+    setState(() => pages = searchPages(text, st.canSee));
     _debounce = Timer(const Duration(milliseconds: 350), () => search(st, text));
   }
 
@@ -75,7 +75,7 @@ class _SearchScreenState extends State<SearchScreen> {
       case 'journal':
         st.goTo(AppPage.ledger, tab: 0);
       case 'payment':
-        st.goTo(st.isOfficer ? AppPage.approvals : AppPage.channels);
+        st.goTo(st.canSee(AppPage.approvals) ? AppPage.approvals : AppPage.channels);
       case 'loan':
         st.goTo(AppPage.loans);
       case 'meeting':
@@ -128,10 +128,10 @@ class _SearchScreenState extends State<SearchScreen> {
           for (final p in pages)
             ListTile(
               leading: Icon(Icons.apps, color: cs.secondary),
-              title: Text(p.title),
+              title: Text(st.t(p.title)),
               subtitle: Text(p.hint),
               onTap: () {
-                st.goTo(p.page);
+                st.goTo(p);
                 Navigator.pop(context);
               },
             ),

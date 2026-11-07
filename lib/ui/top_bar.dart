@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../core/search_index.dart';
+import '../core/catalog.dart';
+import '../core/pages.dart';
 import '../core/json.dart';
 import 'screens/account_screen.dart';
 import 'screens/search_screen.dart';
@@ -47,7 +48,7 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(o.s('name'), style: const TextStyle(fontWeight: FontWeight.bold)),
-                            Text('${editionNames[o.s('edition')]} • ${o.s('currency_code')}', style: tt.bodySmall),
+                            Text('${Edition.parse(o.s('edition')).label} • ${o.s('currency_code')}', style: tt.bodySmall),
                           ],
                         ),
                       ),
@@ -66,7 +67,7 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
                               overflow: TextOverflow.ellipsis,
                               style: tt.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: Colors.white),
                             ),
-                            Text(editionNames[org?.s('edition')]?.split(':').first ?? 'Community Group', style: tt.labelSmall?.copyWith(color: cs.secondary)),
+                            Text(Edition.parse(org?.s('edition')).tier, style: tt.labelSmall?.copyWith(color: cs.secondary)),
                           ],
                         ),
                       ),
@@ -97,13 +98,13 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
                   children: [
                     Icon(Icons.badge, size: 16, color: Colors.white),
                     const SizedBox(width: 4),
-                    Text(_short[st.role] ?? st.role, style: tt.labelMedium?.copyWith(color: Colors.white)),
+                    Text(st.role.short, style: tt.labelMedium?.copyWith(color: Colors.white)),
                   ],
                 ),
               ),
               // Language, theme and the rest now live in My Account, opened from your picture.
               IconButton(
-                tooltip: st.t('my_account'),
+                tooltip: st.t(AppPage.account.title),
                 onPressed: () => st.goTo(AppPage.account),
                 icon: Avatar(name: st.account.s('full_name').isEmpty ? '?' : st.account.s('full_name'), photo: st.account['avatar'] as String?, size: 32),
               ),
@@ -114,13 +115,4 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  static const _short = {
-    'org_admin': 'Org Admin',
-    'loan_officer': 'Loan Officer',
-    'platform_admin': 'Platform',
-    'treasurer': 'Treasurer',
-    'secretary': 'Secretary',
-    'auditor': 'Auditor',
-    'member': 'Member',
-  };
 }

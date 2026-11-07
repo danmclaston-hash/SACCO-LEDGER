@@ -46,35 +46,30 @@ class LoanTerms {
   static double _d(dynamic v, double or) => v == null ? or : (v is num ? v.toDouble() : double.tryParse(v.toString()) ?? or);
   static int _i(dynamic v, int or) => v == null ? or : (v is num ? v.toInt() : int.tryParse(v.toString()) ?? or);
 
-  /// The group's rules (organizations row).
-  factory LoanTerms.fromGroup(Map<String, dynamic> o) => LoanTerms(
-        interestMode: o['loan_interest_mode']?.toString() ?? 'yearly',
-        rate: _d(o['loan_interest_rate'] ?? o['default_interest_rate_pct'], 10),
-        calculation: o['loan_calculation']?.toString() ?? 'flat',
-        freeMonths: _i(o['loan_free_months'], 0),
-        plan: o['loan_repayment_plan']?.toString() ?? 'monthly',
-        lateType: o['late_fee_type']?.toString() ?? 'none',
-        lateAmount: _i(o['late_fee_amount'], 0),
-        latePct: _d(o['late_fee_pct'], 0),
-        lateEvery: o['late_fee_every']?.toString() ?? 'once',
-        graceDays: _i(o['late_fee_grace_days'], 0),
-        capPct: o['late_fee_cap_pct'] == null ? null : _d(o['late_fee_cap_pct'], 0),
+  /// The database names the interest columns differently on a group and on a loan, and keeps an older
+  /// whole-number rate column beside the new one. Late-fee columns have the same names on both.
+  factory LoanTerms._read(Map<String, dynamic> j, {required String mode, required String rate, required String oldRate, required String calc, required String free, required String plan, required double defaultRate}) =>
+      LoanTerms(
+        interestMode: j[mode]?.toString() ?? 'yearly',
+        rate: _d(j[rate] ?? j[oldRate], defaultRate),
+        calculation: j[calc]?.toString() ?? 'flat',
+        freeMonths: _i(j[free], 0),
+        plan: j[plan]?.toString() ?? 'monthly',
+        lateType: j['late_fee_type']?.toString() ?? 'none',
+        lateAmount: _i(j['late_fee_amount'], 0),
+        latePct: _d(j['late_fee_pct'], 0),
+        lateEvery: j['late_fee_every']?.toString() ?? 'once',
+        graceDays: _i(j['late_fee_grace_days'], 0),
+        capPct: j['late_fee_cap_pct'] == null ? null : _d(j['late_fee_cap_pct'], 0),
       );
 
+  /// The group's rules (organizations row).
+  factory LoanTerms.fromGroup(Map<String, dynamic> o) => LoanTerms._read(o,
+      mode: 'loan_interest_mode', rate: 'loan_interest_rate', oldRate: 'default_interest_rate_pct', calc: 'loan_calculation', free: 'loan_free_months', plan: 'loan_repayment_plan', defaultRate: 10);
+
   /// One loan's own rules.
-  factory LoanTerms.fromLoan(Map<String, dynamic> l) => LoanTerms(
-        interestMode: l['interest_mode']?.toString() ?? 'yearly',
-        rate: _d(l['interest_rate'] ?? l['interest_rate_pct'], 0),
-        calculation: l['calculation_type']?.toString() ?? 'flat',
-        freeMonths: _i(l['free_months'], 0),
-        plan: l['repayment_plan']?.toString() ?? 'monthly',
-        lateType: l['late_fee_type']?.toString() ?? 'none',
-        lateAmount: _i(l['late_fee_amount'], 0),
-        latePct: _d(l['late_fee_pct'], 0),
-        lateEvery: l['late_fee_every']?.toString() ?? 'once',
-        graceDays: _i(l['late_fee_grace_days'], 0),
-        capPct: l['late_fee_cap_pct'] == null ? null : _d(l['late_fee_cap_pct'], 0),
-      );
+  factory LoanTerms.fromLoan(Map<String, dynamic> l) => LoanTerms._read(l,
+      mode: 'interest_mode', rate: 'interest_rate', oldRate: 'interest_rate_pct', calc: 'calculation_type', free: 'free_months', plan: 'repayment_plan', defaultRate: 0);
 
   Map<String, dynamic> toJson() => {
         'interest_mode': interestMode,

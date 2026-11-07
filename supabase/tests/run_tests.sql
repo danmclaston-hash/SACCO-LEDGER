@@ -50,7 +50,6 @@ select t.fails($$select public.record_payment(t.id('org'), t.id('ann_m'),'shares
 select t.fails($$select public.record_payment(t.id('org'), t.id('ben_m'),'shares',500,'cash',null,null,null,null,'k4')$$,'your own','member cannot record for another');
 select t.ok(((public.record_payment(t.id('org'), t.id('ann_m'),'shares',20000,'mtn_momo','MP1001',null,null,null,'k1'))->>'status')='pending','retry with same key returns same record');
 select t.ok((public.dashboard(t.id('org'))->>'member_savings')::bigint=0,'pending payment does not touch ledger');
-select t.fails($$select public.review_payment((select id from public.list_payments_ids), true, '')$$,'','placeholder') where false;
 select t.as_user(t.id('ann_u'));
 select t.fails(format($$select public.review_payment(%L, true, '')$$,(select (x->>'id') from jsonb_array_elements(public.list_payments(t.id('org'))) x limit 1)),'Your role','member cannot confirm');
 select t.as_user(t.id('treas_u'));
@@ -100,7 +99,6 @@ select public.review_payment((select (x->>'id')::uuid from jsonb_array_elements(
 select t.ok(t.bal(t.id('org'),'4010')=-83,'first 83 goes to interest');
 select t.ok(t.bal(t.id('org'),'1050')=10000,'principal untouched');
 select t.as_user(t.id('treas_u'));
-select t.fails(format($$select public.review_payment((public.record_payment(t.id('org'), t.id('ann_m'),'loan_repayment',99999,'cash',null,null,t.id('loan'),null,'k9')->>'id')::uuid,true,'')$$),'','overpay') where false;
 select public.record_payment(t.id('org'), t.id('ann_m'),'loan_repayment',10000,'mtn_momo','MP2002',null,t.id('loan'),null,'k10');
 select t.as_user(t.id('admin_u'));
 select public.review_payment((select (x->>'id')::uuid from jsonb_array_elements(public.list_payments(t.id('org'),'pending')) x limit 1), true, '');
@@ -545,5 +543,3 @@ update public.loans set disbursed_at = (current_date - 200 - interval '1 month')
 select t.ok((public.loan_late_fees(t.id('ln2'))->>'total')::bigint <= 600 and (public.loan_late_fees(t.id('ln2'))->>'capped')::boolean,'late fees stop at the limit (5% of 12000)');
 select t.fails($$update public.loan_fee_waivers set amount=1$$,'permanent','forgiven fees cannot be edited');
 reset role;
-\pset format aligned
-select count(*) filter (where ok) passed, count(*) filter (where not ok) failed from t.res;

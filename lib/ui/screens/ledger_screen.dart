@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/catalog.dart';
 import '../../core/json.dart';
 import '../../core/money.dart';
 import '../../state/app_state.dart';
@@ -14,7 +15,7 @@ class LedgerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final st = StateScope.of(context);
-    if (!st.isOfficer) return const StatementsScreen();
+    if (!st.role.isOfficer) return const StatementsScreen();
     return DefaultTabController(
       key: ValueKey(st.ledgerTab),
       length: 3,
@@ -60,7 +61,7 @@ class _Journals extends StatelessWidget {
                       ),
                     ),
                     if (j.b('is_reversed')) Pill(text: 'REVERSED', color: cs.error, foreground: cs.onError),
-                    if (st.canReview && !j.b('is_reversed') && j.s('type') != 'reversal' && j.s('type') != 'share_out')
+                    if (st.role.handlesMoney && !j.b('is_reversed') && j.s('type') != 'reversal' && j.s('type') != 'share_out')
                       TextButton(
                         onPressed: () => _reverse(context, st, j),
                         child: Text('Reverse', style: TextStyle(color: cs.error)),
@@ -69,7 +70,7 @@ class _Journals extends StatelessWidget {
                 ),
                 Text(j.s('description'), style: tt.bodySmall),
                 Text(
-                  'By ${j.s('actor_name')} • ${Dates.dayTime(j['created_at'])}${j.n('external_ref') != null ? ' • ID ${j.s('external_ref')}' : ''}${j.n('channel') != null ? ' • ${allChannelNames[j.s('channel')]}' : ''}',
+                  'By ${j.s('actor_name')} • ${Dates.dayTime(j['created_at'])}${j.n('external_ref') != null ? ' • ID ${j.s('external_ref')}' : ''}${j.n('channel') != null ? ' • ${Channel.labelOf(j.s('channel'))}' : ''}',
                   style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
                 ),
                 const Divider(height: 12),
@@ -119,13 +120,9 @@ class _TrialBalance extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final st = StateScope.of(context);
-    return FutureBuilder<Json>(
-      key: ValueKey(st.journals.length),
-      future: st.api.trialBalance(st.orgId),
-      builder: (context, snap) {
-        if (snap.hasError) return Padding(padding: const EdgeInsets.all(16), child: Text(snap.error.toString()));
-        if (!snap.hasData) return const Center(child: CircularProgressIndicator());
-        final t = snap.data!;
+    return Loaded<Json>(
+      load: () => st.api.trialBalance(st.orgId),
+      builder: (context, t) {
         final tt = Theme.of(context).textTheme;
         final ok = t.b('balanced');
         return AppPageView(
@@ -186,12 +183,9 @@ class _AuditState extends State<_Audit> {
     final st = StateScope.of(context);
     final tt = Theme.of(context).textTheme;
     final cs = Theme.of(context).colorScheme;
-    return FutureBuilder<List<Json>>(
-      key: ValueKey(st.journals.length),
-      future: st.api.audit(st.orgId),
-      builder: (context, snap) {
-        if (snap.hasError) return Padding(padding: const EdgeInsets.all(16), child: Text(snap.error.toString()));
-        if (!snap.hasData) return const Center(child: CircularProgressIndicator());
+    return Loaded<List<Json>>(
+      load: () => st.api.audit(st.orgId),
+      builder: (context, rows) {
         return AppPageView(
           children: [
             SaccoCard(
@@ -237,8 +231,8 @@ class _AuditState extends State<_Audit> {
                 ],
               ),
             ),
-            if (snap.data!.isEmpty) const EmptyNote('No audit records found.'),
-            for (final a in snap.data!)
+            if (rows.isEmpty) const EmptyNote('No audit records found.'),
+            for (final a in rows)
               SaccoCard(
                 radius: 12,
                 padding: const EdgeInsets.all(12),

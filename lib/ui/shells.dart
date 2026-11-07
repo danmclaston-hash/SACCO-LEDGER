@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../core/search_index.dart';
-import '../state/app_state.dart';
+import '../core/pages.dart';
 import 'screens/account_screen.dart';
 import 'screens/approvals_screen.dart';
 import 'screens/channels_screen.dart';
@@ -19,6 +18,24 @@ import 'screens/share_out_screen.dart';
 import 'screens/statements_screen.dart';
 import 'top_bar.dart';
 import 'widgets.dart';
+
+IconData pageIcon(AppPage p) => switch (p) {
+      AppPage.overview => Icons.dashboard,
+      AppPage.approvals => Icons.fact_check,
+      AppPage.goals => Icons.flag,
+      AppPage.members => Icons.people,
+      AppPage.meetings => Icons.groups,
+      AppPage.loans => Icons.request_quote,
+      AppPage.emergency => Icons.health_and_safety,
+      AppPage.ledger => Icons.account_balance_wallet,
+      AppPage.statements => Icons.receipt_long,
+      AppPage.shareOut => Icons.calculate,
+      AppPage.channels => Icons.phone_iphone,
+      AppPage.licences => Icons.verified,
+      AppPage.settings => Icons.settings,
+      AppPage.account => Icons.account_circle,
+      AppPage.platform => Icons.domain,
+    };
 
 Widget pageBody(AppPage p) => switch (p) {
       AppPage.account => const AccountScreen(),
@@ -50,20 +67,12 @@ Widget animatedPage(BuildContext context, AppPage p) => AnimatedSwitcher(
 class MobileShell extends StatelessWidget {
   const MobileShell({super.key});
 
-  static const _items = [
-    (AppPage.overview, 'dashboard', Icons.dashboard),
-    (AppPage.meetings, 'meetings', Icons.groups),
-    (AppPage.loans, 'loans', Icons.request_quote),
-    (AppPage.emergency, 'emergency', Icons.health_and_safety),
-    (AppPage.ledger, 'ledger', Icons.account_balance_wallet),
-    (AppPage.shareOut, 'share_out', Icons.calculate),
-    (AppPage.channels, 'Channels', Icons.phone_iphone),
-  ];
+  static const _tabs = [AppPage.overview, AppPage.meetings, AppPage.loans, AppPage.emergency, AppPage.ledger, AppPage.shareOut, AppPage.channels];
 
   @override
   Widget build(BuildContext context) {
     final st = StateScope.of(context);
-    final index = _items.indexWhere((e) => e.$1 == st.page);
+    final index = _tabs.indexOf(st.page);
     return PopScope(
       canPop: st.page == AppPage.overview,
       onPopInvokedWithResult: (didPop, _) {
@@ -84,9 +93,10 @@ class MobileShell extends StatelessWidget {
             // Pages reached from Overview (members, approvals...) keep Overview lit.
             selectedIndex: index < 0 ? 0 : index,
             labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-            onDestinationSelected: (i) => st.goTo(_items[i].$1),
+            onDestinationSelected: (i) => st.goTo(_tabs[i]),
             destinations: [
-              for (final e in _items) NavigationDestination(icon: Icon(e.$3, size: 22), label: st.t(e.$2).length > 9 ? st.t(e.$2).substring(0, 9) : st.t(e.$2)),
+              for (final p in _tabs)
+                NavigationDestination(icon: Icon(pageIcon(p), size: 22), label: st.t(p.tab).length > 9 ? st.t(p.tab).substring(0, 9) : st.t(p.tab)),
             ],
           ),
         ),
@@ -99,32 +109,14 @@ class MobileShell extends StatelessWidget {
 class AdminShell extends StatelessWidget {
   const AdminShell({super.key});
 
-  List<(AppPage, String, IconData)> _items(AppState st) => [
-        (AppPage.overview, st.t('dashboard'), Icons.dashboard),
-        (AppPage.approvals, 'Approvals', Icons.fact_check),
-        (AppPage.goals, st.t('goals'), Icons.flag),
-        (AppPage.members, st.t('members'), Icons.people),
-        (AppPage.meetings, st.t('meetings'), Icons.groups),
-        (AppPage.loans, st.t('loans'), Icons.request_quote),
-        (AppPage.emergency, st.t('emergency'), Icons.health_and_safety),
-        (AppPage.ledger, 'Ledger & Audit', Icons.account_balance_wallet),
-        (AppPage.statements, 'Statements', Icons.receipt_long),
-        (AppPage.shareOut, st.t('share_out'), Icons.calculate),
-        (AppPage.licences, 'Licences', Icons.verified),
-        (AppPage.settings, 'Group Settings', Icons.settings),
-        (AppPage.account, st.t('my_account'), Icons.account_circle),
-        if (st.account['is_platform_admin'] == true || st.isPlatformAdmin) (AppPage.platform, 'All groups', Icons.domain),
-      ];
-
   @override
   Widget build(BuildContext context) {
     final st = StateScope.of(context);
-    final items = _items(st);
+    final items = AppPage.values.where((p) => p.onWeb && st.canSee(p)).toList();
     final wide = MediaQuery.sizeOf(context).width >= 840;
-    final index = items.indexWhere((e) => e.$1 == st.page);
+    final index = items.indexOf(st.page);
     final pending = st.dash['pending_payments'];
-    Widget icon((AppPage, String, IconData) e) =>
-        e.$1 == AppPage.approvals && pending is int && pending > 0 ? Badge(label: Text('$pending'), child: Icon(e.$3)) : Icon(e.$3);
+    Widget icon(AppPage p) => p == AppPage.approvals && pending is int && pending > 0 ? Badge(label: Text('$pending'), child: Icon(pageIcon(p))) : Icon(pageIcon(p));
 
     return Scaffold(
       drawer: wide
@@ -133,7 +125,7 @@ class AdminShell extends StatelessWidget {
               builder: (ctx) => NavigationDrawer(
                 selectedIndex: index < 0 ? 0 : index,
                 onDestinationSelected: (i) {
-                  st.goTo(items[i].$1);
+                  st.goTo(items[i]);
                   Navigator.of(ctx).maybePop();
                 },
                 children: [
@@ -141,7 +133,7 @@ class AdminShell extends StatelessWidget {
                     padding: EdgeInsets.all(20),
                     child: Text('SACCO Ledger Admin', style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
-                  for (final e in items) NavigationDrawerDestination(icon: icon(e), label: Text(e.$2)),
+                  for (final p in items) NavigationDrawerDestination(icon: icon(p), label: Text(st.t(p.title))),
                 ],
               ),
             ),
@@ -157,15 +149,15 @@ class AdminShell extends StatelessWidget {
                 child: ListView(
                   padding: const EdgeInsets.symmetric(vertical: 8),
                   children: [
-                    for (final (i, e) in items.indexed)
+                    for (final p in items)
                       ListTile(
                         dense: true,
-                        selected: i == index,
+                        selected: p == st.page,
                         selectedColor: Theme.of(context).colorScheme.primary,
                         selectedTileColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
-                        leading: icon(e),
-                        title: Text(e.$2),
-                        onTap: () => st.goTo(e.$1),
+                        leading: icon(p),
+                        title: Text(st.t(p.title)),
+                        onTap: () => st.goTo(p),
                       ),
                   ],
                 ),

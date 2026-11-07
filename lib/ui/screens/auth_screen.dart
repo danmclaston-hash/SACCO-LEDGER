@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/catalog.dart';
 import '../../core/countries.dart';
 import '../../core/i18n.dart';
 import '../../core/money.dart';
@@ -50,14 +51,13 @@ class _AuthScreenState extends State<AuthScreen> {
         case _Mode.signIn:
           await st.api.signIn(email, pass.text);
           TextInput.finishAutofillContext();
-          await st.loadOrgs();
+          await st.refresh();
         case _Mode.signUp:
           await st.api.signUp(email, pass.text);
           TextInput.finishAutofillContext();
           // Keep the country and language chosen on this screen on the new account.
-          await st.updatePrefs(country: st.country);
-          await st.updateLook(language: st.language);
-          await st.loadOrgs();
+          await st.updateSettings(country: st.country, language: st.language);
+          await st.refresh();
         case _Mode.reset:
           final ok = await st.api.resetPassword(email, code.text, pass.text);
           if (!mounted) return;
@@ -107,7 +107,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   Icon(Icons.account_balance, size: 56, color: cs.secondary),
                   const SizedBox(height: 8),
                   Text(
-                    st.t('app_title'),
+                    st.t('SACCO Ledger'),
                     style: tt.headlineSmall?.copyWith(color: cs.onPrimary, fontWeight: FontWeight.bold),
                   ),
                   Text(kIsWeb ? 'Administrator portal' : 'Every shilling, on the record', style: tt.bodyMedium?.copyWith(color: saccoGoldLight)),
@@ -135,10 +135,10 @@ class _AuthScreenState extends State<AuthScreen> {
                             ],
                             onChanged: (v) {
                               if (v == null) return;
-                              st.updatePrefs(country: v);
+                              st.updateSettings(country: v);
                               // A new account starts in that country's usual language.
                               if (mode == _Mode.signUp) {
-                                st.updateLook(language: AppLanguage.values.firstWhere((l) => l.name == countryByCode(v).language));
+                                st.updateSettings(language: AppLanguage.values.firstWhere((l) => l.name == countryByCode(v).language));
                               }
                             },
                           ),
@@ -160,7 +160,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             const SizedBox(height: 6),
                             Wrap(spacing: 8, children: [
                               for (final l in AppLanguage.values)
-                                ChoiceChip(label: Text(l.label), selected: st.language == l, onSelected: (_) => st.updateLook(language: l)),
+                                ChoiceChip(label: Text(l.label), selected: st.language == l, onSelected: (_) => st.updateSettings(language: l)),
                             ]),
                           ],
                           gap,
@@ -257,16 +257,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   bool agree = false;
   bool busy = false;
 
+  /// Joining or starting a group needs the data notice ticked first.
+  bool _agreed() {
+    if (!agree) showMsg(context, 'Please tick the data notice first.', error: true);
+    return agree;
+  }
+
   Future<void> run(Future<String?> Function() fn) async {
-    if (!agree) {
-      showMsg(context, 'Please tick the data notice first.', error: true);
-      return;
-    }
+    if (!_agreed()) return;
     setState(() => busy = true);
     final st = StateScope.of(context);
     try {
       final select = await fn();
-      await st.loadOrgs(select: select);
+      await st.refresh(select: select);
     } on ApiError catch (e) {
       if (mounted) showMsg(context, e.message, error: true);
     } finally {
@@ -281,8 +284,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final phone = TextEditingController();
     var country = countryByCode(st.country);
     var currency = country.currency;
-    final share = TextEditingController(text: Money.format(suggestedSharePrice(currency), currency).substring(currency.length + 1));
-    var edition = 'tier_1_vsla';
+    final share = TextEditingController(text: Money.plain(suggestedSharePrice(currency), currency));
+    var edition = Edition.vsla;
     var more = false;
     final interest = TextEditingController(text: '10');
     final multiplier = TextEditingController(text: '3');
@@ -310,7 +313,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               country = countryByCode(v);
               // Money follows the country. Change it below only if the group really uses another.
               currency = country.currency;
-              share.text = Money.format(suggestedSharePrice(currency), currency).substring(currency.length + 1);
+              share.text = Money.plain(suggestedSharePrice(currency), currency);
             }),
           ),
           TextField(
@@ -318,11 +321,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             keyboardType: TextInputType.phone,
             decoration: InputDecoration(labelText: 'Your phone', helperText: 'Like ${country.example}'),
           ),
-          DropdownButtonFormField<String>(
+          DropdownButtonFormField<Edition>(
             initialValue: edition,
             isExpanded: true,
             decoration: const InputDecoration(labelText: 'Type of group'),
-            items: [for (final e in editionNames.entries) DropdownMenuItem(value: e.key, child: Text(e.value))],
+            items: [for (final e in Edition.values) DropdownMenuItem(value: e, child: Text(e.label))],
             onChanged: (v) => set(() => edition = v ?? edition),
           ),
           DropdownButtonFormField<String>(
@@ -330,7 +333,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             initialValue: currency,
             decoration: const InputDecoration(labelText: 'Currency', helperText: 'Cannot change after money is recorded'),
             items: [
-              for (final c in const ['UGX', 'KES', 'TZS', 'RWF']) DropdownMenuItem(value: c, child: Text(c)),
+              for (final c in {for (final k in countries) k.currency}) DropdownMenuItem(value: c, child: Text(c)),
             ],
             onChanged: (v) => set(() => currency = v ?? currency),
           ),
@@ -380,7 +383,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           try {
             final id = await st.api.createOrganization(
               name: name.text.trim(),
-              edition: edition,
+              edition: edition.code,
               currency: currency,
               sharePrice: price,
               multiplier: times,
@@ -389,9 +392,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               myName: me.text.trim(),
               myPhone: Phones.normalize(phone.text, dial: country.dial) ?? '',
             );
+            // The database's create_organization takes neither the country nor the new loan rules yet.
             await st.api.setOrgCountry(id, country.code);
             await st.api.setLoanRules(id, {'interest_mode': 'yearly', 'interest_rate': rate});
-            await st.loadOrgs(select: id);
+            await st.refresh(select: id);
             nav.pop();
           } on ApiError catch (e) {
             if (ctx.mounted) showMsg(ctx, e.message, error: true);
@@ -470,11 +474,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         onPressed: busy
                             ? null
                             : () {
-                                if (!agree) {
-                                  showMsg(context, 'Please tick the data notice first.', error: true);
-                                } else {
-                                  createGroup();
-                                }
+                                if (_agreed()) createGroup();
                               },
                         child: const Text('Create group'),
                       ),
