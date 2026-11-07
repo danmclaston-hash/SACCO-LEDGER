@@ -1,5 +1,5 @@
 # The build robot. Every push: checks code, runs money tests, builds Android, iOS and web.
-# Keys come from GitHub: Settings > Secrets and variables > Actions > Variables.
+# Database keys are built into lib/core/config.dart (public keys only).
 name: build
 on:
   push:
@@ -36,16 +36,16 @@ jobs:
       - run: flutter analyze --no-fatal-infos
       - run: flutter test
       - name: Android test app (APK)
-        run: flutter build apk --release --dart-define=SUPABASE_URL=${{ vars.SUPABASE_URL }} --dart-define=SUPABASE_KEY=${{ vars.SUPABASE_KEY }}
+        run: flutter build apk --release
       - uses: actions/upload-artifact@v4
         with: { name: android-apk, path: build/app/outputs/flutter-apk/app-release.apk }
       - name: Admin web app (PWA)
-        run: flutter build web --release --no-web-resources-cdn --base-href "/${{ github.event.repository.name }}/" --dart-define=SUPABASE_URL=${{ vars.SUPABASE_URL }} --dart-define=SUPABASE_KEY=${{ vars.SUPABASE_KEY }}
+        run: flutter build web --release --no-web-resources-cdn --base-href "/${{ github.event.repository.name }}/"
       - uses: actions/upload-pages-artifact@v3
         with: { path: build/web }
       # Second copy for your own site (Cloudflare Pages). It lives at the site root, so no /SACCO-LEDGER/ path.
       - name: Admin web app for Cloudflare
-        run: flutter build web --release --no-web-resources-cdn -o build/web_root --dart-define=SUPABASE_URL=${{ vars.SUPABASE_URL }} --dart-define=SUPABASE_KEY=${{ vars.SUPABASE_KEY }}
+        run: flutter build web --release --no-web-resources-cdn -o build/web_root
       - uses: actions/upload-artifact@v4
         with: { name: web-root, path: build/web_root }
 
@@ -57,10 +57,10 @@ jobs:
         with: { channel: stable, cache: true }
       - run: flutter pub get
       - name: iOS build check (no signing)
-        run: flutter build ios --release --no-codesign --dart-define=SUPABASE_URL=${{ vars.SUPABASE_URL }} --dart-define=SUPABASE_KEY=${{ vars.SUPABASE_KEY }}
+        run: flutter build ios --release --no-codesign
 
   deploy-web:
-    if: github.ref == 'refs/heads/main' && vars.SUPABASE_URL != ''
+    if: github.ref == 'refs/heads/main'
     needs: [database, app]
     runs-on: ubuntu-latest
     permissions:
@@ -75,7 +75,7 @@ jobs:
 
   # Only runs after you add CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID as repository secrets.
   deploy-cloudflare:
-    if: github.ref == 'refs/heads/main' && vars.SUPABASE_URL != '' && vars.CLOUDFLARE_PROJECT != ''
+    if: github.ref == 'refs/heads/main' && vars.CLOUDFLARE_PROJECT != ''
     needs: [database, app]
     runs-on: ubuntu-latest
     steps:

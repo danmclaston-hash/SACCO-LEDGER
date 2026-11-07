@@ -232,6 +232,8 @@ select t.fails(format($$select public.add_member(t.id('demo'),'X',null,null,'mem
 -- MY ACCOUNT
 reset role;
 \i ../migrations/20261107000000_accounts.sql
+\i ../migrations/20261107000100_hardening.sql
+\i ../migrations/20261107000200_owner.sql
 set role authenticated;
 select t.as_user(t.id('ben_u'));
 select t.ok(public.get_my_account()->>'sign_in_id'='ben@test.local','account shows my sign-in id');
