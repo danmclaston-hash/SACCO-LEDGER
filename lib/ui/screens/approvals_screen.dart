@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../core/json.dart';
+import '../../core/money.dart';
+import '../../state/app_state.dart';
 import '../widgets.dart';
 import 'channels_screen.dart';
 
@@ -46,8 +48,43 @@ class ApprovalsScreen extends StatelessWidget {
             ],
           ),
         const SectionTitle('Reviewed'),
-        for (final p in done) PaymentTile(p),
+        for (final p in done)
+          PaymentTile(p, actions: [
+            // Fix a forgotten or wrong goal label. The money does not move; the audit trail keeps who and why.
+            if (st.canRunMeetings &&
+                p.s('status') == 'confirmed' &&
+                (p.s('purpose') == 'shares' || p.s('purpose') == 'savings') &&
+                (st.activeGoals.isNotEmpty || p.n('goal_id') != null))
+              TextButton.icon(onPressed: () => _relabel(context, st, p), icon: const Icon(Icons.flag_outlined, size: 16), label: const Text('Goal label')),
+          ]),
       ],
     );
   }
+}
+
+void _relabel(BuildContext context, AppState st, Json p) {
+  String? goal = p.n('goal_id');
+  final reason = TextEditingController();
+  showDialog(
+    context: context,
+    builder: (_) => FormDialog(
+      title: 'Change goal label',
+      confirm: 'Save',
+      fields: (ctx, set) => [
+        Text('${p.s('member_name')} • ${Money.format(p.i('amount'), st.currency)}. The money stays in savings. Only the label changes.'),
+        DropdownButtonFormField<String?>(
+          initialValue: goal,
+          isExpanded: true,
+          decoration: const InputDecoration(labelText: 'For goal'),
+          items: [
+            const DropdownMenuItem<String?>(value: null, child: Text('Not for any goal')),
+            for (final g in st.activeGoals) DropdownMenuItem<String?>(value: g.s('id'), child: Text(g.s('name'))),
+          ],
+          onChanged: (v) => set(() => goal = v),
+        ),
+        TextField(controller: reason, decoration: const InputDecoration(labelText: 'Why? (kept in the audit trail)')),
+      ],
+      onConfirm: (ctx) => runAndClose(ctx, st, () => st.api.setPaymentGoal(p.s('id'), goal, reason.text), done: 'Label changed and recorded.'),
+    ),
+  );
 }

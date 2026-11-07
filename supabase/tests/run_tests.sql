@@ -285,6 +285,59 @@ select t.ok((public.trial_balance(t.id('org'))->>'balanced')::boolean,'books sti
 select t.as_user(null);
 set role anon;
 select t.fails($$select public.get_my_account()$$,'permission denied','anon cannot read accounts');
+
+-- SAVINGS GOALS
+reset role;
+\i ../migrations/20261107000300_goals.sql
+grant execute on function public.check_goal(uuid,uuid,text) to authenticated; -- test only, so t.fails can show its message
+set role authenticated;
+select t.as_user(t.id('ann_u'));
+select t.fails($$select public.create_goal(t.id('org'),'X',100,null,null,'weekly',null)$$,'Your role','member cannot create a goal');
+select t.as_user(t.id('treas_u'));
+select t.put('goal', public.create_goal(t.id('org'),'School fees',30000,current_date,current_date+7,'daily',1000));
+select t.as_user(t.id('admin_u'));
+select t.put('goal2', public.create_goal(t.id('org2'),'Other group goal',100,null,null,'weekly',null));
+select t.as_user(t.id('ann_u'));
+select t.put('p1', (public.record_payment(t.id('org'),t.id('ann_m'),'savings',5000,'mtn_momo','GOAL001',null,null,null,'g1',t.id('goal'))->>'id')::uuid);
+select t.ok((select goal_id from public.payment_records where id=t.id('p1'))=t.id('goal'),'payment carries the goal label');
+select t.fails($$select public.record_payment(t.id('org'),t.id('ann_m'),'fine',100,'cash',null,null,null,'x','g2',t.id('goal'))$$,'Only shares or savings','fines cannot be for a goal');
+select t.fails($$select public.record_payment(t.id('org'),t.id('ann_m'),'savings',100,'cash',null,null,null,null,'g3',t.id('goal2'))$$,'not open in this group','goal from another group refused');
+select t.ok((public.list_goals(t.id('org'))->0->>'collected')::bigint=0 and (public.list_goals(t.id('org'))->0->>'pending')::bigint=5000,'unchecked money shows as pending, not collected');
+select t.as_user(t.id('treas_u'));
+select public.review_payment(t.id('p1'), true, 'seen');
+select t.as_user(t.id('ann_u'));
+select public.record_payment(t.id('org'),t.id('ann_m'),'savings',3000,'mtn_momo','PLAIN01',null,null,null,'g4');
+select t.as_user(t.id('treas_u'));
+select public.review_payment((select id from public.payment_records where idempotency_key='g4'), true, '');
+select t.as_user(t.id('ann_u'));
+select t.ok((public.list_goals(t.id('org'))->0->>'collected')::bigint=5000,'goal collected counts checked money');
+select t.ok((public.list_goals(t.id('org'))->0->>'mine')::bigint=5000,'member sees own part');
+select t.ok(public.list_goals(t.id('org'))->0->'by_member' = 'null'::jsonb,'member cannot see others parts');
+select t.ok((public.savings_allocation(t.id('org'))->>'total')::bigint=8000,'savings total is the one account');
+select t.ok((public.savings_allocation(t.id('org'))->>'for_goals')::bigint=5000 and (public.savings_allocation(t.id('org'))->>'not_for_goal')::bigint=3000,'split: 5000 for goal, 3000 not for a goal');
+select t.fails(format($$select public.set_payment_goal(%L,%L,'x')$$,(select id from public.payment_records where idempotency_key='g4'),t.id('goal')),'Your role','member cannot relabel');
+select t.as_user(t.id('admin_u'));
+select t.ok(jsonb_array_length(public.list_goals(t.id('org'))->0->'by_member')>=1,'officer sees each member part');
+select t.fails(format($$select public.set_payment_goal(%L,%L,'')$$,(select id from public.payment_records where idempotency_key='g4'),t.id('goal')),'Say why','relabel needs a reason');
+select public.set_payment_goal((select id from public.payment_records where idempotency_key='g4'),t.id('goal'),'Ann said it was for school fees');
+select t.ok((public.list_goals(t.id('org'))->0->>'collected')::bigint=8000,'relabelled money moves to the goal');
+select t.ok(public.list_audit(t.id('org'))::text like '%CHANGE_GOAL_LABEL%no goal to School fees%','relabel is in the audit trail');
+select t.ok((public.trial_balance(t.id('org'))->>'balanced')::boolean,'labels never unbalance the books');
+select public.reverse_journal((select journal_id from public.payment_records where id=t.id('p1')),'Wrong amount');
+select t.ok((public.list_goals(t.id('org'))->0->>'collected')::bigint=3000,'reversed money leaves the goal');
+select t.ok((public.savings_allocation(t.id('org'))->>'for_goals')::bigint=3000 and (public.savings_allocation(t.id('org'))->>'total')::bigint=3000,'allocation follows the reversal');
+select t.ok(jsonb_array_length(public.list_goals(t.id('org'))->0->'points')>=1,'goal has chart points');
+select t.ok(jsonb_array_length(public.monthly_flows(t.id('org')))=12,'chart has 12 months');
+select t.ok((public.monthly_flows(t.id('org'))->11->>'paid_in')::bigint>0,'this month shows money in');
+select t.ok((select bool_and((x->>'paid_in')::bigint>=0) from jsonb_array_elements(public.monthly_flows(t.id('org'))) x),'no negative months');
+select t.as_user(t.id('ann_u'));
+select t.ok((public.monthly_flows(t.id('org'))->11->>'savings')::bigint=3000,'member chart shows own savings only');
+select t.as_user(t.id('stranger_u'));
+select t.fails($$select public.list_goals(t.id('org'))$$,'not a member','stranger cannot see goals');
+select t.as_user(t.id('treas_u'));
+select public.close_goal(t.id('goal'));
+select t.as_user(t.id('ann_u'));
+select t.fails($$select public.record_payment(t.id('org'),t.id('ann_m'),'savings',100,'cash',null,null,null,null,'g9',t.id('goal'))$$,'not open','closed goal takes no new money');
 reset role;
 \pset format aligned
 select count(*) filter (where ok) passed, count(*) filter (where not ok) failed from t.res;

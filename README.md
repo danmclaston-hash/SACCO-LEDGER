@@ -14,7 +14,7 @@ Read also: [Simple plan](docs/PLAN.md) · [Licences](docs/LICENCES.md)
 ### Step 1: Make the database
 **Why:** every phone and browser shares this one record book.
 1. Go to [supabase.com](https://supabase.com), sign up, click **New project**. Pick the region closest to Uganda. Save the database password somewhere private. **Never share it.**
-2. Open **SQL Editor**. Paste all of `supabase/migrations/20261106000000_init.sql` and click **Run**. Then do the same with `20261107000000_accounts.sql`, then `20261107000100_hardening.sql`, then `20261107000200_owner.sql`. Order matters: each file needs the one before.
+2. Open **SQL Editor**. Paste all of `supabase/migrations/20261106000000_init.sql` and click **Run**. Then do the same with `20261107000000_accounts.sql`, then `20261107000100_hardening.sql`, then `20261107000200_owner.sql`, then `20261107000300_goals.sql`. Order matters: each file needs the one before.
 3. Open **Authentication → Providers (or Sign In) → Email**, turn **Confirm email** off. Members use phones, so no email can be confirmed.
 
 **Check it worked:** **Table Editor** shows `journals`, `members`, `audit_log` and others.

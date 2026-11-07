@@ -1,5 +1,5 @@
 /// Pages of the app. Used by navigation and by the search box.
-enum AppPage { account, overview, approvals, members, meetings, loans, emergency, ledger, shareOut, channels, statements, licences, settings, platform }
+enum AppPage { account, overview, goals, approvals, members, meetings, loans, emergency, ledger, shareOut, channels, statements, licences, settings, platform }
 
 class IndexEntry {
   final AppPage page;
@@ -25,6 +25,8 @@ const appIndex = <IndexEntry>[
     'health',
     'score',
   ]),
+  IndexEntry(AppPage.goals, 'Savings goals', 'Plan a target, see who brings how much, track progress',
+      ['goal', 'target', 'plan', 'projection', 'forecast', 'calculator', 'how much', 'per day', 'per week', 'how long', 'save', 'fund', 'chart', 'progress']),
   IndexEntry(AppPage.channels, 'Channels: pay and record', 'Pay with MoMo or Airtel, then record the transaction ID', [
     'pay',
     'payment',
@@ -41,16 +43,21 @@ const appIndex = <IndexEntry>[
     'record',
     'transaction',
   ]),
-  IndexEntry(AppPage.approvals, 'Approvals', 'Payment records waiting for a second person', [
-    'approve',
-    'confirm',
-    'reject',
-    'pending',
-    'review',
-    'queue',
-    'maker',
-    'checker',
-  ], officerOnly: true),
+  IndexEntry(
+      AppPage.approvals,
+      'Approvals',
+      'Payment records waiting for a second person',
+      [
+        'approve',
+        'confirm',
+        'reject',
+        'pending',
+        'review',
+        'queue',
+        'maker',
+        'checker',
+      ],
+      officerOnly: true),
   IndexEntry(AppPage.meetings, 'Meetings', 'Open, attendance, quorum, cash count, minutes', [
     'meeting',
     'quorum',
@@ -114,20 +121,25 @@ const appIndex = <IndexEntry>[
     'profit',
     'close cycle',
   ]),
-  IndexEntry(AppPage.members, 'Members', 'People, roles, invite codes', [
-    'member',
-    'people',
-    'role',
-    'treasurer',
-    'secretary',
-    'invite',
-    'code',
-    'phone',
-    'nin',
-    'next of kin',
-    'password',
-    'reset',
-  ], officerOnly: true),
+  IndexEntry(
+      AppPage.members,
+      'Members',
+      'People, roles, invite codes',
+      [
+        'member',
+        'people',
+        'role',
+        'treasurer',
+        'secretary',
+        'invite',
+        'code',
+        'phone',
+        'nin',
+        'next of kin',
+        'password',
+        'reset',
+      ],
+      officerOnly: true),
   IndexEntry(AppPage.licences, 'Licences and compliance', 'Which licences apply, your group licence and expiry', [
     'licence',
     'license',
@@ -164,15 +176,20 @@ const appIndex = <IndexEntry>[
     'delete',
     'close account',
   ]),
-  IndexEntry(AppPage.settings, 'Settings', 'Share price, loan limit, interest, quorum', [
-    'settings',
-    'share price',
-    'interest rate',
-    'multiplier',
-    'quorum',
-    'merchant',
-    'group',
-  ], officerOnly: true),
+  IndexEntry(
+      AppPage.settings,
+      'Settings',
+      'Share price, loan limit, interest, quorum',
+      [
+        'settings',
+        'share price',
+        'interest rate',
+        'multiplier',
+        'quorum',
+        'merchant',
+        'group',
+      ],
+      officerOnly: true),
 ];
 
 List<IndexEntry> searchAppIndex(String q, {required bool officer}) {

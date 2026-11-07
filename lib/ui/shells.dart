@@ -7,6 +7,7 @@ import 'screens/approvals_screen.dart';
 import 'screens/channels_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/emergency_screen.dart';
+import 'screens/goals_screen.dart';
 import 'screens/ledger_screen.dart';
 import 'screens/licences_screen.dart';
 import 'screens/loans_screen.dart';
@@ -20,29 +21,30 @@ import 'top_bar.dart';
 import 'widgets.dart';
 
 Widget pageBody(AppPage p) => switch (p) {
-  AppPage.account => const AccountScreen(),
-  AppPage.overview => const DashboardScreen(),
-  AppPage.approvals => const ApprovalsScreen(),
-  AppPage.members => const MembersScreen(),
-  AppPage.meetings => const MeetingsScreen(),
-  AppPage.loans => const LoansScreen(),
-  AppPage.emergency => const EmergencyScreen(),
-  AppPage.ledger => const LedgerScreen(),
-  AppPage.shareOut => const ShareOutScreen(),
-  AppPage.channels => const ChannelsScreen(),
-  AppPage.statements => const StatementsScreen(),
-  AppPage.licences => const LicencesScreen(),
-  AppPage.settings => const SettingsScreen(),
-  AppPage.platform => const PlatformScreen(),
-};
+      AppPage.account => const AccountScreen(),
+      AppPage.goals => const GoalsScreen(),
+      AppPage.overview => const DashboardScreen(),
+      AppPage.approvals => const ApprovalsScreen(),
+      AppPage.members => const MembersScreen(),
+      AppPage.meetings => const MeetingsScreen(),
+      AppPage.loans => const LoansScreen(),
+      AppPage.emergency => const EmergencyScreen(),
+      AppPage.ledger => const LedgerScreen(),
+      AppPage.shareOut => const ShareOutScreen(),
+      AppPage.channels => const ChannelsScreen(),
+      AppPage.statements => const StatementsScreen(),
+      AppPage.licences => const LicencesScreen(),
+      AppPage.settings => const SettingsScreen(),
+      AppPage.platform => const PlatformScreen(),
+    };
 
 /// Short fade between pages, so a tap clearly lands. Off when the phone asks for less motion.
 Widget animatedPage(BuildContext context, AppPage p) => AnimatedSwitcher(
-  duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : const Duration(milliseconds: 180),
-  switchInCurve: Curves.easeOut,
-  switchOutCurve: Curves.easeIn,
-  child: KeyedSubtree(key: ValueKey(p), child: pageBody(p)),
-);
+      duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : const Duration(milliseconds: 180),
+      switchInCurve: Curves.easeOut,
+      switchOutCurve: Curves.easeIn,
+      child: KeyedSubtree(key: ValueKey(p), child: pageBody(p)),
+    );
 
 /// Phones: the same bottom bar as the original app.
 class MobileShell extends StatelessWidget {
@@ -98,20 +100,21 @@ class AdminShell extends StatelessWidget {
   const AdminShell({super.key});
 
   List<(AppPage, String, IconData)> _items(AppState st) => [
-    (AppPage.overview, st.t('dashboard'), Icons.dashboard),
-    (AppPage.approvals, 'Approvals', Icons.fact_check),
-    (AppPage.members, st.t('members'), Icons.people),
-    (AppPage.meetings, st.t('meetings'), Icons.groups),
-    (AppPage.loans, st.t('loans'), Icons.request_quote),
-    (AppPage.emergency, st.t('emergency'), Icons.health_and_safety),
-    (AppPage.ledger, 'Ledger & Audit', Icons.account_balance_wallet),
-    (AppPage.statements, 'Statements', Icons.receipt_long),
-    (AppPage.shareOut, st.t('share_out'), Icons.calculate),
-    (AppPage.licences, 'Licences', Icons.verified),
-    (AppPage.settings, 'Group Settings', Icons.settings),
-    (AppPage.account, st.t('my_account'), Icons.account_circle),
-    if (st.account['is_platform_admin'] == true || st.isPlatformAdmin) (AppPage.platform, 'All groups', Icons.domain),
-  ];
+        (AppPage.overview, st.t('dashboard'), Icons.dashboard),
+        (AppPage.approvals, 'Approvals', Icons.fact_check),
+        (AppPage.goals, st.t('goals'), Icons.flag),
+        (AppPage.members, st.t('members'), Icons.people),
+        (AppPage.meetings, st.t('meetings'), Icons.groups),
+        (AppPage.loans, st.t('loans'), Icons.request_quote),
+        (AppPage.emergency, st.t('emergency'), Icons.health_and_safety),
+        (AppPage.ledger, 'Ledger & Audit', Icons.account_balance_wallet),
+        (AppPage.statements, 'Statements', Icons.receipt_long),
+        (AppPage.shareOut, st.t('share_out'), Icons.calculate),
+        (AppPage.licences, 'Licences', Icons.verified),
+        (AppPage.settings, 'Group Settings', Icons.settings),
+        (AppPage.account, st.t('my_account'), Icons.account_circle),
+        if (st.account['is_platform_admin'] == true || st.isPlatformAdmin) (AppPage.platform, 'All groups', Icons.domain),
+      ];
 
   @override
   Widget build(BuildContext context) {

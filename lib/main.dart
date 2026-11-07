@@ -29,28 +29,28 @@ class SaccoApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => StateScope(
-    state: state,
-    child: ListenableBuilder(
-      listenable: state,
-      builder: (context, _) => MaterialApp(
-        title: 'SACCO Ledger',
-        debugShowCheckedModeBanner: false,
-        theme: lightTheme,
-        darkTheme: darkTheme,
-        themeMode: state.themeMode,
-        // The person's text size, on top of the phone's own setting, capped so layouts hold.
-        builder: (context, child) {
-          final mq = MediaQuery.of(context);
-          final scale = (mq.textScaler.scale(16) / 16 * state.textScale).clamp(0.85, 2.0);
-          return MediaQuery(
-            data: mq.copyWith(textScaler: TextScaler.linear(scale)),
-            child: child!,
-          );
-        },
-        home: const _LifecycleGate(child: _Root()),
-      ),
-    ),
-  );
+        state: state,
+        child: ListenableBuilder(
+          listenable: state,
+          builder: (context, _) => MaterialApp(
+            title: 'SACCO Ledger',
+            debugShowCheckedModeBanner: false,
+            theme: lightTheme,
+            darkTheme: darkTheme,
+            themeMode: state.themeMode,
+            // The person's text size, on top of the phone's own setting, capped so layouts hold.
+            builder: (context, child) {
+              final mq = MediaQuery.of(context);
+              final scale = (mq.textScaler.scale(16) / 16 * state.textScale).clamp(0.85, 2.0);
+              return MediaQuery(
+                data: mq.copyWith(textScaler: TextScaler.linear(scale)),
+                child: child!,
+              );
+            },
+            home: const _LifecycleGate(child: _Root()),
+          ),
+        ),
+      );
 }
 
 /// Tells the app state when the app goes to the background and comes back, for the PIN lock.

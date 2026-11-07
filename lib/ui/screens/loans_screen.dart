@@ -142,24 +142,24 @@ class _Band extends StatelessWidget {
   const _Band(this.label, this.count, this.color);
   @override
   Widget build(BuildContext context) => Expanded(
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2),
-      child: SaccoCard(
-        radius: 12,
-        padding: const EdgeInsets.all(8),
-        color: color.withValues(alpha: 0.12),
-        child: Column(
-          children: [
-            Text(
-              '$count',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: color),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 2),
+          child: SaccoCard(
+            radius: 12,
+            padding: const EdgeInsets.all(8),
+            color: color.withValues(alpha: 0.12),
+            child: Column(
+              children: [
+                Text(
+                  '$count',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: color),
+                ),
+                Text(label, textAlign: TextAlign.center, style: Theme.of(context).textTheme.labelSmall),
+              ],
             ),
-            Text(label, textAlign: TextAlign.center, style: Theme.of(context).textTheme.labelSmall),
-          ],
+          ),
         ),
-      ),
-    ),
-  );
+      );
 }
 
 class _LoanCard extends StatelessWidget {

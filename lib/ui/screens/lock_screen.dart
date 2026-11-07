@@ -168,9 +168,9 @@ class _Key extends StatelessWidget {
       'bio' => const Icon(Icons.fingerprint, color: Colors.white, size: 30),
       '<' => const Icon(Icons.backspace_outlined, color: Colors.white),
       _ => Text(
-        k,
-        style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w500),
-      ),
+          k,
+          style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w500),
+        ),
     };
     return Padding(
       padding: const EdgeInsets.all(6),

@@ -8,8 +8,7 @@ import '../theme.dart';
 import '../widgets.dart';
 import 'account_screen.dart';
 
-const dataNotice =
-    'SACCO Ledger keeps records of your group\'s transactions: your name, phone, and what you paid or borrowed. '
+const dataNotice = 'SACCO Ledger keeps records of your group\'s transactions: your name, phone, and what you paid or borrowed. '
     'Your group officers can see them. We never hold your money. Records are kept so your group can prove what happened. '
     'They are stored on secure cloud servers that may be outside Uganda, and by ticking you agree to this. '
     'You can ask your group to show or correct your records.';
@@ -110,11 +109,13 @@ class _AuthScreenState extends State<AuthScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text(switch (mode) {
-                            _Mode.signIn => 'Sign in',
-                            _Mode.signUp => 'Create account',
-                            _Mode.reset => 'Forgot password',
-                          }, style: tt.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                          Text(
+                              switch (mode) {
+                                _Mode.signIn => 'Sign in',
+                                _Mode.signUp => 'Create account',
+                                _Mode.reset => 'Forgot password',
+                              },
+                              style: tt.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                           gap,
                           TextField(
                             controller: id,
@@ -365,9 +366,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         onPressed: busy
                             ? null
                             : () => run(() async {
-                                await st.api.claimInvite(code.text);
-                                return null;
-                              }),
+                                  await st.api.claimInvite(code.text);
+                                  return null;
+                                }),
                         child: const Text('Join'),
                       ),
                     ],
@@ -442,14 +443,14 @@ class NotConfiguredScreen extends StatelessWidget {
   const NotConfiguredScreen({super.key});
   @override
   Widget build(BuildContext context) => const Scaffold(
-    body: Center(
-      child: Padding(
-        padding: EdgeInsets.all(24),
-        child: Text(
-          'App needs its database keys.\n\nBuild with:\n--dart-define=SUPABASE_URL=...\n--dart-define=SUPABASE_KEY=...\n\nSee README, step 3.',
-          textAlign: TextAlign.center,
+        body: Center(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Text(
+              'App needs its database keys.\n\nBuild with:\n--dart-define=SUPABASE_URL=...\n--dart-define=SUPABASE_KEY=...\n\nSee README, step 3.',
+              textAlign: TextAlign.center,
+            ),
+          ),
         ),
-      ),
-    ),
-  );
+      );
 }

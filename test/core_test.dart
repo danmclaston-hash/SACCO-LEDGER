@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacco_ledger/core/app_lock.dart';
+import 'package:sacco_ledger/core/goal_math.dart';
 import 'package:sacco_ledger/core/money.dart';
 import 'package:sacco_ledger/core/risk.dart';
 import 'package:sacco_ledger/core/search_index.dart';
@@ -67,11 +68,28 @@ void main() {
 
   group('risk', () {
     test('healthy group scores 100', () {
-      final m = RiskEngine.metrics({'active_portfolio': 100, 'member_savings': 100, 'cash_box': 50, 'momo_bank': 0, 'par30_amount': 0, 'par90_amount': 0, 'scheduled_month': 0, 'collected_month': 0});
+      final m = RiskEngine.metrics({
+        'active_portfolio': 100,
+        'member_savings': 100,
+        'cash_box': 50,
+        'momo_bank': 0,
+        'par30_amount': 0,
+        'par90_amount': 0,
+        'scheduled_month': 0,
+        'collected_month': 0
+      });
       expect(m.score, 100);
     });
     test('late loans reduce score and raise a flag', () {
-      final d = {'active_portfolio': 100, 'member_savings': 100, 'cash_box': 5, 'par30_amount': 50, 'par90_amount': 50, 'scheduled_month': 100, 'collected_month': 10};
+      final d = {
+        'active_portfolio': 100,
+        'member_savings': 100,
+        'cash_box': 5,
+        'par30_amount': 50,
+        'par90_amount': 50,
+        'scheduled_month': 100,
+        'collected_month': 10
+      };
       final m = RiskEngine.metrics(d);
       expect(m.score, lessThan(60));
       expect(RiskEngine.flags(d, m).any((f) => f.severity == RiskSeverity.high), isTrue);
@@ -119,6 +137,58 @@ void main() {
       expect(initials('ben'), 'B');
       expect(initials('  '), '?');
       expect(initials('Okecho Danmark Laston'), 'OL');
+    });
+  });
+
+  group('savings goals', () {
+    test('500,000 for 5 people over 7 days: 14,286 exact, 14,500 to carry', () {
+      expect(GoalMath.exactPerPerson(500000, 5, 7), 14286);
+      expect(GoalMath.perPerson(500000, 5, 7), 14500);
+      expect(GoalMath.reach(5, 14500, 7) >= 500000, isTrue);
+    });
+    test('10,000 each per day reaches 500,000 in 10 days', () {
+      expect(GoalMath.periodsNeeded(500000, 5, 10000), 10);
+    });
+    test('10,000 each for 7 days reaches 350,000', () {
+      expect(GoalMath.reach(5, 10000, 7), 350000);
+    });
+    test('periods between dates', () {
+      final s = DateTime(2026, 11, 1);
+      expect(GoalMath.periodsBetween(s, DateTime(2026, 11, 7), Frequency.daily), 7);
+      expect(GoalMath.periodsBetween(s, DateTime(2026, 11, 14), Frequency.weekly), 2);
+      expect(GoalMath.periodsBetween(s, DateTime(2027, 1, 1), Frequency.monthly), 3);
+      expect(GoalMath.periodsBetween(s, DateTime(2026, 10, 1), Frequency.daily), 0);
+    });
+    test('friendly rounding never rounds down', () {
+      expect(GoalMath.friendlyUp(14286), 14500);
+      expect(GoalMath.friendlyUp(14500), 14500);
+      expect(GoalMath.friendlyUp(730), 800);
+      expect(GoalMath.friendlyUp(21001), 22000);
+      expect(GoalMath.friendlyUp(0), 0);
+    });
+    test('bad input gives zero, not a crash', () {
+      expect(GoalMath.perPerson(500000, 0, 7), 0);
+      expect(GoalMath.periodsNeeded(500000, 5, 0), 0);
+    });
+    test('status: behind and catch-up amount', () {
+      final st = GoalStatus.of(
+          target: 500000,
+          collected: 100000,
+          people: 5,
+          start: DateTime(2026, 11, 1),
+          end: DateTime(2026, 11, 10),
+          frequency: Frequency.daily,
+          today: DateTime(2026, 11, 5));
+      expect(st.planned, 250000);
+      expect(st.behindBy, 150000);
+      expect(st.onTrack, isFalse);
+      expect(st.periodsLeft, 6);
+      expect(st.catchUpEach, 13500); // 400,000 left / 5 people / 6 days = 13,334, rounded up to 13,500
+    });
+    test('status: done', () {
+      final st = GoalStatus.of(target: 100, collected: 120, people: 2, start: DateTime(2026), frequency: Frequency.weekly, today: DateTime(2026, 2));
+      expect(st.done, isTrue);
+      expect(st.left, 0);
     });
   });
 }

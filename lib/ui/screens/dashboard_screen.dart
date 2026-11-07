@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import '../../core/json.dart';
 import '../../core/risk.dart';
 import '../../core/search_index.dart';
+import '../charts.dart';
 import '../theme.dart';
+import 'goals_screen.dart';
 import '../widgets.dart';
 
 class DashboardScreen extends StatelessWidget {
@@ -156,6 +158,7 @@ class DashboardScreen extends StatelessWidget {
               label: const Text('Record Payment'),
             ),
             FilledButton.tonalIcon(onPressed: () => st.goTo(AppPage.meetings), icon: const Icon(Icons.groups, size: 16), label: const Text('Meeting')),
+            FilledButton.tonalIcon(onPressed: () => st.goTo(AppPage.goals), icon: const Icon(Icons.flag, size: 16), label: Text(st.t('goals'))),
             OutlinedButton.icon(onPressed: () => st.goTo(AppPage.loans), icon: const Icon(Icons.credit_score, size: 16), label: const Text('Loans')),
             OutlinedButton.icon(onPressed: () => st.goTo(AppPage.statements), icon: const Icon(Icons.receipt_long, size: 16), label: const Text('Statements')),
             if (st.isOfficer)
@@ -168,6 +171,17 @@ class DashboardScreen extends StatelessWidget {
             if (!st.isOfficer) OutlinedButton.icon(onPressed: st.signOut, icon: const Icon(Icons.logout, size: 16), label: const Text('Sign out')),
           ],
         ),
+        // Goals running now: one line each, tap to open.
+        if (st.activeGoals.isNotEmpty) ...[
+          SectionTitle('Our goals', trailing: TextButton(onPressed: () => st.goTo(AppPage.goals), child: const Text('All goals'))),
+          for (final g in st.activeGoals.take(3)) GoalCard(g),
+        ],
+        // How the group is doing: simple charts from checked records only.
+        if (st.flows.any((f) => f.i('paid_in') > 0 || f.i('paid_out') > 0 || f.i('savings') > 0)) ...[
+          SectionTitle(st.isOfficer ? 'How the group is doing' : 'How I am doing'),
+          MoneyFlowChart(flows: st.flows, currency: st.currency, mine: !st.isOfficer),
+          SavingsGrowthChart(flows: st.flows, currency: st.currency, mine: !st.isOfficer),
+        ],
         SaccoCard(
           elevation: 2,
           child: Column(

@@ -120,18 +120,20 @@ class Api {
     required int quorum,
     required String myName,
     String? myPhone,
-  }) async => (await _rpc('create_organization', {
-    'p_name': name,
-    'p_edition': edition,
-    'p_currency': currency,
-    'p_share_price': sharePrice,
-    'p_multiplier': multiplier,
-    'p_interest': interest,
-    'p_quorum': quorum,
-    'p_my_name': myName,
-    'p_my_phone': myPhone,
-    'p_consent': true,
-  })).toString();
+  }) async =>
+      (await _rpc('create_organization', {
+        'p_name': name,
+        'p_edition': edition,
+        'p_currency': currency,
+        'p_share_price': sharePrice,
+        'p_multiplier': multiplier,
+        'p_interest': interest,
+        'p_quorum': quorum,
+        'p_my_name': myName,
+        'p_my_phone': myPhone,
+        'p_consent': true,
+      }))
+          .toString();
 
   Future<void> updateOrganization(String org, Json patch) => _rpc('update_organization', {'p_org': org, 'p': patch});
   Future<String> seedDemo(String myName) async => (await _rpc('seed_demo', {'p_my_name': myName})).toString();
@@ -146,17 +148,18 @@ class Api {
     required String role,
     String? kinName,
     String? kinPhone,
-  }) async => asJson(
-    await _rpc('add_member', {
-      'p_org': org,
-      'p_name': name,
-      'p_phone': phone,
-      'p_national_id': nationalId,
-      'p_role': role,
-      'p_kin_name': kinName,
-      'p_kin_phone': kinPhone,
-    }),
-  );
+  }) async =>
+      asJson(
+        await _rpc('add_member', {
+          'p_org': org,
+          'p_name': name,
+          'p_phone': phone,
+          'p_national_id': nationalId,
+          'p_role': role,
+          'p_kin_name': kinName,
+          'p_kin_phone': kinPhone,
+        }),
+      );
 
   Future<void> updateMember(String member, Json patch) => _rpc('update_member', {'p_member': member, 'p': patch});
   Future<String> newMemberCode(String member) async => (await _rpc('new_member_code', {'p_member': member})).toString();
@@ -195,6 +198,27 @@ class Api {
       _rpc('request_emergency', {'p_org': org, 'p_member': member, 'p_amount': amount, 'p_reason': reason});
   Future<void> decideEmergency(String claim, bool approve, String? channel, String? ref, String note) =>
       _rpc('decide_emergency', {'p_claim': claim, 'p_approve': approve, 'p_channel': channel, 'p_ref': ref, 'p_note': note});
+
+  // ----- Savings goals -----
+  Future<List<Json>> goals(String org) async => asJsonList(await _rpc('list_goals', {'p_org': org}));
+  Future<Json> allocation(String org) async => asJson(await _rpc('savings_allocation', {'p_org': org}));
+  Future<List<Json>> flows(String org) async => asJsonList(await _rpc('monthly_flows', {'p_org': org, 'p_months': 12}));
+  Future<String> createGoal(String org,
+          {required String name, required int target, required DateTime start, DateTime? end, required String frequency, int? perPerson}) async =>
+      (await _rpc('create_goal', {
+        'p_org': org,
+        'p_name': name,
+        'p_target': target,
+        'p_start': _day(start),
+        'p_end': end == null ? null : _day(end),
+        'p_frequency': frequency,
+        'p_per_person': perPerson,
+      }))
+          .toString();
+  Future<void> closeGoal(String goal) => _rpc('close_goal', {'p_goal': goal});
+  Future<void> setPaymentGoal(String payment, String? goal, String reason) =>
+      _rpc('set_payment_goal', {'p_payment': payment, 'p_goal': goal, 'p_reason': reason});
+  static String _day(DateTime d) => '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 
   // ----- Reports -----
   Future<Json> dashboard(String org) async => asJson(await _rpc('dashboard', {'p_org': org}));

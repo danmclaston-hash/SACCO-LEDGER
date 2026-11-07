@@ -34,8 +34,7 @@ class ShareOut {
       sum += b;
     }
     var surplus = pool - sum;
-    final order = [...members]
-      ..sort((a, b) {
+    final order = [...members]..sort((a, b) {
         final c = rem[b.id]!.compareTo(rem[a.id]!);
         return c != 0 ? c : a.id.compareTo(b.id);
       });

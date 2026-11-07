@@ -199,14 +199,14 @@ class _Row extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ListTile(
-    contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-    minTileHeight: 56,
-    leading: ExcludeSemantics(child: Icon(icon, color: color)),
-    title: Text(title, style: TextStyle(color: color)),
-    subtitle: subtitle == null ? null : Text(subtitle!),
-    trailing: trailing ?? (onTap == null ? null : const Icon(Icons.chevron_right)),
-    onTap: onTap,
-  );
+        contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+        minTileHeight: 56,
+        leading: ExcludeSemantics(child: Icon(icon, color: color)),
+        title: Text(title, style: TextStyle(color: color)),
+        subtitle: subtitle == null ? null : Text(subtitle!),
+        trailing: trailing ?? (onTap == null ? null : const Icon(Icons.chevron_right)),
+        onTap: onTap,
+      );
 }
 
 // ---------------------------------------------------------------- profile
@@ -571,9 +571,9 @@ class _LookCard extends StatelessWidget {
     }
 
     Widget label(String t) => Padding(
-      padding: const EdgeInsets.fromLTRB(4, 12, 4, 6),
-      child: Text(t, style: tt.labelLarge?.copyWith(fontWeight: FontWeight.bold)),
-    );
+          padding: const EdgeInsets.fromLTRB(4, 12, 4, 6),
+          child: Text(t, style: tt.labelLarge?.copyWith(fontWeight: FontWeight.bold)),
+        );
 
     return _Section(
       icon: Icons.palette_outlined,

@@ -41,6 +41,9 @@ class AppState extends ChangeNotifier {
   List<Json> loans = [];
   List<Json> payments = [];
   List<Json> claims = [];
+  List<Json> goals = [];
+  Json allocation = {};
+  List<Json> flows = [];
   List<Json> outbox = [];
   List<String> outboxFailures = [];
   AppLanguage language = AppLanguage.en;
@@ -72,6 +75,15 @@ class AppState extends ChangeNotifier {
   bool get canDisburse => role == 'org_admin' || role == 'treasurer';
   bool get canApplyForOthers => canRunMeetings || role == 'loan_officer';
   bool get isOrgAdmin => role == 'org_admin';
+  List<Json> get activeGoals => goals.where((g) => g.s('status') == 'active').toList();
+  String? goalName(String? id) {
+    if (id == null) return null;
+    for (final g in goals) {
+      if (g.s('id') == id) return g.s('name');
+    }
+    return null;
+  }
+
   Json? get openMeeting {
     for (final m in meetings) {
       if (m.s('status') == 'open') return m;
@@ -120,7 +132,8 @@ class AppState extends ChangeNotifier {
     orgs = [];
     org = null;
     dash = {};
-    members = journals = meetings = loans = payments = claims = [];
+    members = journals = meetings = loans = payments = claims = goals = flows = [];
+    allocation = {};
     page = AppPage.overview;
   }
 
@@ -323,6 +336,9 @@ class AppState extends ChangeNotifier {
         api.loans(id),
         api.payments(id),
         api.emergency(id),
+        api.goals(id),
+        api.allocation(id),
+        api.flows(id),
       ]);
       dash = r[0] as Json;
       members = r[1] as List<Json>;
@@ -331,11 +347,25 @@ class AppState extends ChangeNotifier {
       loans = r[4] as List<Json>;
       payments = r[5] as List<Json>;
       claims = r[6] as List<Json>;
+      goals = r[7] as List<Json>;
+      allocation = r[8] as Json;
+      flows = r[9] as List<Json>;
       offline = false;
       loadError = null;
       await _prefs?.setString(
         'cache_$id',
-        jsonEncode({'dash': dash, 'members': members, 'journals': journals, 'meetings': meetings, 'loans': loans, 'payments': payments, 'claims': claims}),
+        jsonEncode({
+          'dash': dash,
+          'members': members,
+          'journals': journals,
+          'meetings': meetings,
+          'loans': loans,
+          'payments': payments,
+          'claims': claims,
+          'goals': goals,
+          'allocation': allocation,
+          'flows': flows
+        }),
       );
     } on ApiError catch (e) {
       if (e.isNetwork) {
@@ -361,6 +391,9 @@ class AppState extends ChangeNotifier {
     loans = j.l('loans');
     payments = j.l('payments');
     claims = j.l('claims');
+    goals = j.l('goals');
+    allocation = j.m('allocation');
+    flows = j.l('flows');
   }
 
   /// Runs one change, reloads, returns null if fine or the error text to show.
@@ -392,6 +425,7 @@ class AppState extends ChangeNotifier {
     String? payerPhone,
     String? loanId,
     String? note,
+    String? goalId,
   }) async {
     final params = <String, dynamic>{
       'p_org': orgId,
@@ -404,6 +438,7 @@ class AppState extends ChangeNotifier {
       'p_loan': loanId,
       'p_note': note,
       'p_idem': newKey(), // same key on retry means it can never be recorded twice
+      'p_goal': goalId,
     };
     try {
       await api.recordPayment(params);
@@ -423,7 +458,7 @@ class AppState extends ChangeNotifier {
     final left = <Json>[];
     for (final p in outbox) {
       try {
-        await api.recordPayment(p);
+        await api.recordPayment({...p, 'p_goal': p['p_goal']});
       } on ApiError catch (e) {
         if (e.isNetwork) {
           left.add(p);

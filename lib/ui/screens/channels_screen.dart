@@ -134,6 +134,17 @@ class PaymentTile extends StatelessWidget {
               'Checked by ${p.s('reviewed_by_name')}${p.n('review_note') != null ? ': ${p.s('review_note')}' : ''}',
               style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
             ),
+          if (p.n('goal_id') != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Row(children: [
+                ExcludeSemantics(child: Icon(Icons.flag, size: 14, color: cs.primary)),
+                const SizedBox(width: 4),
+                Flexible(
+                    child: Text('For goal: ${StateScope.of(context).goalName(p.n('goal_id')) ?? 'a goal'}',
+                        style: tt.labelSmall?.copyWith(fontWeight: FontWeight.w600))),
+              ]),
+            ),
           if (p.n('note') != null) Text(p.s('note'), style: tt.labelSmall),
           if (actions.isNotEmpty)
             Padding(
@@ -146,8 +157,9 @@ class PaymentTile extends StatelessWidget {
   }
 }
 
-Future<void> showRecordPayment(BuildContext context, {String purpose = 'shares', String channel = 'mtn_momo', String? loanId, String? memberId}) async {
-  await showDialog(context: context, builder: (_) => _RecordPaymentDialog(purpose, channel, loanId, memberId));
+Future<void> showRecordPayment(BuildContext context,
+    {String purpose = 'shares', String channel = 'mtn_momo', String? loanId, String? memberId, String? goalId}) async {
+  await showDialog(context: context, builder: (_) => _RecordPaymentDialog(purpose, channel, loanId, memberId, goalId));
 }
 
 class _RecordPaymentDialog extends StatefulWidget {
@@ -155,7 +167,8 @@ class _RecordPaymentDialog extends StatefulWidget {
   final String channel;
   final String? loanId;
   final String? memberId;
-  const _RecordPaymentDialog(this.purpose, this.channel, this.loanId, this.memberId);
+  final String? goalId;
+  const _RecordPaymentDialog(this.purpose, this.channel, this.loanId, this.memberId, this.goalId);
   @override
   State<_RecordPaymentDialog> createState() => _RecordPaymentDialogState();
 }
@@ -164,6 +177,7 @@ class _RecordPaymentDialogState extends State<_RecordPaymentDialog> {
   late String purpose = widget.purpose;
   late String channel = widget.channel;
   late String? loanId = widget.loanId;
+  late String? goalId = widget.goalId;
   String? memberId;
   final amount = TextEditingController();
   final shares = TextEditingController(text: '1');
@@ -224,6 +238,18 @@ class _RecordPaymentDialogState extends State<_RecordPaymentDialog> {
           Text('Total: ${money(context, count * price)}', style: const TextStyle(fontWeight: FontWeight.bold)),
         ] else
           MoneyField(controller: amount, label: 'Amount', currency: st.currency),
+        // Savings can carry a goal label. The money still goes into the one savings account.
+        if ((purpose == 'shares' || purpose == 'savings') && st.activeGoals.isNotEmpty)
+          DropdownButtonFormField<String?>(
+            initialValue: st.activeGoals.any((g) => g.s('id') == goalId) ? goalId : null,
+            isExpanded: true,
+            decoration: const InputDecoration(labelText: 'Is this for a goal?'),
+            items: [
+              const DropdownMenuItem<String?>(value: null, child: Text('Not for any goal')),
+              for (final g in st.activeGoals) DropdownMenuItem<String?>(value: g.s('id'), child: Text(g.s('name'), overflow: TextOverflow.ellipsis)),
+            ],
+            onChanged: (v) => setState(() => goalId = v),
+          ),
         ChannelPicker(value: channel, onChanged: (v) => setState(() => channel = v)),
         if (channel != 'cash')
           TextField(
@@ -256,6 +282,7 @@ class _RecordPaymentDialogState extends State<_RecordPaymentDialog> {
           channel: channel,
           ref: channel == 'cash' ? null : ref.text.trim(),
           loanId: purpose == 'loan_repayment' ? loanId : null,
+          goalId: purpose == 'shares' || purpose == 'savings' ? goalId : null,
           note: note.text.trim(),
         );
         if (err == null || err == 'queued') {

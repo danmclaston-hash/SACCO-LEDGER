@@ -7,8 +7,7 @@ class LicenceItem {
   const LicenceItem(this.name, this.regulator, this.law, this.why);
 }
 
-const licenceDisclaimer =
-    'This is a guide, not legal advice. SACCO Ledger does not hold any licence on your behalf, and using this app is not a licence. '
+const licenceDisclaimer = 'This is a guide, not legal advice. SACCO Ledger does not hold any licence on your behalf, and using this app is not a licence. '
     'Ask a Ugandan lawyer to confirm what applies before going live. Fees and rules change: check with each regulator.';
 
 const groupLicences = [
