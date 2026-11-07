@@ -62,18 +62,24 @@ insert into public.platform_admins select id from auth.users where email = 'you@
 **Check it worked:** **Ledger → Trial Balance** says BALANCED, and **Check for tampering** passes.
 
 ### Step 5b: Put the admin site on Cloudflare (optional, free)
-**Why:** your own address (like `admin.yourcompany.com`), fast in Africa, and it works with a private GitHub repo. The build robot already makes the Cloudflare copy. You only connect it.
+**Why:** your own address (like `admin.yourcompany.com`), fast in Africa. The build robot makes the site and creates the Cloudflare project by itself. You only give it two keys.
 
-1. In Cloudflare: **Workers & Pages → Create → Pages → Upload assets**, name it (for example `sacco-ledger`). Upload any small file once; the robot replaces it.
-2. In Cloudflare: **My Profile → API Tokens → Create Token → "Edit Cloudflare Workers"** template. Copy the token. Also copy your **Account ID** (right side of the dashboard).
-3. In GitHub: **Settings → Secrets and variables → Actions**:
-   - Secrets: `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`
-   - Variables: `CLOUDFLARE_PROJECT` = the name from step 1
-4. Push any change, or re-run the last build.
+1. **Get a Cloudflare token.** Cloudflare → **My Profile → API Tokens → Create Token → Create Custom Token**. Permission: **Account → Cloudflare Pages → Edit**. Create it and copy it.
+   **Keep it secret.** Paste it only into GitHub, never into a chat.
+2. **Get your Account ID.** Cloudflare home → **Workers & Pages**. It is on the right side. Copy it.
+3. **Give both to GitHub.** Repo → **Settings → Secrets and variables → Actions → New repository secret**:
+   - `CLOUDFLARE_API_TOKEN` = the token
+   - `CLOUDFLARE_ACCOUNT_ID` = the Account ID
+   - Optional, under **Variables**: `CLOUDFLARE_PROJECT` = a name. Without it the site is called `sacco-ledger`.
+4. **Start a build.** Repo → **Actions → Build → Run workflow** (or push anything).
+5. **Let sign-in come back to the new address.** Supabase → **Authentication → URL Configuration → Redirect URLs** → add `https://sacco-ledger.pages.dev/**` (your name if you set one).
 
-**Check it worked:** the build shows a green **deploy-cloudflare** step, and `https://<name>.pages.dev` opens the sign-in page.
-**If it fails:** a red "Authentication error" means the token or Account ID is wrong. Make a new token.
-**Own address:** in the Pages project, **Custom domains → Set up a domain**. Then in Supabase **Authentication → URL Configuration**, add that address so Google sign-in comes back to it.
+**Check it worked:** in Actions, **deploy-cloudflare** is green and the "Upload the site" step prints a `pages.dev` link. Open it: you see the sign-in page.
+**If it fails:**
+- "Authentication error": the token or Account ID is wrong, or the token lacks *Cloudflare Pages: Edit*. Make a new token.
+- "Project name already taken": set `CLOUDFLARE_PROJECT` to another name.
+- Skipped: the two secrets are not saved with exactly those names.
+**Own address:** Cloudflare → your Pages project → **Custom domains → Set up a domain**. Then add it in Supabase step 5 too.
 
 ### Step 6: Switch on online payments (optional)
 **Why:** members pay through Flutterwave or Pesapal. The gateway confirms each payment and our server asks it again, so nobody types a transaction ID and nobody can fake one. Money goes to the **group's own** gateway account, never to you.

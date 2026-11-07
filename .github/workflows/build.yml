@@ -73,16 +73,32 @@ jobs:
       - id: deploy
         uses: actions/deploy-pages@v4
 
-  # Only runs after you add CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID as repository secrets.
+  # Your own site on Cloudflare Pages. Runs only once the two Cloudflare secrets are added (README Step 5b).
+  # Makes the Pages project by itself the first time, so there is nothing to click in Cloudflare.
   deploy-cloudflare:
-    if: github.ref == 'refs/heads/main' && vars.CLOUDFLARE_PROJECT != ''
+    if: github.ref == 'refs/heads/main'
     needs: [database, app]
     runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      PROJECT: ${{ vars.CLOUDFLARE_PROJECT || 'sacco-ledger' }}
     steps:
-      - uses: actions/download-artifact@v4
+      - name: Cloudflare connected?
+        id: cf
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "Cloudflare secrets not added yet. Skipping. See README Step 5b."
+            echo "ready=no" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=yes" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.cf.outputs.ready == 'yes'
+        uses: actions/download-artifact@v4
         with: { name: web-root, path: web_root }
-      - uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy web_root --project-name=${{ vars.CLOUDFLARE_PROJECT }} --branch=main
+      - if: steps.cf.outputs.ready == 'yes'
+        name: Make the Pages project (first time only)
+        run: npx --yes wrangler@3 pages project create "$PROJECT" --production-branch=main || echo "Project already there."
+      - if: steps.cf.outputs.ready == 'yes'
+        name: Upload the site
+        run: npx --yes wrangler@3 pages deploy web_root --project-name="$PROJECT" --branch=main
