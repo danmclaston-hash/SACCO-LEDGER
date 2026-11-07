@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:sacco_ledger/data/api.dart';
 import 'package:sacco_ledger/state/app_state.dart';
 import 'package:sacco_ledger/ui/screens/auth_screen.dart';
+import 'package:sacco_ledger/ui/screens/loan_calculator.dart';
 import 'package:sacco_ledger/ui/theme.dart';
 import 'package:sacco_ledger/ui/tour.dart';
 import 'package:sacco_ledger/ui/widgets.dart';
@@ -88,5 +89,40 @@ void main() {
       await t.pumpAndSettle();
       expect(find.text('MTN *165#'), findsOneWidget);
     }
+  });
+
+  testWidgets('loan calculator: group rules, then other rules, then lateness', (t) async {
+    await phone(t);
+    final st = AppState(Api());
+    st.org = {
+      'id': 'g1',
+      'currency_code': 'UGX',
+      'role': 'member',
+      'loan_interest_mode': 'monthly',
+      'loan_interest_rate': 5,
+      'loan_calculation': 'flat',
+      'loan_free_months': 1,
+      'loan_repayment_plan': 'monthly',
+      'late_fee_type': 'percent',
+      'late_fee_pct': 10,
+      'late_fee_every': 'week',
+      'late_fee_grace_days': 3,
+    };
+    await t.pumpWidget(app(st, const LoanCalculatorScreen()));
+    await t.enterText(find.byType(TextField).first, '12000');
+    await t.pumpAndSettle();
+    expect(find.text('UGX 13,200'), findsOneWidget); // 12000 + 2 months of 5%
+    expect(find.textContaining('Month 2'), findsOneWidget); // first month free
+    await t.scrollUntilVisible(find.textContaining('Late fee:'), 200, scrollable: find.byType(Scrollable).first);
+    expect(find.textContaining('Late fee: UGX 400'), findsOneWidget); // 10 days late, 3 grace days: 1 week of 10% of 4000
+    await t.scrollUntilVisible(find.text('Try other loan rules'), 200, scrollable: find.byType(Scrollable).first);
+    await t.tap(find.text('Try other loan rules'));
+    await t.pumpAndSettle();
+    await t.scrollUntilVisible(find.text('No interest'), 200, scrollable: find.byType(Scrollable).first);
+    await t.tap(find.text('No interest'));
+    await t.pumpAndSettle();
+    await t.scrollUntilVisible(find.text('Pay back in total'), -300, scrollable: find.byType(Scrollable).first);
+    await t.pumpAndSettle();
+    expect(find.text('UGX 12,000'), findsWidgets);
   });
 }

@@ -214,6 +214,12 @@ class Api {
   Future<void> rejectLoan(String loan, String reason) => _rpc('reject_loan', {'p_loan': loan, 'p_reason': reason});
   Future<void> disburseLoan(String loan, String channel, String? ref) => _rpc('disburse_loan', {'p_loan': loan, 'p_channel': channel, 'p_ref': ref});
   Future<List<Json>> loanSchedule(String loan) async => asJsonList(await _rpc('loan_schedule', {'p_loan': loan}));
+  Future<String> applyLoan2(String org, String member, int principal, int term, Json? terms, String purpose) async =>
+      (await _rpc('apply_loan2', {'p_org': org, 'p_member': member, 'p_principal': principal, 'p_term': term, 'p_terms': terms, 'p_purpose': purpose}))
+          .toString();
+  Future<void> setLoanRules(String org, Json rules) => _rpc('set_loan_rules', {'p_org': org, 'p': rules});
+  Future<Json> lateFeeReport(String loan) async => asJson(await _rpc('loan_late_fee_report', {'p_loan': loan}));
+  Future<void> waiveLateFees(String loan, int amount, String reason) => _rpc('waive_late_fees', {'p_loan': loan, 'p_amount': amount, 'p_reason': reason});
 
   // ----- Emergency -----
   Future<List<Json>> emergency(String org) async => asJsonList(await _rpc('list_emergency', {'p_org': org}));

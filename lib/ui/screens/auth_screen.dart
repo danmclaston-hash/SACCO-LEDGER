@@ -390,6 +390,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               myPhone: Phones.normalize(phone.text, dial: country.dial) ?? '',
             );
             await st.api.setOrgCountry(id, country.code);
+            await st.api.setLoanRules(id, {'interest_mode': 'yearly', 'interest_rate': rate});
             await st.loadOrgs(select: id);
             nav.pop();
           } on ApiError catch (e) {

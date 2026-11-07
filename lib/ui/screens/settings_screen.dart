@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/countries.dart';
 import '../../core/json.dart';
 import '../widgets.dart';
+import 'loan_calculator.dart';
 import 'online_pay.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -15,7 +16,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
   final name = TextEditingController();
   final share = TextEditingController();
   final mult = TextEditingController();
-  final rate = TextEditingController();
   final quorum = TextEditingController();
   final mtn = TextEditingController();
   final airtel = TextEditingController();
@@ -28,7 +28,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
     name.text = o.s('name');
     share.text = o.s('share_price');
     mult.text = o.s('max_loan_multiplier');
-    rate.text = o.s('default_interest_rate_pct');
     quorum.text = o.s('meeting_quorum_pct');
     mtn.text = o.s('mtn_merchant_code');
     airtel.text = o.s('airtel_merchant_code');
@@ -78,12 +77,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
           decoration: const InputDecoration(labelText: 'Loan limit (times savings)'),
         ),
         TextField(
-          controller: rate,
-          enabled: edit,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(labelText: 'Interest rate (% per year)'),
-        ),
-        TextField(
           controller: quorum,
           enabled: edit,
           keyboardType: TextInputType.number,
@@ -118,7 +111,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         'name': name.text,
                         'share_price': int.tryParse(share.text.trim()),
                         'max_loan_multiplier': int.tryParse(mult.text.trim()),
-                        'default_interest_rate_pct': int.tryParse(rate.text.trim()),
                         'meeting_quorum_pct': int.tryParse(quorum.text.trim()),
                         'mtn_merchant_code': mtn.text.trim(),
                         'airtel_merchant_code': airtel.text.trim(),
@@ -130,6 +122,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   },
             child: const Text('Save'),
           ),
+        const LoanRulesCard(),
         if (st.canReview) const GatewaySetupCard(),
         const Divider(),
         OutlinedButton.icon(onPressed: st.signOut, icon: const Icon(Icons.logout), label: const Text('Sign out')),
