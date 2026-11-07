@@ -16,6 +16,12 @@ class RiskMetrics {
   final double collection;
   final int score;
   const RiskMetrics(this.par30, this.par90, this.liquidity, this.collection, this.score);
+
+  // Warning lines. The score drops past each one, and the dashboard shows it in red.
+  bool get par30Alert => par30 > 5;
+  bool get par90Alert => par90 > 2;
+  bool get liquidityAlert => liquidity < 15;
+  bool get collectionAlert => collection < 90;
 }
 
 /// Rule-based advice carried over from the original app. It suggests. It never acts on money.
@@ -29,11 +35,12 @@ class RiskEngine {
     final par90 = portfolio > 0 ? d.i('par90_amount') / portfolio * 100 : 0.0;
     final liq = savings > 0 ? cash / savings * 100 : 100.0;
     final coll = scheduled > 0 ? d.i('collected_month') / scheduled * 100 : 100.0;
+    final m = RiskMetrics(par30, par90, liq, coll, 100);
     var score = 100;
-    if (par30 > 5) score -= (((par30 - 5) * 3).toInt()).clamp(0, 40);
-    if (par90 > 2) score -= (((par90 - 2) * 5).toInt()).clamp(0, 30);
-    if (liq < 15) score -= 20;
-    if (coll < 90) score -= 15;
+    if (m.par30Alert) score -= (((par30 - 5) * 3).toInt()).clamp(0, 40);
+    if (m.par90Alert) score -= (((par90 - 2) * 5).toInt()).clamp(0, 30);
+    if (m.liquidityAlert) score -= 20;
+    if (m.collectionAlert) score -= 15;
     return RiskMetrics(par30, par90, liq, coll, score.clamp(0, 100));
   }
 
@@ -48,7 +55,7 @@ class RiskEngine {
         ),
       );
     }
-    if (m.liquidity < 15) {
+    if (m.liquidityAlert) {
       out.add(
         const RiskFlag(RiskSeverity.high, 'Critically Low Cash Liquidity (< 15%)', 'Pause non-emergency loan disbursements to prevent liquidity shortage.'),
       );

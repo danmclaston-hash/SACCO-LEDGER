@@ -40,7 +40,7 @@ class LicencesScreen extends StatelessWidget {
             return;
           }
           await runAndClose(
-              ctx, st, () => st.api.updateOrganization(st.orgId, {'licence_type': type.text, 'licence_number': number.text, 'licence_expiry': expiry.text.trim()}),
+              ctx, () => st.api.updateOrganization(st.orgId, {'licence_type': type.text, 'licence_number': number.text, 'licence_expiry': expiry.text.trim()}),
               done: 'Saved.');
         },
       ),

@@ -131,7 +131,6 @@ class MembersScreen extends StatelessWidget {
         onConfirm: (ctx) => m == null
             ? runAndClose(
                 ctx,
-                st,
                 () => st.api.addMember(st.orgId,
                     name: name.text,
                     phone: Phones.normalize(phone.text, dial: st.dial),
@@ -142,7 +141,6 @@ class MembersScreen extends StatelessWidget {
                 done: 'Member added. Their invite code is on their card.')
             : runAndClose(
                 ctx,
-                st,
                 () => st.api.updateMember(m.s('id'), {
                   'full_name': name.text,
                   'phone': Phones.normalize(phone.text, dial: st.dial) ?? '',

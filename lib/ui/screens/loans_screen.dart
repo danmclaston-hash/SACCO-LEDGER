@@ -158,7 +158,7 @@ class LoansScreen extends StatelessWidget {
             showMsg(ctx, 'Enter amount and term (1 to 60 months).', error: true);
             return;
           }
-          await runAndClose(ctx, st, () => st.api.applyLoan(st.orgId, member!, p, t, custom ? terms.toJson() : null, purpose.text),
+          await runAndClose(ctx, () => st.api.applyLoan(st.orgId, member!, p, t, custom ? terms.toJson() : null, purpose.text),
               done: 'Application sent for approval.');
         },
       ),
@@ -313,7 +313,7 @@ class _LoanCard extends StatelessWidget {
             showMsg(ctx, 'Choose two witnesses.', error: true);
             return;
           }
-          await runAndClose(ctx, st, () => st.api.approveLoan(l.s('id'), res.text, w1!, w2!), done: 'Loan approved. A different officer pays it out.');
+          await runAndClose(ctx, () => st.api.approveLoan(l.s('id'), res.text, w1!, w2!), done: 'Loan approved. A different officer pays it out.');
         },
       ),
     );
@@ -331,8 +331,11 @@ class _LoanCard extends StatelessWidget {
           Text('Pay ${Money.format(l.i('principal'), st.currency)} to ${l.s('borrower')} from the group\'s own money, then record it here.'),
           ChannelFields(value: channel, ref: ref, onChanged: (v) => set(() => channel = v)),
         ],
-        onConfirm: (ctx) =>
-            runAndClose(ctx, st, () => st.api.disburseLoan(l.s('id'), channel.code, ChannelFields.refFor(channel, ref)), done: 'Pay-out recorded.'),
+        onConfirm: (ctx) async {
+          final problem = ChannelFields.problem(channel, ref);
+          if (problem != null) return showMsg(ctx, problem, error: true);
+          await runAndClose(ctx, () => st.api.disburseLoan(l.s('id'), channel.code, ChannelFields.refFor(channel, ref)), done: 'Pay-out recorded.');
+        },
       ),
     );
   }
@@ -409,7 +412,7 @@ class _LoanCard extends StatelessWidget {
             showMsg(ctx, 'Enter a valid amount.', error: true);
             return;
           }
-          await runAndClose(ctx, st, () => st.api.waiveLateFees(l.s('id'), a, reason.text), done: 'Late fees forgiven.');
+          await runAndClose(ctx, () => st.api.waiveLateFees(l.s('id'), a, reason.text), done: 'Late fees forgiven.');
         },
       ),
     );

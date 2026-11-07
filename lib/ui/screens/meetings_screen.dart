@@ -52,11 +52,11 @@ class MeetingsScreen extends StatelessWidget {
               if (st.role.canRunMeetings) ...[
                 gap,
                 if (open == null)
-                  FilledButton.icon(onPressed: () => _openDialog(context, st), icon: const Icon(Icons.play_arrow), label: Text(st.t('Open Weekly Meeting')))
+                  FilledButton.icon(onPressed: () => _cashCount(context, st), icon: const Icon(Icons.play_arrow), label: Text(st.t('Open Weekly Meeting')))
                 else
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(foregroundColor: cs.error),
-                    onPressed: () => _closeDialog(context, st, open),
+                    onPressed: () => _cashCount(context, st, closing: open),
                     icon: const Icon(Icons.stop),
                     label: Text(st.t('Close Meeting (Reconcile Cash)')),
                   ),
@@ -99,7 +99,7 @@ class MeetingsScreen extends StatelessWidget {
                 gap,
                 for (final a in attendance)
                   InkWell(
-                    onTap: st.role.canRunMeetings ? () => st.act(() => st.api.setAttendance(open.s('id'), a.s('member_id'), !a.b('present'))) : null,
+                    onTap: st.role.canRunMeetings ? () => runAndTell(context, () => st.api.setAttendance(open.s('id'), a.s('member_id'), !a.b('present'))) : null,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 6),
                       child: Row(
@@ -183,63 +183,35 @@ class MeetingsScreen extends StatelessWidget {
     );
   }
 
-  void _openDialog(BuildContext context, AppState st) {
+  /// Opening and closing a meeting: two people count the cash. Closing also takes the minutes.
+  void _cashCount(BuildContext context, AppState st, {Json? closing}) {
     final members = st.activeMembers;
-    final cash = TextEditingController(text: Money.plain(st.dash.i('cash_box'), st.currency));
-    String? c1 = st.myMemberId;
-    String? c2;
+    final cash = TextEditingController(text: closing == null ? Money.plain(st.dash.i('cash_box'), st.currency) : '');
+    final minutes = TextEditingController();
+    String? c1 = closing?.n('opening_counter1') ?? st.myMemberId;
+    String? c2 = closing?.n('opening_counter2');
     showDialog(
       context: context,
       builder: (_) => FormDialog(
-        title: 'Open Meeting',
-        confirm: 'Confirm Opening Cash & Open',
+        title: closing == null ? 'Open Meeting' : 'Reconcile & Close Meeting',
+        confirm: closing == null ? 'Confirm Opening Cash & Open' : 'Adjourn & Lock Cash Box',
         fields: (ctx, set) => [
-          Text('Ledger says the lockbox holds ${Money.format(st.dash.i('cash_box'), st.currency)}. Two people count it now.'),
+          Text(closing == null
+              ? 'Ledger says the lockbox holds ${Money.format(st.dash.i('cash_box'), st.currency)}. Two people count it now.'
+              : 'The meeting closes only if the counted cash equals the ledger cash.'),
           MoneyField(controller: cash, label: 'Physical cash counted', currency: st.currency),
           MemberPicker(label: 'Counter 1', value: c1, members: members, onChanged: (v) => set(() => c1 = v)),
           MemberPicker(label: 'Counter 2', value: c2, members: members, onChanged: (v) => set(() => c2 = v)),
+          if (closing != null) TextField(controller: minutes, maxLines: 3, decoration: const InputDecoration(labelText: 'Meeting Minutes / Notes')),
         ],
         onConfirm: (ctx) async {
           final v = Money.parse(cash.text, st.currency, true);
-          if (v == null || c1 == null || c2 == null) {
-            showMsg(ctx, 'Enter the cash and choose two counters.', error: true);
-            return;
-          }
-          await runAndClose(ctx, st, () => st.api.openMeeting(st.orgId, v, c1!, c2!), done: 'Meeting opened.');
-        },
-      ),
-    );
-  }
-
-  void _closeDialog(BuildContext context, AppState st, Json meeting) {
-    final members = st.activeMembers;
-    final cash = TextEditingController();
-    final minutes = TextEditingController();
-    String? c1 = meeting.n('opening_counter1');
-    String? c2 = meeting.n('opening_counter2');
-    showDialog(
-      context: context,
-      builder: (_) => FormDialog(
-        title: 'Reconcile & Close Meeting',
-        confirm: 'Adjourn & Lock Cash Box',
-        fields: (ctx, set) => [
-          const Text('The meeting closes only if the counted cash equals the ledger cash.'),
-          MoneyField(controller: cash, label: 'Physical Cash Counted', currency: st.currency),
-          MemberPicker(label: 'Counter 1', value: c1, members: members, onChanged: (v) => set(() => c1 = v)),
-          MemberPicker(label: 'Counter 2', value: c2, members: members, onChanged: (v) => set(() => c2 = v)),
-          TextField(
-            controller: minutes,
-            maxLines: 3,
-            decoration: const InputDecoration(labelText: 'Meeting Minutes / Notes'),
-          ),
-        ],
-        onConfirm: (ctx) async {
-          final v = Money.parse(cash.text, st.currency, true);
-          if (v == null || c1 == null || c2 == null) {
-            showMsg(ctx, 'Enter the cash and choose two counters.', error: true);
-            return;
-          }
-          await runAndClose(ctx, st, () => st.api.closeMeeting(meeting.s('id'), v, c1!, c2!, minutes.text), done: 'Meeting closed. Cash matches.');
+          if (v == null || c1 == null || c2 == null) return showMsg(ctx, 'Enter the cash and choose two counters.', error: true);
+          await runAndClose(
+            ctx,
+            () => closing == null ? st.api.openMeeting(st.orgId, v, c1!, c2!) : st.api.closeMeeting(closing.s('id'), v, c1!, c2!, minutes.text),
+            done: closing == null ? 'Meeting opened.' : 'Meeting closed. Cash matches.',
+          );
         },
       ),
     );

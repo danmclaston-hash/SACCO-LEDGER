@@ -37,7 +37,7 @@ class _LockScreenState extends State<LockScreen> {
       if (pin.isNotEmpty) setState(() => pin = pin.substring(0, pin.length - 1));
       return;
     }
-    if (pin.length >= 6) return;
+    if (pin.length >= PinLock.maxLength) return;
     setState(() {
       pin += d;
       message = null;
@@ -46,7 +46,7 @@ class _LockScreenState extends State<LockScreen> {
 
   Future<void> _submit() async {
     final st = StateScope.of(context);
-    if (pin.length < 4) {
+    if (pin.length < PinLock.minLength) {
       setState(() => message = 'Type your 4 to 6 number PIN.');
       return;
     }
@@ -92,7 +92,7 @@ class _LockScreenState extends State<LockScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        for (var i = 0; i < 6; i++)
+                        for (var i = 0; i < PinLock.maxLength; i++)
                           AnimatedContainer(
                             duration: const Duration(milliseconds: 120),
                             margin: const EdgeInsets.symmetric(horizontal: 6),
@@ -101,7 +101,7 @@ class _LockScreenState extends State<LockScreen> {
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               color: i < pin.length ? saccoGold : Colors.transparent,
-                              border: Border.all(color: i < 4 ? Colors.white : Colors.white54, width: 2),
+                              border: Border.all(color: i < PinLock.minLength ? Colors.white : Colors.white54, width: 2),
                             ),
                           ),
                       ],

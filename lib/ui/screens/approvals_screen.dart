@@ -72,19 +72,16 @@ void _relabel(BuildContext context, AppState st, Json p) {
       confirm: 'Save',
       fields: (ctx, set) => [
         Text('${p.s('member_name')} • ${Money.format(p.i('amount'), st.currency)}. The money stays in savings. Only the label changes.'),
-        DropdownButtonFormField<String?>(
-          initialValue: goal,
-          isExpanded: true,
-          decoration: const InputDecoration(labelText: 'For goal'),
-          items: [
-            const DropdownMenuItem<String?>(value: null, child: Text('Not for any goal')),
-            for (final g in st.activeGoals) DropdownMenuItem<String?>(value: g.s('id'), child: Text(g.s('name'))),
-          ],
+        // A closed goal stays in the list, so saving without a change keeps its label.
+        GoalPicker(
+          label: 'For goal',
+          value: goal,
+          goals: [...st.activeGoals, ...st.goals.where((g) => g.s('id') == goal && g.s('status') != 'active')],
           onChanged: (v) => set(() => goal = v),
         ),
         TextField(controller: reason, decoration: const InputDecoration(labelText: 'Why? (kept in the audit trail)')),
       ],
-      onConfirm: (ctx) => runAndClose(ctx, st, () => st.api.setPaymentGoal(p.s('id'), goal, reason.text), done: 'Label changed and recorded.'),
+      onConfirm: (ctx) => runAndClose(ctx, () => st.api.setPaymentGoal(p.s('id'), goal, reason.text), done: 'Label changed and recorded.'),
     ),
   );
 }

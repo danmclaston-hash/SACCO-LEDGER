@@ -8,7 +8,10 @@ import 'package:crypto/crypto.dart';
 class PinLock {
   static const iterations = 20000;
 
-  static bool validPin(String pin) => RegExp(r'^\d{4,6}$').hasMatch(pin);
+  static const minLength = 4;
+  static const maxLength = 6;
+
+  static bool validPin(String pin) => RegExp('^\\d{$minLength,$maxLength}\$').hasMatch(pin);
 
   static String newSalt() {
     final r = Random.secure();

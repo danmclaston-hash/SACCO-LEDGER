@@ -9,14 +9,7 @@ import '../../data/api.dart';
 import '../../state/app_state.dart';
 import '../widgets.dart';
 
-void showSearchScreen(BuildContext context) {
-  final st = StateScope.of(context);
-  Navigator.of(context).push(
-    MaterialPageRoute(
-      builder: (_) => StateScope(state: st, child: const SearchScreen()),
-    ),
-  );
-}
+void showSearchScreen(BuildContext context) => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SearchScreen()));
 
 /// The index: type anything, get pages of the app and live records.
 class SearchScreen extends StatefulWidget {

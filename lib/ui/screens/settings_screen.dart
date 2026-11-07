@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/countries.dart';
 import '../../core/json.dart';
+import '../../core/money.dart';
 import '../widgets.dart';
 import 'loan_calculator.dart';
 import 'online_pay.dart';
@@ -26,7 +27,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (_loadedFor == o.s('id')) return;
     _loadedFor = o.s('id');
     name.text = o.s('name');
-    share.text = o.s('share_price');
+    share.text = Money.plain(o.i('share_price'), o.s('currency_code'));
     mult.text = o.s('max_loan_multiplier');
     quorum.text = o.s('meeting_quorum_pct');
     mtn.text = o.s('mtn_merchant_code');
@@ -62,8 +63,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
         TextField(
           controller: share,
           enabled: edit,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(labelText: 'Share price (${st.currency}, smallest unit)'),
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: InputDecoration(labelText: 'Share price (${st.currency})'),
         ),
         TextField(
           controller: mult,
@@ -105,7 +106,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         context,
                         () => st.api.updateOrganization(st.orgId, {
                               'name': name.text,
-                              'share_price': int.tryParse(share.text.trim()),
+                              'share_price': Money.parse(share.text, st.currency),
                               'max_loan_multiplier': int.tryParse(mult.text.trim()),
                               'meeting_quorum_pct': int.tryParse(quorum.text.trim()),
                               'mtn_merchant_code': mtn.text.trim(),

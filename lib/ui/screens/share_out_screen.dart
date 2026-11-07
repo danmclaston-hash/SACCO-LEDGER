@@ -213,7 +213,7 @@ class _ShareOutScreenState extends State<ShareOutScreen> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           FilledButton(
-            onPressed: () => runAndClose(ctx, st, () => st.api.executeShareOut(st.orgId), done: 'Cycle closed.'),
+            onPressed: () => runAndClose(ctx, () => st.api.executeShareOut(st.orgId), done: 'Cycle closed.'),
             child: const Text('Confirm'),
           ),
         ],

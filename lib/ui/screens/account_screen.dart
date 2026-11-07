@@ -19,15 +19,11 @@ import '../widgets.dart';
 
 /// Opens My Account on top of whatever screen is showing (used where there is no side menu).
 void openAccount(BuildContext context) {
-  final st = StateScope.of(context);
   Navigator.of(context).push(
     MaterialPageRoute(
-      builder: (_) => StateScope(
-        state: st,
-        child: Scaffold(
-          appBar: AppBar(title: const Text('My Account'), backgroundColor: saccoEmerald, foregroundColor: Colors.white),
-          body: const AccountScreen(),
-        ),
+      builder: (_) => Scaffold(
+        appBar: AppBar(title: const Text('My Account'), backgroundColor: saccoEmerald, foregroundColor: Colors.white),
+        body: const AccountScreen(),
       ),
     ),
   );
@@ -287,14 +283,11 @@ class _ProfileCard extends StatelessWidget {
         ],
         onConfirm: (ctx) async {
           if (!(key.currentState?.validate() ?? false)) return;
-          final nav = Navigator.of(ctx);
-          final err = await st.act(() => st.api.updateMyProfile({'full_name': name.text.trim(), 'phone': Phones.normalize(phone.text, dial: st.dial) ?? '', 'apply_to_groups': applyToGroups}));
-          if (err != null) {
-            if (ctx.mounted) showMsg(ctx, err, error: true);
-            return;
-          }
-          nav.pop();
-          if (context.mounted) showMsg(context, 'Saved.');
+          await runAndClose(
+              ctx,
+              () => st.api.updateMyProfile(
+                  {'full_name': name.text.trim(), 'phone': Phones.normalize(phone.text, dial: st.dial) ?? '', 'apply_to_groups': applyToGroups}),
+              done: 'Saved.');
         },
       ),
     );
@@ -375,14 +368,7 @@ class _ProfileCard extends StatelessWidget {
         ],
         onConfirm: (ctx) async {
           if (!(key.currentState?.validate() ?? false)) return;
-          final nav = Navigator.of(ctx);
-          final err = await st.changePassword(current.text, next.text);
-          if (err != null) {
-            if (ctx.mounted) showMsg(ctx, err, error: true);
-            return;
-          }
-          nav.pop();
-          if (context.mounted) showMsg(context, 'Password changed.');
+          await runAndClose(ctx, () => st.api.changePassword(st.account.s('sign_in_id'), current.text, next.text), done: 'Password changed.');
         },
       ),
     );
@@ -725,7 +711,7 @@ class _PrivacyCard extends StatelessWidget {
             decoration: const InputDecoration(labelText: 'Why? (optional)'),
           ),
         ],
-        onConfirm: (ctx) => runAndClose(ctx, st, () => st.api.requestDeletion(reason.text), done: 'Request sent. You can cancel it until it is done.'),
+        onConfirm: (ctx) => runAndClose(ctx, () => st.api.requestDeletion(reason.text), done: 'Request sent. You can cancel it until it is done.'),
       ),
     );
   }

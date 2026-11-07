@@ -115,7 +115,6 @@ class AppState extends ChangeNotifier {
   Future<void> boot() async {
     _prefs = await SharedPreferences.getInstance();
     _applySettings(asJson(jsonDecode(_prefs?.getString('look') ?? '{}')));
-    _loadOutbox();
     _authSub = api.authChanges.listen((e) async {
       final id = e.session?.user.id;
       if (id == null) {
@@ -141,6 +140,8 @@ class AppState extends ChangeNotifier {
   }
 
   void _clear() {
+    outbox = [];
+    outboxFailures = [];
     orgs = [];
     org = null;
     _data = {};
@@ -204,15 +205,6 @@ class AppState extends ChangeNotifier {
       // Offline: the phone's copy stays.
     }
     notifyListeners();
-  }
-
-  Future<String?> changePassword(String current, String next) async {
-    try {
-      await api.changePassword(account.s('sign_in_id'), current, next);
-      return null;
-    } on ApiError catch (e) {
-      return e.message;
-    }
   }
 
   /// Called once after each successful sign-in, so the person can see where their account was used.
@@ -303,7 +295,7 @@ class AppState extends ChangeNotifier {
 
   void goTo(AppPage p, {int? tab, String? memberId}) {
     page = p;
-    if (tab != null) ledgerTab = tab;
+    ledgerTab = tab ?? 0;
     if (memberId != null) statementMemberId = memberId;
     notifyListeners();
   }
@@ -320,6 +312,7 @@ class AppState extends ChangeNotifier {
     notifyListeners();
     final accountLoad = loadAccount();
     try {
+      await _loadOutbox();
       await flushOutbox();
       orgs = await api.myMemberships();
       await _prefs?.setString('orgs', jsonEncode(orgs));
@@ -343,11 +336,12 @@ class AppState extends ChangeNotifier {
       } else {
         loadError = e.message;
       }
+    } finally {
+      await accountLoad;
+      version++;
+      loading = false;
+      notifyListeners();
     }
-    await accountLoad;
-    version++;
-    loading = false;
-    notifyListeners();
   }
 
   Future<void> _pickOrg(String? select) async {
@@ -367,15 +361,24 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  void _loadOutbox() {
-    final c = _prefs?.getString('outbox');
+  /// Each person's unsent payments wait under their own name, so another person signing in on a shared phone never sends them.
+  String get _outboxKey => 'outbox_${api.user?.id}';
+
+  Future<void> _loadOutbox() async {
+    // Phones from before this change kept one shared list; it belongs to whoever signs in first.
+    final old = _prefs?.getString('outbox');
+    if (old != null && signedIn) {
+      await _prefs?.setString(_outboxKey, old);
+      await _prefs?.remove('outbox');
+    }
+    final c = _prefs?.getString(_outboxKey);
     outbox = c == null ? [] : asJsonList(jsonDecode(c));
   }
 
-  Future<void> _saveOutbox() async => _prefs?.setString('outbox', jsonEncode(outbox));
+  Future<void> _saveOutbox() async => _prefs?.setString(_outboxKey, jsonEncode(outbox));
 
-  /// Returns null if recorded, 'queued' if saved for later, or an error message.
-  Future<String?> recordPayment({
+  /// With no signal the payment is kept on the phone and sent later: [queued] is true and there is no [error].
+  Future<({String? error, bool queued})> recordPayment({
     String? memberId,
     required String purpose,
     required int amount,
@@ -401,13 +404,13 @@ class AppState extends ChangeNotifier {
     try {
       await api.recordPayment(params);
       await refresh();
-      return null;
+      return (error: null, queued: false);
     } on ApiError catch (e) {
-      if (!e.isNetwork) return e.message;
+      if (!e.isNetwork) return (error: e.message, queued: false);
       outbox = [...outbox, params];
       await _saveOutbox();
       notifyListeners();
-      return 'queued';
+      return (error: null, queued: true);
     }
   }
 

@@ -22,12 +22,12 @@ void showMsg(BuildContext context, String msg, {bool error = false}) {
 }
 
 /// Runs a change from a dialog: keeps it open and shows the reason if the rules refuse.
-Future<void> runAndClose(BuildContext dialogCtx, AppState st, Future<void> Function() fn, {String? done}) async {
+Future<void> runAndClose(BuildContext dialogCtx, Future<void> Function() fn, {String? done}) async {
   final nav = Navigator.of(dialogCtx);
   final messenger = ScaffoldMessenger.of(dialogCtx);
   final outer = ScaffoldMessenger.of(nav.context);
   final errColor = Theme.of(dialogCtx).colorScheme.error;
-  final err = await st.act(fn);
+  final err = await StateScope.of(dialogCtx).act(fn);
   if (err != null) {
     messenger.showSnackBar(SnackBar(content: Text(err), backgroundColor: errColor, duration: const Duration(seconds: 6)));
   } else {
@@ -422,6 +422,9 @@ class ChannelFields extends StatelessWidget {
   /// The ID to send: none for cash.
   static String? refFor(Channel c, TextEditingController ref) => c.needsRef ? ref.text.trim() : null;
 
+  /// What to tell the person if the ID is missing, or null if all is fine.
+  static String? problem(Channel c, TextEditingController ref) => c.needsRef && ref.text.trim().isEmpty ? 'Enter the transaction ID.' : null;
+
   @override
   Widget build(BuildContext context) => Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         DropdownButtonFormField<Channel>(
@@ -443,6 +446,26 @@ class ChannelFields extends StatelessWidget {
           ),
         ],
       ]);
+}
+
+/// Choose which savings goal money is labelled for, or none.
+class GoalPicker extends StatelessWidget {
+  final String label;
+  final String? value;
+  final List<Json> goals;
+  final ValueChanged<String?> onChanged;
+  const GoalPicker({super.key, required this.label, required this.value, required this.goals, required this.onChanged});
+  @override
+  Widget build(BuildContext context) => DropdownButtonFormField<String?>(
+        initialValue: goals.any((g) => g.s('id') == value) ? value : null,
+        isExpanded: true,
+        decoration: InputDecoration(labelText: label),
+        items: [
+          const DropdownMenuItem<String?>(value: null, child: Text('Not for any goal')),
+          for (final g in goals) DropdownMenuItem<String?>(value: g.s('id'), child: Text(g.s('name'), overflow: TextOverflow.ellipsis)),
+        ],
+        onChanged: onChanged,
+      );
 }
 
 class MoneyField extends StatelessWidget {

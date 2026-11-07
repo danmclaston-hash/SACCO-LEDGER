@@ -203,10 +203,10 @@ class DashboardScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _Metric('PAR 30', metrics.par30, metrics.par30 > 5),
-                  _Metric('PAR 90', metrics.par90, metrics.par90 > 2),
-                  _Metric('Liquidity', metrics.liquidity, metrics.liquidity < 15),
-                  _Metric('Collection', metrics.collection, metrics.collection < 90),
+                  _Metric('PAR 30', metrics.par30, metrics.par30Alert),
+                  _Metric('PAR 90', metrics.par90, metrics.par90Alert),
+                  _Metric('Liquidity', metrics.liquidity, metrics.liquidityAlert),
+                  _Metric('Collection', metrics.collection, metrics.collectionAlert),
                 ],
               ),
             ],

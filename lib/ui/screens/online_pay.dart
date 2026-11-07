@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/catalog.dart';
 import '../../core/json.dart';
 import '../../core/money.dart';
+import '../../state/app_state.dart';
 import '../theme.dart';
 import '../widgets.dart';
 import 'channels_screen.dart';
@@ -42,6 +43,7 @@ class _OnlinePayCardState extends State<OnlinePayCard> with WidgetsBindingObserv
     final st = StateScope.of(context);
     String msg;
     var bad = false;
+    var paid = false;
     try {
       final r = await st.api.checkOnlinePayment(id);
       msg = switch (r.s('status')) {
@@ -52,6 +54,7 @@ class _OnlinePayCardState extends State<OnlinePayCard> with WidgetsBindingObserv
       };
       if (r.s('status') != 'waiting') _justStarted = null;
       bad = r.s('status') == 'failed';
+      paid = r.s('status') == 'paid';
       await st.refresh();
     } catch (e) {
       msg = e.toString();
@@ -59,7 +62,7 @@ class _OnlinePayCardState extends State<OnlinePayCard> with WidgetsBindingObserv
     }
     if (!mounted) return;
     setState(() => _checking.remove(id));
-    if (!quiet || msg.startsWith('Paid')) showMsg(context, msg, error: bad);
+    if (!quiet || paid) showMsg(context, msg, error: bad);
   }
 
   Future<void> _open(String url) =>
@@ -208,111 +211,116 @@ class _GatewaySetupCardState extends State<GatewaySetupCard> {
   @override
   Widget build(BuildContext context) {
     final st = StateScope.of(context);
-    final tt = Theme.of(context).textTheme;
     final isDemo = st.org!.b('is_demo');
     if (!isDemo && mode == 'test') mode = 'live';
+    // If the status cannot be read, the card still shows, so keys can still be connected.
     return Loaded<Json>(
       load: () => st.api.gatewayStatus(st.orgId),
       waiting: const SizedBox.shrink(),
-      builder: (context, s) {
-        return SaccoCard(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text('Online payments', style: tt.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 4),
-              Text(
-                'Connect your group\'s OWN Flutterwave or Pesapal account. Money goes straight to the group. '
-                'Each payment is confirmed by the gateway and checked again by our server, so nobody types a transaction ID.',
-                style: tt.bodySmall,
-              ),
-              gap,
-              if (s.b('enabled'))
-                Text(
-                  'Connected: ${Channel.parse(s.s('gateway')).name} • ${s.s('mode') == 'test' ? 'TEST money' : 'LIVE'} • key ending ${s.s('key_hint')}\n'
-                  'By ${s.s('updated_by')} on ${Dates.dayTime(s['updated_at'])}',
-                  style: tt.bodySmall?.copyWith(fontWeight: FontWeight.w600),
-                )
-              else
-                const Text('Not connected.'),
-              if (webhookUrl != null) ...[
-                gap,
-                SelectableText(
-                  gateway == 'flutterwave'
-                      ? 'Last step: in Flutterwave go to Settings → Webhooks. Paste this URL, and type the same secret hash you entered here:\n$webhookUrl'
-                      : 'Pesapal notifications are set up already. Nothing else to do.',
-                  style: tt.bodySmall,
-                ),
-              ],
-              if (!editing) ...[
-                gap,
-                Wrap(spacing: 8, runSpacing: 8, children: [
-                  FilledButton.tonal(
-                    onPressed: () => setState(() => editing = true),
-                    child: Text(s.b('enabled') ? 'Change keys' : 'Connect a gateway'),
-                  ),
-                  if (s.b('enabled'))
-                    OutlinedButton(
-                      onPressed: () => runAndTell(context, () => st.api.disableGateway(st.orgId), done: 'Online payments switched off.'),
-                      child: const Text('Switch off'),
-                    ),
-                ]),
-              ] else ...[
-                gap,
-                DropdownButtonFormField<String>(
-                  initialValue: gateway,
-                  decoration: const InputDecoration(labelText: 'Gateway'),
-                  items: const [
-                    DropdownMenuItem(value: 'flutterwave', child: Text('Flutterwave (30+ African countries)')),
-                    DropdownMenuItem(value: 'pesapal', child: Text('Pesapal (East and Southern Africa)')),
-                  ],
-                  onChanged: (v) => setState(() {
-                    gateway = v ?? gateway;
-                    k1.clear();
-                    k2.clear();
-                  }),
-                ),
-                gap,
-                DropdownButtonFormField<String>(
-                  key: ValueKey(isDemo),
-                  initialValue: mode,
-                  decoration: const InputDecoration(labelText: 'Money'),
-                  items: [
-                    const DropdownMenuItem(value: 'live', child: Text('Live: real money')),
-                    if (isDemo) const DropdownMenuItem(value: 'test', child: Text('Test: pretend money (demo group only)')),
-                  ],
-                  onChanged: (v) => setState(() => mode = v ?? mode),
-                ),
-                gap,
-                TextField(
-                  controller: k1,
-                  obscureText: true,
-                  autocorrect: false,
-                  decoration: InputDecoration(labelText: gateway == 'flutterwave' ? 'Secret key (starts FLWSECK)' : 'Consumer key'),
-                ),
-                gap,
-                TextField(
-                  controller: k2,
-                  obscureText: true,
-                  autocorrect: false,
-                  decoration: InputDecoration(
-                    labelText: gateway == 'flutterwave' ? 'Webhook secret hash (make up a long password)' : 'Consumer secret',
-                  ),
-                ),
-                gap,
-                Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-                  TextButton(onPressed: busy ? null : () => setState(() => editing = false), child: const Text('Cancel')),
-                  const SizedBox(width: 8),
-                  FilledButton(
-                    onPressed: busy ? null : _save,
-                    child: busy ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Test and save'),
-                  ),
-                ]),
-              ],
-            ],
+      error: (e) => _card(context, st, const {}, isDemo, error: e),
+      builder: (context, s) => _card(context, st, s, isDemo),
+    );
+  }
+
+  Widget _card(BuildContext context, AppState st, Json s, bool isDemo, {Object? error}) {
+    final tt = Theme.of(context).textTheme;
+    return SaccoCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('Online payments', style: tt.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 4),
+          Text(
+            'Connect your group\'s OWN Flutterwave or Pesapal account. Money goes straight to the group. '
+            'Each payment is confirmed by the gateway and checked again by our server, so nobody types a transaction ID.',
+            style: tt.bodySmall,
           ),
-        );
-      },
+          gap,
+          if (error != null) Text(error.toString(), style: TextStyle(color: Theme.of(context).colorScheme.error)),
+          if (s.b('enabled'))
+            Text(
+              'Connected: ${Channel.parse(s.s('gateway')).name} • ${s.s('mode') == 'test' ? 'TEST money' : 'LIVE'} • key ending ${s.s('key_hint')}\n'
+              'By ${s.s('updated_by')} on ${Dates.dayTime(s['updated_at'])}',
+              style: tt.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+            )
+          else
+            const Text('Not connected.'),
+          if (webhookUrl != null) ...[
+            gap,
+            SelectableText(
+              gateway == 'flutterwave'
+                  ? 'Last step: in Flutterwave go to Settings → Webhooks. Paste this URL, and type the same secret hash you entered here:\n$webhookUrl'
+                  : 'Pesapal notifications are set up already. Nothing else to do.',
+              style: tt.bodySmall,
+            ),
+          ],
+          if (!editing) ...[
+            gap,
+            Wrap(spacing: 8, runSpacing: 8, children: [
+              FilledButton.tonal(
+                onPressed: () => setState(() => editing = true),
+                child: Text(s.b('enabled') ? 'Change keys' : 'Connect a gateway'),
+              ),
+              if (s.b('enabled'))
+                OutlinedButton(
+                  onPressed: () => runAndTell(context, () => st.api.disableGateway(st.orgId), done: 'Online payments switched off.'),
+                  child: const Text('Switch off'),
+                ),
+            ]),
+          ] else ...[
+            gap,
+            DropdownButtonFormField<String>(
+              initialValue: gateway,
+              decoration: const InputDecoration(labelText: 'Gateway'),
+              items: const [
+                DropdownMenuItem(value: 'flutterwave', child: Text('Flutterwave (30+ African countries)')),
+                DropdownMenuItem(value: 'pesapal', child: Text('Pesapal (East and Southern Africa)')),
+              ],
+              onChanged: (v) => setState(() {
+                gateway = v ?? gateway;
+                k1.clear();
+                k2.clear();
+              }),
+            ),
+            gap,
+            DropdownButtonFormField<String>(
+              key: ValueKey(isDemo),
+              initialValue: mode,
+              decoration: const InputDecoration(labelText: 'Money'),
+              items: [
+                const DropdownMenuItem(value: 'live', child: Text('Live: real money')),
+                if (isDemo) const DropdownMenuItem(value: 'test', child: Text('Test: pretend money (demo group only)')),
+              ],
+              onChanged: (v) => setState(() => mode = v ?? mode),
+            ),
+            gap,
+            TextField(
+              controller: k1,
+              obscureText: true,
+              autocorrect: false,
+              decoration: InputDecoration(labelText: gateway == 'flutterwave' ? 'Secret key (starts FLWSECK)' : 'Consumer key'),
+            ),
+            gap,
+            TextField(
+              controller: k2,
+              obscureText: true,
+              autocorrect: false,
+              decoration: InputDecoration(
+                labelText: gateway == 'flutterwave' ? 'Webhook secret hash (make up a long password)' : 'Consumer secret',
+              ),
+            ),
+            gap,
+            Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+              TextButton(onPressed: busy ? null : () => setState(() => editing = false), child: const Text('Cancel')),
+              const SizedBox(width: 8),
+              FilledButton(
+                onPressed: busy ? null : _save,
+                child: busy ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Test and save'),
+              ),
+            ]),
+          ],
+        ],
+      ),
     );
   }
 }

@@ -236,16 +236,7 @@ class _PaymentDialogState extends State<_PaymentDialog> {
         ] else
           MoneyField(controller: amount, label: 'Amount', currency: st.currency),
         if (purpose.takesGoal && st.activeGoals.isNotEmpty)
-          DropdownButtonFormField<String?>(
-            initialValue: st.activeGoals.any((g) => g.s('id') == goalId) ? goalId : null,
-            isExpanded: true,
-            decoration: const InputDecoration(labelText: 'Is this for a goal?'),
-            items: [
-              const DropdownMenuItem<String?>(value: null, child: Text('Not for any goal')),
-              for (final g in st.activeGoals) DropdownMenuItem<String?>(value: g.s('id'), child: Text(g.s('name'), overflow: TextOverflow.ellipsis)),
-            ],
-            onChanged: (v) => setState(() => goalId = v),
-          ),
+          GoalPicker(label: 'Is this for a goal?', value: goalId, goals: st.activeGoals, onChanged: (v) => setState(() => goalId = v)),
         if (online)
           const EmptyNote('Next: a secure payment page opens. Pay there with mobile money or card. Then come back here.')
         else ...[
@@ -269,8 +260,9 @@ class _PaymentDialogState extends State<_PaymentDialog> {
           }
           return;
         }
-        if (channel.needsRef && ref.text.trim().isEmpty) return showMsg(ctx, 'Enter the transaction ID.', error: true);
-        final err = await st.recordPayment(
+        final refProblem = ChannelFields.problem(channel, ref);
+        if (refProblem != null) return showMsg(ctx, refProblem, error: true);
+        final r = await st.recordPayment(
           memberId: purpose.forMember ? memberId : null,
           purpose: purpose.code,
           amount: value,
@@ -280,11 +272,11 @@ class _PaymentDialogState extends State<_PaymentDialog> {
           goalId: goal,
           note: note.text.trim(),
         );
-        if (err == null || err == 'queued') {
+        if (r.error == null) {
           nav.pop();
-          messenger.showSnackBar(SnackBar(content: Text(err == 'queued' ? 'No signal: saved. It will send when you are online.' : 'Recorded.')));
+          messenger.showSnackBar(SnackBar(content: Text(r.queued ? 'No signal: saved. It will send when you are online.' : 'Recorded.')));
         } else if (ctx.mounted) {
-          showMsg(ctx, err, error: true);
+          showMsg(ctx, r.error!, error: true);
         }
       },
     );

@@ -133,7 +133,7 @@ class EmergencyScreen extends StatelessWidget {
             showMsg(ctx, 'Enter the amount.', error: true);
             return;
           }
-          await runAndClose(ctx, st, () => st.api.requestEmergency(st.orgId, member!, a, reason.text), done: 'Claim sent.');
+          await runAndClose(ctx, () => st.api.requestEmergency(st.orgId, member!, a, reason.text), done: 'Claim sent.');
         },
       ),
     );
@@ -157,8 +157,11 @@ class EmergencyScreen extends StatelessWidget {
           Text('Pay ${Money.format(c.i('amount'), st.currency)} to ${c.s('member_name')} from the group\'s own money, then record it here.'),
           ChannelFields(value: channel, ref: ref, onChanged: (v) => set(() => channel = v)),
         ],
-        onConfirm: (ctx) => runAndClose(ctx, st, () => st.api.decideEmergency(c.s('id'), true, channel.code, ChannelFields.refFor(channel, ref), ''),
-            done: 'Relief recorded.'),
+        onConfirm: (ctx) async {
+          final problem = ChannelFields.problem(channel, ref);
+          if (problem != null) return showMsg(ctx, problem, error: true);
+          await runAndClose(ctx, () => st.api.decideEmergency(c.s('id'), true, channel.code, ChannelFields.refFor(channel, ref), ''), done: 'Relief recorded.');
+        },
       ),
     );
   }

@@ -49,14 +49,13 @@ class _AuthScreenState extends State<AuthScreen> {
     try {
       switch (mode) {
         case _Mode.signIn:
+          // The sign-in event reloads everything (app_state.dart, boot), for password and Google alike.
           await st.api.signIn(email, pass.text);
           TextInput.finishAutofillContext();
-          await st.refresh();
         case _Mode.signUp:
           await st.api.signUp(email, pass.text);
           TextInput.finishAutofillContext();
           await st.updateSettings(country: st.country, language: st.language);
-          await st.refresh();
         case _Mode.reset:
           final ok = await st.api.resetPassword(email, code.text, pass.text);
           if (!mounted) return;
@@ -376,8 +375,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             showMsg(ctx, 'Check the extra settings: interest 0-100, loan times 1-20, meeting 1-100%.', error: true);
             return;
           }
+          final String id;
           try {
-            final id = await st.api.createOrganization(
+            id = await st.api.createOrganization(
               name: name.text.trim(),
               edition: edition.code,
               currency: currency,
@@ -388,14 +388,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               myName: me.text.trim(),
               myPhone: Phones.normalize(phone.text, dial: country.dial) ?? '',
             );
-            // The database's create_organization takes neither the country nor the new loan rules yet.
-            await st.api.setOrgCountry(id, country.code);
-            await st.api.setLoanRules(id, {'interest_mode': 'yearly', 'interest_rate': rate});
-            await st.refresh(select: id);
-            nav.pop();
           } on ApiError catch (e) {
             if (ctx.mounted) showMsg(ctx, e.message, error: true);
+            return;
           }
+          // The group now exists, so the dialog closes whatever happens next: pressing Create again would make a second group.
+          // The database's create_organization takes neither the country nor the new loan rules yet.
+          String? err;
+          try {
+            await st.api.setOrgCountry(id, country.code);
+            await st.api.setLoanRules(id, {'interest_mode': 'yearly', 'interest_rate': rate});
+          } on ApiError catch (e) {
+            err = e.message;
+          }
+          await st.refresh(select: id);
+          nav.pop();
+          if (err != null && mounted) showMsg(context, 'Group made, but its country or interest was not saved: $err Set them in Group Settings.', error: true);
         },
       ),
     );

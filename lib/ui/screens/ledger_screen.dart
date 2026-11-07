@@ -110,7 +110,7 @@ class _Journals extends StatelessWidget {
             decoration: const InputDecoration(labelText: 'Reason for Reversal'),
           ),
         ],
-        onConfirm: (ctx) => runAndClose(ctx, st, () => st.api.reverseJournal(j.s('id'), reason.text), done: 'Reversed.'),
+        onConfirm: (ctx) => runAndClose(ctx, () => st.api.reverseJournal(j.s('id'), reason.text), done: 'Reversed.'),
       ),
     );
   }

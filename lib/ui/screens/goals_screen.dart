@@ -36,7 +36,6 @@ class GoalsScreen extends StatelessWidget {
   }
 }
 
-
 enum _Mode { byDeadline, byAmount }
 
 /// Works for everyone, even before a goal exists. Nothing is saved until an officer taps "Save as goal".
@@ -188,7 +187,6 @@ class _Answer extends StatelessWidget {
   }
 }
 
-
 class GoalCard extends StatelessWidget {
   final Json g;
   const GoalCard(this.g, {super.key});
@@ -268,58 +266,55 @@ void showGoalDetails(BuildContext context, Json g) {
     context: context,
     isScrollControlled: true,
     showDragHandle: true,
-    builder: (sheetCtx) => StateScope(
-      state: st,
-      child: DraggableScrollableSheet(
-        expand: false,
-        initialChildSize: 0.85,
-        maxChildSize: 0.95,
-        builder: (ctx, scroll) => ListView(controller: scroll, padding: const EdgeInsets.fromLTRB(16, 0, 16, 24), children: [
-          Text(g.s('name'), style: Theme.of(ctx).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-          Text('Counted from ${g.i('records')} checked record(s).', style: Theme.of(ctx).textTheme.bodySmall),
-          const SizedBox(height: 12),
-          GoalChart(goal: g, currency: st.currency),
-          const SizedBox(height: 12),
-          if (g['by_member'] is List) ...[
-            const SectionTitle('Who has brought what'),
-            const SizedBox(height: 6),
-            for (final m in g.l('by_member')) _MemberLine(name: m.s('name'), amount: m.i('amount'), plan: _memberPlan(g)),
-          ],
-          const SizedBox(height: 12),
-          if (g.s('status') == 'active' && st.myMemberId != null)
-            FilledButton.icon(
-              onPressed: () {
-                Navigator.pop(sheetCtx);
-                showPaymentDialog(context, purpose: Purpose.savings, goalId: g.s('id'));
-              },
-              icon: const Icon(Icons.add),
-              label: const Text('Pay toward this goal'),
-            ),
-          if (g.s('status') == 'active' && st.role.canRunMeetings) ...[
-            const SizedBox(height: 8),
-            OutlinedButton(
-              onPressed: () async {
-                final ok = await showDialog<bool>(
-                  context: ctx,
-                  builder: (d) => AlertDialog(
-                    title: const Text('Close this goal?'),
-                    content: const Text('No new money can be labelled for it. Money already collected stays in savings.'),
-                    actions: [
-                      TextButton(onPressed: () => Navigator.pop(d, false), child: const Text('Cancel')),
-                      FilledButton(onPressed: () => Navigator.pop(d, true), child: const Text('Close goal')),
-                    ],
-                  ),
-                );
-                if (ok != true) return;
-                final err = await st.act(() => st.api.closeGoal(g.s('id')));
-                if (sheetCtx.mounted) Navigator.pop(sheetCtx);
-                if (context.mounted) showMsg(context, err ?? 'Goal closed.', error: err != null);
-              },
-              child: const Text('Close goal'),
-            ),
-          ],
-        ]),
-      ),
+    builder: (sheetCtx) => DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.85,
+      maxChildSize: 0.95,
+      builder: (ctx, scroll) => ListView(controller: scroll, padding: const EdgeInsets.fromLTRB(16, 0, 16, 24), children: [
+        Text(g.s('name'), style: Theme.of(ctx).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+        Text('Counted from ${g.i('records')} checked record(s).', style: Theme.of(ctx).textTheme.bodySmall),
+        const SizedBox(height: 12),
+        GoalChart(goal: g, currency: st.currency),
+        const SizedBox(height: 12),
+        if (g['by_member'] is List) ...[
+          const SectionTitle('Who has brought what'),
+          const SizedBox(height: 6),
+          for (final m in g.l('by_member')) _MemberLine(name: m.s('name'), amount: m.i('amount'), plan: _memberPlan(g)),
+        ],
+        const SizedBox(height: 12),
+        if (g.s('status') == 'active' && st.myMemberId != null)
+          FilledButton.icon(
+            onPressed: () {
+              Navigator.pop(sheetCtx);
+              showPaymentDialog(context, purpose: Purpose.savings, goalId: g.s('id'));
+            },
+            icon: const Icon(Icons.add),
+            label: const Text('Pay toward this goal'),
+          ),
+        if (g.s('status') == 'active' && st.role.canRunMeetings) ...[
+          const SizedBox(height: 8),
+          OutlinedButton(
+            onPressed: () async {
+              final ok = await showDialog<bool>(
+                context: ctx,
+                builder: (d) => AlertDialog(
+                  title: const Text('Close this goal?'),
+                  content: const Text('No new money can be labelled for it. Money already collected stays in savings.'),
+                  actions: [
+                    TextButton(onPressed: () => Navigator.pop(d, false), child: const Text('Cancel')),
+                    FilledButton(onPressed: () => Navigator.pop(d, true), child: const Text('Close goal')),
+                  ],
+                ),
+              );
+              if (ok != true) return;
+              final err = await st.act(() => st.api.closeGoal(g.s('id')));
+              if (sheetCtx.mounted) Navigator.pop(sheetCtx);
+              if (context.mounted) showMsg(context, err ?? 'Goal closed.', error: err != null);
+            },
+            child: const Text('Close goal'),
+          ),
+        ],
+      ]),
     ),
   );
 }
@@ -360,57 +355,52 @@ class _MemberLine extends StatelessWidget {
   }
 }
 
-
 void showCreateGoal(BuildContext context, {int? target, DateTime? end, Frequency frequency = Frequency.weekly, int? perPerson}) {
   final st = StateScope.of(context);
   final name = TextEditingController();
-  final amount = TextEditingController(text: target?.toString() ?? '');
-  final each = TextEditingController(text: perPerson?.toString() ?? '');
+  final amount = TextEditingController(text: target == null ? '' : Money.plain(target, st.currency));
+  final each = TextEditingController(text: perPerson == null ? '' : Money.plain(perPerson, st.currency));
   var freq = frequency;
   DateTime? endDate = end;
   showDialog(
     context: context,
-    builder: (_) => StateScope(
-      state: st,
-      child: FormDialog(
-        title: 'New group goal',
-        confirm: 'Save goal',
-        fields: (ctx, set) => [
-          TextField(controller: name, textCapitalization: TextCapitalization.sentences, decoration: const InputDecoration(labelText: 'Name, e.g. School fees')),
-          MoneyField(controller: amount, label: 'Goal amount', currency: st.currency),
-          Wrap(spacing: 8, children: [
-            for (final f in Frequency.values) ChoiceChip(label: Text('Every ${f.one}'), selected: freq == f, onSelected: (_) => set(() => freq = f)),
-          ]),
-          MoneyField(controller: each, label: 'Each person brings (optional)', currency: st.currency),
-          OutlinedButton.icon(
-            onPressed: () async {
-              final d = await showDatePicker(
-                  context: ctx,
-                  firstDate: DateTime.now(),
-                  lastDate: DateTime.now().add(const Duration(days: 365 * 3)),
-                  initialDate: endDate ?? DateTime.now().add(const Duration(days: 30)));
-              if (d != null) set(() => endDate = d);
-            },
-            icon: const Icon(Icons.event),
-            label: Text(endDate == null ? 'Pick an end date (optional)' : 'Ends ${Dates.day(endDate)}'),
-          ),
-          const Text('Money stays in the one savings account. When members pay, they can label it for this goal.', style: TextStyle(fontSize: 12)),
-        ],
-        onConfirm: (ctx) async {
-          final t = Money.parse(amount.text, st.currency);
-          if (name.text.trim().length < 2 || t == null) {
-            showMsg(ctx, 'Write a name and the goal amount.', error: true);
-            return;
-          }
-          await runAndClose(
-            ctx,
-            st,
-            () => st.api.createGoal(st.orgId,
-                name: name.text.trim(), target: t, start: DateTime.now(), end: endDate, frequency: freq.name, perPerson: Money.parse(each.text, st.currency)),
-            done: 'Goal saved.',
-          );
-        },
-      ),
+    builder: (_) => FormDialog(
+      title: 'New group goal',
+      confirm: 'Save goal',
+      fields: (ctx, set) => [
+        TextField(controller: name, textCapitalization: TextCapitalization.sentences, decoration: const InputDecoration(labelText: 'Name, e.g. School fees')),
+        MoneyField(controller: amount, label: 'Goal amount', currency: st.currency),
+        Wrap(spacing: 8, children: [
+          for (final f in Frequency.values) ChoiceChip(label: Text('Every ${f.one}'), selected: freq == f, onSelected: (_) => set(() => freq = f)),
+        ]),
+        MoneyField(controller: each, label: 'Each person brings (optional)', currency: st.currency),
+        OutlinedButton.icon(
+          onPressed: () async {
+            final d = await showDatePicker(
+                context: ctx,
+                firstDate: DateTime.now(),
+                lastDate: DateTime.now().add(const Duration(days: 365 * 3)),
+                initialDate: endDate ?? DateTime.now().add(const Duration(days: 30)));
+            if (d != null) set(() => endDate = d);
+          },
+          icon: const Icon(Icons.event),
+          label: Text(endDate == null ? 'Pick an end date (optional)' : 'Ends ${Dates.day(endDate)}'),
+        ),
+        const Text('Money stays in the one savings account. When members pay, they can label it for this goal.', style: TextStyle(fontSize: 12)),
+      ],
+      onConfirm: (ctx) async {
+        final t = Money.parse(amount.text, st.currency);
+        if (name.text.trim().length < 2 || t == null) {
+          showMsg(ctx, 'Write a name and the goal amount.', error: true);
+          return;
+        }
+        await runAndClose(
+          ctx,
+          () => st.api.createGoal(st.orgId,
+              name: name.text.trim(), target: t, start: DateTime.now(), end: endDate, frequency: freq.name, perPerson: Money.parse(each.text, st.currency)),
+          done: 'Goal saved.',
+        );
+      },
     ),
   );
 }
