@@ -26,7 +26,7 @@ const _t = <String, Map<AppLanguage, String>>{
   'ai_notice': {
     AppLanguage.en: 'AI suggests, never acts on money',
     AppLanguage.lg: 'AI ewa amagezi, tegulawo wadde okukwata ensimbi',
-    AppLanguage.sw: 'AI inapendekeza tu, haigusi pesa zako'
+    AppLanguage.sw: 'AI inapendekeza tu, haigusi pesa zako',
   },
 };
 

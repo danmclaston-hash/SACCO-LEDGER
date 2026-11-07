@@ -41,6 +41,23 @@ class Api {
     }
   }
 
+  /// Google sign-in. Web comes back to the same page; phones come back through the app link.
+  static const mobileRedirect = 'com.saccoledger.app://login-callback';
+
+  Future<void> signInWithGoogle({required bool web}) async {
+    try {
+      await _c.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: web ? '${Uri.base.origin}${Uri.base.path}' : mobileRedirect,
+        authScreenLaunchMode: web ? LaunchMode.platformDefault : LaunchMode.externalApplication,
+      );
+    } on AuthException catch (e) {
+      throw ApiError(e.message.contains('not enabled') ? 'Google sign-in is not switched on yet. Use phone or email for now.' : e.message);
+    } catch (e) {
+      throw const ApiError('No connection. Check your internet and try again.', isNetwork: true);
+    }
+  }
+
   Future<void> signUp(String email, String password) async {
     try {
       final r = await _c.auth.signUp(email: email, password: password);
@@ -103,37 +120,43 @@ class Api {
     required int quorum,
     required String myName,
     String? myPhone,
-  }) async =>
-      (await _rpc('create_organization', {
-        'p_name': name,
-        'p_edition': edition,
-        'p_currency': currency,
-        'p_share_price': sharePrice,
-        'p_multiplier': multiplier,
-        'p_interest': interest,
-        'p_quorum': quorum,
-        'p_my_name': myName,
-        'p_my_phone': myPhone,
-        'p_consent': true,
-      }))
-          .toString();
+  }) async => (await _rpc('create_organization', {
+    'p_name': name,
+    'p_edition': edition,
+    'p_currency': currency,
+    'p_share_price': sharePrice,
+    'p_multiplier': multiplier,
+    'p_interest': interest,
+    'p_quorum': quorum,
+    'p_my_name': myName,
+    'p_my_phone': myPhone,
+    'p_consent': true,
+  })).toString();
 
   Future<void> updateOrganization(String org, Json patch) => _rpc('update_organization', {'p_org': org, 'p': patch});
   Future<String> seedDemo(String myName) async => (await _rpc('seed_demo', {'p_my_name': myName})).toString();
   Future<void> claimInvite(String code) => _rpc('claim_invite', {'p_code': code, 'p_consent': true});
   Future<List<Json>> members(String org) async => asJsonList(await _rpc('list_members', {'p_org': org}));
 
-  Future<Json> addMember(String org,
-          {required String name, String? phone, String? nationalId, required String role, String? kinName, String? kinPhone}) async =>
-      asJson(await _rpc('add_member', {
-        'p_org': org,
-        'p_name': name,
-        'p_phone': phone,
-        'p_national_id': nationalId,
-        'p_role': role,
-        'p_kin_name': kinName,
-        'p_kin_phone': kinPhone,
-      }));
+  Future<Json> addMember(
+    String org, {
+    required String name,
+    String? phone,
+    String? nationalId,
+    required String role,
+    String? kinName,
+    String? kinPhone,
+  }) async => asJson(
+    await _rpc('add_member', {
+      'p_org': org,
+      'p_name': name,
+      'p_phone': phone,
+      'p_national_id': nationalId,
+      'p_role': role,
+      'p_kin_name': kinName,
+      'p_kin_phone': kinPhone,
+    }),
+  );
 
   Future<void> updateMember(String member, Json patch) => _rpc('update_member', {'p_member': member, 'p': patch});
   Future<String> newMemberCode(String member) async => (await _rpc('new_member_code', {'p_member': member})).toString();

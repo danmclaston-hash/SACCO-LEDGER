@@ -38,48 +38,76 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final o = st.org!;
     _load(o);
     final edit = st.isOrgAdmin;
-    return AppPageView(children: [
-      const SectionTitle('Group Settings'),
-      TextField(controller: name, enabled: edit, decoration: const InputDecoration(labelText: 'Group name')),
-      TextField(
+    return AppPageView(
+      children: [
+        const SectionTitle('Group Settings'),
+        TextField(
+          controller: name,
+          enabled: edit,
+          decoration: const InputDecoration(labelText: 'Group name'),
+        ),
+        TextField(
           controller: share,
           enabled: edit,
           keyboardType: TextInputType.number,
-          decoration: InputDecoration(labelText: 'Share price (${st.currency}, smallest unit)')),
-      TextField(
-          controller: mult, enabled: edit, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Loan limit (times savings)')),
-      TextField(
-          controller: rate, enabled: edit, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Interest rate (% per year)')),
-      TextField(controller: quorum, enabled: edit, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Meeting quorum (%)')),
-      const SectionTitle('Group Payment Accounts'),
-      const EmptyNote('Your group\'s OWN merchant codes or numbers. Members pay here directly. The app never receives this money.'),
-      TextField(controller: mtn, enabled: edit, decoration: const InputDecoration(labelText: 'MTN MoMo merchant code or number')),
-      TextField(controller: airtel, enabled: edit, decoration: const InputDecoration(labelText: 'Airtel Money merchant code or number')),
-      if (edit)
-        FilledButton(
-          onPressed: busy
-              ? null
-              : () async {
-                  setState(() => busy = true);
-                  final err = await st.act(() async {
-                    await st.api.updateOrganization(st.orgId, {
-                      'name': name.text,
-                      'share_price': int.tryParse(share.text.trim()),
-                      'max_loan_multiplier': int.tryParse(mult.text.trim()),
-                      'default_interest_rate_pct': int.tryParse(rate.text.trim()),
-                      'meeting_quorum_pct': int.tryParse(quorum.text.trim()),
-                      'mtn_merchant_code': mtn.text.trim(),
-                      'airtel_merchant_code': airtel.text.trim(),
-                    });
-                    await st.loadOrgs(select: st.orgId);
-                  });
-                  if (mounted) setState(() => busy = false);
-                  if (context.mounted) showMsg(context, err ?? 'Saved.', error: err != null);
-                },
-          child: const Text('Save'),
+          decoration: InputDecoration(labelText: 'Share price (${st.currency}, smallest unit)'),
         ),
-      const Divider(),
-      OutlinedButton.icon(onPressed: st.signOut, icon: const Icon(Icons.logout), label: const Text('Sign out')),
-    ]);
+        TextField(
+          controller: mult,
+          enabled: edit,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(labelText: 'Loan limit (times savings)'),
+        ),
+        TextField(
+          controller: rate,
+          enabled: edit,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(labelText: 'Interest rate (% per year)'),
+        ),
+        TextField(
+          controller: quorum,
+          enabled: edit,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(labelText: 'Meeting quorum (%)'),
+        ),
+        const SectionTitle('Group Payment Accounts'),
+        const EmptyNote('Your group\'s OWN merchant codes or numbers. Members pay here directly. The app never receives this money.'),
+        TextField(
+          controller: mtn,
+          enabled: edit,
+          decoration: const InputDecoration(labelText: 'MTN MoMo merchant code or number'),
+        ),
+        TextField(
+          controller: airtel,
+          enabled: edit,
+          decoration: const InputDecoration(labelText: 'Airtel Money merchant code or number'),
+        ),
+        if (edit)
+          FilledButton(
+            onPressed: busy
+                ? null
+                : () async {
+                    setState(() => busy = true);
+                    final err = await st.act(() async {
+                      await st.api.updateOrganization(st.orgId, {
+                        'name': name.text,
+                        'share_price': int.tryParse(share.text.trim()),
+                        'max_loan_multiplier': int.tryParse(mult.text.trim()),
+                        'default_interest_rate_pct': int.tryParse(rate.text.trim()),
+                        'meeting_quorum_pct': int.tryParse(quorum.text.trim()),
+                        'mtn_merchant_code': mtn.text.trim(),
+                        'airtel_merchant_code': airtel.text.trim(),
+                      });
+                      await st.loadOrgs(select: st.orgId);
+                    });
+                    if (mounted) setState(() => busy = false);
+                    if (context.mounted) showMsg(context, err ?? 'Saved.', error: err != null);
+                  },
+            child: const Text('Save'),
+          ),
+        const Divider(),
+        OutlinedButton.icon(onPressed: st.signOut, icon: const Icon(Icons.logout), label: const Text('Sign out')),
+      ],
+    );
   }
 }

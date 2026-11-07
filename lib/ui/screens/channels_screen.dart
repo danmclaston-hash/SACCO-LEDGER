@@ -29,49 +29,72 @@ class ChannelsScreen extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final org = st.org!;
-    return AppPageView(children: [
-      SaccoCard(
-        color: cs.secondaryContainer,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Mobile Channels', style: tt.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: cs.onSecondaryContainer)),
-          const SizedBox(height: 6),
-          Text(
-              '1. Pay your group\'s own account on your phone.\n2. Copy the transaction ID from the SMS.\n3. Record it here. A second person checks it, then it joins the ledger.\n\nThe app never holds your money.',
-              style: tt.bodySmall?.copyWith(color: cs.onSecondaryContainer)),
-        ]),
-      ),
-      SaccoCard(
-        elevation: 2,
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            Icon(Icons.dialpad, color: cs.primary),
-            const SizedBox(width: 8),
-            Expanded(child: Text('Open mobile money', style: tt.titleSmall?.copyWith(fontWeight: FontWeight.bold))),
-          ]),
-          gap,
-          Row(children: [
-            Expanded(child: FilledButton(onPressed: () => dial(context, '*165#'), child: const Text('MTN *165#'))),
-            const SizedBox(width: 8),
-            Expanded(child: FilledButton.tonal(onPressed: () => dial(context, '*185#'), child: const Text('Airtel *185#'))),
-          ]),
-          if (org.n('mtn_merchant_code') != null) ...[gap, Text('MTN pay to: ${org.s('mtn_merchant_code')}', style: tt.bodySmall)],
-          if (org.n('airtel_merchant_code') != null) ...[gap, Text('Airtel pay to: ${org.s('airtel_merchant_code')}', style: tt.bodySmall)],
-        ]),
-      ),
-      FilledButton.icon(
-        onPressed: st.myMemberId == null ? null : () => showRecordPayment(context),
-        icon: const Icon(Icons.edit_note),
-        label: const Text('Record a Payment'),
-      ),
-      if (st.outbox.isNotEmpty)
-        Align(
+    return AppPageView(
+      children: [
+        SaccoCard(
+          color: cs.secondaryContainer,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Mobile Channels',
+                style: tt.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: cs.onSecondaryContainer),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '1. Pay your group\'s own account on your phone.\n2. Copy the transaction ID from the SMS.\n3. Record it here. A second person checks it, then it joins the ledger.\n\nThe app never holds your money.',
+                style: tt.bodySmall?.copyWith(color: cs.onSecondaryContainer),
+              ),
+            ],
+          ),
+        ),
+        SaccoCard(
+          elevation: 2,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.dialpad, color: cs.primary),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text('Open mobile money', style: tt.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+              gap,
+              Row(
+                children: [
+                  Expanded(
+                    child: FilledButton(onPressed: () => dial(context, '*165#'), child: const Text('MTN *165#')),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: FilledButton.tonal(onPressed: () => dial(context, '*185#'), child: const Text('Airtel *185#')),
+                  ),
+                ],
+              ),
+              if (org.n('mtn_merchant_code') != null) ...[gap, Text('MTN pay to: ${org.s('mtn_merchant_code')}', style: tt.bodySmall)],
+              if (org.n('airtel_merchant_code') != null) ...[gap, Text('Airtel pay to: ${org.s('airtel_merchant_code')}', style: tt.bodySmall)],
+            ],
+          ),
+        ),
+        FilledButton.icon(
+          onPressed: st.myMemberId == null ? null : () => showRecordPayment(context),
+          icon: const Icon(Icons.edit_note),
+          label: const Text('Record a Payment'),
+        ),
+        if (st.outbox.isNotEmpty)
+          Align(
             alignment: Alignment.centerLeft,
-            child: Pill(text: '${st.outbox.length} record(s) waiting for signal. They send by themselves.', color: warnOrange)),
-      for (final f in st.outboxFailures) Text('Not accepted: $f', style: TextStyle(color: cs.error)),
-      SectionTitle(st.isOfficer ? 'Latest Payment Records' : 'My Payment Records'),
-      if (st.payments.isEmpty) const EmptyNote('No payment records yet.'),
-      for (final p in st.payments.take(30)) PaymentTile(p),
-    ]);
+            child: Pill(text: '${st.outbox.length} record(s) waiting for signal. They send by themselves.', color: warnOrange),
+          ),
+        for (final f in st.outboxFailures) Text('Not accepted: $f', style: TextStyle(color: cs.error)),
+        SectionTitle(st.isOfficer ? 'Latest Payment Records' : 'My Payment Records'),
+        if (st.payments.isEmpty) const EmptyNote('No payment records yet.'),
+        for (final p in st.payments.take(30)) PaymentTile(p),
+      ],
+    );
   }
 }
 
@@ -86,23 +109,39 @@ class PaymentTile extends StatelessWidget {
     return SaccoCard(
       radius: 12,
       padding: const EdgeInsets.all(12),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          Expanded(
-              child: Text('${purposeNames[p.s('purpose')]} • ${money(context, p.i('amount'))}',
-                  style: tt.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: cs.primary))),
-          StatusPill(p.s('status')),
-        ]),
-        const SizedBox(height: 4),
-        Text('${p.n('member_name') ?? 'Group'} • ${channelNames[p.s('channel')]}${p.n('external_ref') != null ? ' • ID ${p.s('external_ref')}' : ''}',
-            style: tt.bodySmall),
-        Text('Recorded by ${p.s('submitted_by_name')} • ${Dates.dayTime(p['submitted_at'])}', style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant)),
-        if (p.n('reviewed_by_name') != null)
-          Text('Checked by ${p.s('reviewed_by_name')}${p.n('review_note') != null ? ': ${p.s('review_note')}' : ''}',
-              style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant)),
-        if (p.n('note') != null) Text(p.s('note'), style: tt.labelSmall),
-        if (actions.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 8), child: Row(mainAxisAlignment: MainAxisAlignment.end, children: actions)),
-      ]),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '${purposeNames[p.s('purpose')]} • ${money(context, p.i('amount'))}',
+                  style: tt.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: cs.primary),
+                ),
+              ),
+              StatusPill(p.s('status')),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${p.n('member_name') ?? 'Group'} • ${channelNames[p.s('channel')]}${p.n('external_ref') != null ? ' • ID ${p.s('external_ref')}' : ''}',
+            style: tt.bodySmall,
+          ),
+          Text('Recorded by ${p.s('submitted_by_name')} • ${Dates.dayTime(p['submitted_at'])}', style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant)),
+          if (p.n('reviewed_by_name') != null)
+            Text(
+              'Checked by ${p.s('reviewed_by_name')}${p.n('review_note') != null ? ': ${p.s('review_note')}' : ''}',
+              style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
+            ),
+          if (p.n('note') != null) Text(p.s('note'), style: tt.labelSmall),
+          if (actions.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Row(mainAxisAlignment: MainAxisAlignment.end, children: actions),
+            ),
+        ],
+      ),
     );
   }
 }
@@ -171,25 +210,32 @@ class _RecordPaymentDialogState extends State<_RecordPaymentDialog> {
                   decoration: const InputDecoration(labelText: 'Loan'),
                   items: [
                     for (final l in memberLoans)
-                      DropdownMenuItem(value: l.s('id'), child: Text('${l.s('loan_number')} • left ${money(context, l.i('remaining'))}'))
+                      DropdownMenuItem(value: l.s('id'), child: Text('${l.s('loan_number')} • left ${money(context, l.i('remaining'))}')),
                   ],
                   onChanged: (v) => setState(() => loanId = v),
                 ),
         if (purpose == 'shares') ...[
           TextField(
-              controller: shares,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(labelText: 'Number of shares (${money(context, price)} each)'),
-              onChanged: (_) => setState(() {})),
+            controller: shares,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(labelText: 'Number of shares (${money(context, price)} each)'),
+            onChanged: (_) => setState(() {}),
+          ),
           Text('Total: ${money(context, count * price)}', style: const TextStyle(fontWeight: FontWeight.bold)),
         ] else
           MoneyField(controller: amount, label: 'Amount', currency: st.currency),
         ChannelPicker(value: channel, onChanged: (v) => setState(() => channel = v)),
         if (channel != 'cash')
           TextField(
-              controller: ref, textCapitalization: TextCapitalization.characters, decoration: const InputDecoration(labelText: 'Transaction ID from the SMS')),
+            controller: ref,
+            textCapitalization: TextCapitalization.characters,
+            decoration: const InputDecoration(labelText: 'Transaction ID from the SMS'),
+          ),
         if (purpose == 'fine' || purpose == 'expense' || purpose == 'withdrawal')
-          TextField(controller: note, decoration: const InputDecoration(labelText: 'Reason')),
+          TextField(
+            controller: note,
+            decoration: const InputDecoration(labelText: 'Reason'),
+          ),
       ],
       onConfirm: (ctx) async {
         final nav = Navigator.of(ctx);

@@ -58,29 +58,29 @@ const _dark = ColorScheme(
 );
 
 ThemeData _theme(ColorScheme c, Color background) => ThemeData(
-      useMaterial3: true,
-      colorScheme: c,
-      scaffoldBackgroundColor: background,
-      navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: c.surface,
-        elevation: 6,
-        height: 68,
-        // Seven tabs on a small phone: keep every label on one line.
-        labelTextStyle: WidgetStatePropertyAll(TextStyle(fontSize: 10, letterSpacing: 0, color: c.onSurface)),
-      ),
-      dialogTheme: DialogThemeData(backgroundColor: c.surface),
-      inputDecorationTheme: const InputDecorationTheme(border: OutlineInputBorder()),
-      snackBarTheme: SnackBarThemeData(
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      ),
-      // Comfortable tap size on every button.
-      filledButtonTheme: FilledButtonThemeData(style: FilledButton.styleFrom(minimumSize: const Size(64, 44))),
-      outlinedButtonTheme: OutlinedButtonThemeData(style: OutlinedButton.styleFrom(minimumSize: const Size(64, 44))),
-      textButtonTheme: TextButtonThemeData(style: TextButton.styleFrom(minimumSize: const Size(48, 44))),
-      dividerTheme: DividerThemeData(color: c.outlineVariant, space: 16),
-    );
+  useMaterial3: true,
+  colorScheme: c,
+  scaffoldBackgroundColor: background,
+  navigationBarTheme: NavigationBarThemeData(
+    backgroundColor: c.surface,
+    elevation: 6,
+    height: 68,
+    // Seven tabs on a small phone: keep every label on one line.
+    labelTextStyle: WidgetStatePropertyAll(TextStyle(fontSize: 10, letterSpacing: 0, color: c.onSurface)),
+  ),
+  dialogTheme: DialogThemeData(backgroundColor: c.surface),
+  inputDecorationTheme: const InputDecorationTheme(border: OutlineInputBorder()),
+  snackBarTheme: SnackBarThemeData(
+    behavior: SnackBarBehavior.floating,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+  ),
+  // Comfortable tap size on every button.
+  filledButtonTheme: FilledButtonThemeData(style: FilledButton.styleFrom(minimumSize: const Size(64, 44))),
+  outlinedButtonTheme: OutlinedButtonThemeData(style: OutlinedButton.styleFrom(minimumSize: const Size(64, 44))),
+  textButtonTheme: TextButtonThemeData(style: TextButton.styleFrom(minimumSize: const Size(48, 44))),
+  dividerTheme: DividerThemeData(color: c.outlineVariant, space: 16),
+);
 
 final lightTheme = _theme(_light, const Color(0xFFFAFBF9));
 final darkTheme = _theme(_dark, const Color(0xFF101715));

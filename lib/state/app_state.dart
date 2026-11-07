@@ -5,6 +5,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show ThemeMode;
 import 'package:local_auth/local_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show AuthChangeEvent;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/app_lock.dart';
@@ -95,8 +96,10 @@ class AppState extends ChangeNotifier {
       if (id == null) {
         _clear();
         notifyListeners();
-      } else if (orgs.isEmpty && !booting) {
-        await loadOrgs();
+      } else {
+        // Every new sign-in (password or Google) goes in the person's sign-in list.
+        if (e.event == AuthChangeEvent.signedIn && !booting) unawaited(noteSignIn());
+        if (orgs.isEmpty && !booting) await loadOrgs();
       }
     });
     if (signedIn) {
@@ -125,7 +128,11 @@ class AppState extends ChangeNotifier {
 
   // ----- Look: saved on this phone at once, and on the account so it follows the person -----
   void _applyLook(Json j) {
-    themeMode = switch (j.s('theme')) { 'light' => ThemeMode.light, 'dark' => ThemeMode.dark, _ => ThemeMode.system };
+    themeMode = switch (j.s('theme')) {
+      'light' => ThemeMode.light,
+      'dark' => ThemeMode.dark,
+      _ => ThemeMode.system,
+    };
     final ts = double.tryParse(j.s('text_scale'));
     textScale = ts == null ? 1.0 : ts.clamp(0.85, 1.6);
     language = AppLanguage.values.firstWhere((l) => l.name == j.s('language'), orElse: () => AppLanguage.en);
@@ -326,8 +333,10 @@ class AppState extends ChangeNotifier {
       claims = r[6] as List<Json>;
       offline = false;
       loadError = null;
-      await _prefs?.setString('cache_$id',
-          jsonEncode({'dash': dash, 'members': members, 'journals': journals, 'meetings': meetings, 'loans': loans, 'payments': payments, 'claims': claims}));
+      await _prefs?.setString(
+        'cache_$id',
+        jsonEncode({'dash': dash, 'members': members, 'journals': journals, 'meetings': meetings, 'loans': loans, 'payments': payments, 'claims': claims}),
+      );
     } on ApiError catch (e) {
       if (e.isNetwork) {
         offline = true;

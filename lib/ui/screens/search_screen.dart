@@ -11,7 +11,11 @@ import '../widgets.dart';
 
 void showSearchScreen(BuildContext context) {
   final st = StateScope.of(context);
-  Navigator.of(context).push(MaterialPageRoute(builder: (_) => StateScope(state: st, child: const SearchScreen())));
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (_) => StateScope(state: st, child: const SearchScreen()),
+    ),
+  );
 }
 
 /// The index: type anything, get pages of the app and live records.
@@ -112,29 +116,35 @@ class _SearchScreenState extends State<SearchScreen> {
           onChanged: (t) => onChanged(st, t),
         ),
       ),
-      body: ListView(children: [
-        if (busy) const LinearProgressIndicator(minHeight: 2),
-        if (error != null) Padding(padding: const EdgeInsets.all(16), child: Text(error!, style: TextStyle(color: cs.error))),
-        if (empty) const Padding(padding: EdgeInsets.all(16), child: EmptyNote('Nothing found. Try fewer letters, or a phone number or transaction ID.')),
-        for (final p in pages)
-          ListTile(
-            leading: Icon(Icons.apps, color: cs.secondary),
-            title: Text(p.title),
-            subtitle: Text(p.hint),
-            onTap: () {
-              st.goTo(p.page);
-              Navigator.pop(context);
-            },
-          ),
-        if (pages.isNotEmpty && results.isNotEmpty) const Divider(),
-        for (final r in results)
-          ListTile(
-            leading: Icon(_icons[r.s('kind')] ?? Icons.article, color: cs.primary),
-            title: Text(r.s('title'), maxLines: 2, overflow: TextOverflow.ellipsis),
-            subtitle: Text('${r.s('subtitle')}\n${Dates.day(r['at'])}', maxLines: 3, overflow: TextOverflow.ellipsis),
-            onTap: () => open(st, r),
-          ),
-      ]),
+      body: ListView(
+        children: [
+          if (busy) const LinearProgressIndicator(minHeight: 2),
+          if (error != null)
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(error!, style: TextStyle(color: cs.error)),
+            ),
+          if (empty) const Padding(padding: EdgeInsets.all(16), child: EmptyNote('Nothing found. Try fewer letters, or a phone number or transaction ID.')),
+          for (final p in pages)
+            ListTile(
+              leading: Icon(Icons.apps, color: cs.secondary),
+              title: Text(p.title),
+              subtitle: Text(p.hint),
+              onTap: () {
+                st.goTo(p.page);
+                Navigator.pop(context);
+              },
+            ),
+          if (pages.isNotEmpty && results.isNotEmpty) const Divider(),
+          for (final r in results)
+            ListTile(
+              leading: Icon(_icons[r.s('kind')] ?? Icons.article, color: cs.primary),
+              title: Text(r.s('title'), maxLines: 2, overflow: TextOverflow.ellipsis),
+              subtitle: Text('${r.s('subtitle')}\n${Dates.day(r['at'])}', maxLines: 3, overflow: TextOverflow.ellipsis),
+              onTap: () => open(st, r),
+            ),
+        ],
+      ),
     );
   }
 }

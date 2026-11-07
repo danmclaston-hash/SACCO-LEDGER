@@ -43,6 +43,11 @@ jobs:
         run: flutter build web --release --no-web-resources-cdn --base-href "/${{ github.event.repository.name }}/" --dart-define=SUPABASE_URL=${{ vars.SUPABASE_URL }} --dart-define=SUPABASE_KEY=${{ vars.SUPABASE_KEY }}
       - uses: actions/upload-pages-artifact@v3
         with: { path: build/web }
+      # Second copy for your own site (Cloudflare Pages). It lives at the site root, so no /SACCO-LEDGER/ path.
+      - name: Admin web app for Cloudflare
+        run: flutter build web --release --no-web-resources-cdn -o build/web_root --dart-define=SUPABASE_URL=${{ vars.SUPABASE_URL }} --dart-define=SUPABASE_KEY=${{ vars.SUPABASE_KEY }}
+      - uses: actions/upload-artifact@v4
+        with: { name: web-root, path: build/web_root }
 
   ios:
     runs-on: macos-latest
@@ -67,3 +72,17 @@ jobs:
     steps:
       - id: deploy
         uses: actions/deploy-pages@v4
+
+  # Only runs after you add CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID as repository secrets.
+  deploy-cloudflare:
+    if: github.ref == 'refs/heads/main' && vars.SUPABASE_URL != '' && vars.CLOUDFLARE_PROJECT != ''
+    needs: [database, app]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { name: web-root, path: web_root }
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy web_root --project-name=${{ vars.CLOUDFLARE_PROJECT }} --branch=main

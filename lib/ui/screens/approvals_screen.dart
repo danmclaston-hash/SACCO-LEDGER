@@ -25,22 +25,29 @@ class ApprovalsScreen extends StatelessWidget {
       if (context.mounted) showMsg(context, err ?? (approve ? 'Confirmed and posted to the ledger.' : 'Rejected.'), error: err != null);
     }
 
-    return AppPageView(children: [
-      SectionTitle('Waiting for review (${pending.length})',
+    return AppPageView(
+      children: [
+        SectionTitle(
+          'Waiting for review (${pending.length})',
           trailing: st.myMemberId == null
               ? null
-              : TextButton.icon(onPressed: () => showRecordPayment(context), icon: const Icon(Icons.add), label: const Text('Record'))),
-      if (pending.isEmpty) const EmptyNote('Nothing waiting. All records are checked.'),
-      for (final p in pending)
-        PaymentTile(p, actions: [
-          if (st.canReview) ...[
-            TextButton(onPressed: () => decide(p, false), child: const Text('Reject')),
-            const SizedBox(width: 8),
-            FilledButton(onPressed: () => decide(p, true), child: const Text('Confirm')),
-          ],
-        ]),
-      const SectionTitle('Reviewed'),
-      for (final p in done) PaymentTile(p),
-    ]);
+              : TextButton.icon(onPressed: () => showRecordPayment(context), icon: const Icon(Icons.add), label: const Text('Record')),
+        ),
+        if (pending.isEmpty) const EmptyNote('Nothing waiting. All records are checked.'),
+        for (final p in pending)
+          PaymentTile(
+            p,
+            actions: [
+              if (st.canReview) ...[
+                TextButton(onPressed: () => decide(p, false), child: const Text('Reject')),
+                const SizedBox(width: 8),
+                FilledButton(onPressed: () => decide(p, true), child: const Text('Confirm')),
+              ],
+            ],
+          ),
+        const SectionTitle('Reviewed'),
+        for (final p in done) PaymentTile(p),
+      ],
+    );
   }
 }

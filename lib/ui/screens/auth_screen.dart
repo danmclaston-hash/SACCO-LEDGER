@@ -8,7 +8,8 @@ import '../theme.dart';
 import '../widgets.dart';
 import 'account_screen.dart';
 
-const dataNotice = 'SACCO Ledger keeps records of your group\'s transactions: your name, phone, and what you paid or borrowed. '
+const dataNotice =
+    'SACCO Ledger keeps records of your group\'s transactions: your name, phone, and what you paid or borrowed. '
     'Your group officers can see them. We never hold your money. Records are kept so your group can prove what happened. '
     'They are stored on secure cloud servers that may be outside Uganda, and by ticking you agree to this. '
     'You can ask your group to show or correct your records.';
@@ -47,12 +48,10 @@ class _AuthScreenState extends State<AuthScreen> {
         case _Mode.signIn:
           await st.api.signIn(email, pass.text);
           TextInput.finishAutofillContext();
-          await st.noteSignIn();
           await st.loadOrgs();
         case _Mode.signUp:
           await st.api.signUp(email, pass.text);
           TextInput.finishAutofillContext();
-          await st.noteSignIn();
           await st.loadOrgs();
         case _Mode.reset:
           final ok = await st.api.resetPassword(email, code.text, pass.text);
@@ -64,6 +63,18 @@ class _AuthScreenState extends State<AuthScreen> {
             showMsg(context, 'That code is not right. After 5 tries it stops working.', error: true);
           }
       }
+    } on ApiError catch (e) {
+      if (mounted) showMsg(context, e.message, error: true);
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
+  }
+
+  Future<void> google() async {
+    final st = StateScope.of(context);
+    setState(() => busy = true);
+    try {
+      await st.api.signInWithGoogle(web: kIsWeb);
     } on ApiError catch (e) {
       if (mounted) showMsg(context, e.message, error: true);
     } finally {
@@ -83,69 +94,113 @@ class _AuthScreenState extends State<AuthScreen> {
             padding: const EdgeInsets.all(20),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
-              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                Icon(Icons.account_balance, size: 56, color: cs.secondary),
-                const SizedBox(height: 8),
-                Text(StateScope.of(context).t('app_title'), style: tt.headlineSmall?.copyWith(color: cs.onPrimary, fontWeight: FontWeight.bold)),
-                Text(kIsWeb ? 'Administrator portal' : 'Every shilling, on the record', style: tt.bodyMedium?.copyWith(color: saccoGoldLight)),
-                const SizedBox(height: 20),
-                SaccoCard(
-                  child: AutofillGroup(
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                    Text(switch (mode) { _Mode.signIn => 'Sign in', _Mode.signUp => 'Create account', _Mode.reset => 'Forgot password' },
-                        style: tt.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                    gap,
-                    TextField(
-                      controller: id,
-                      keyboardType: TextInputType.emailAddress,
-                      textInputAction: TextInputAction.next,
-                      autofillHints: const [AutofillHints.username],
-                      decoration: const InputDecoration(
-                          labelText: 'Phone or email', helperText: 'Phone like 0772 123456, or your email', prefixIcon: Icon(Icons.person_outline)),
-                    ),
-                    gap,
-                    if (mode == _Mode.reset) ...[
-                      TextField(
-                          controller: code,
-                          textCapitalization: TextCapitalization.characters,
-                          decoration: const InputDecoration(labelText: 'Code from your group secretary')),
-                      gap,
-                    ],
-                    TextField(
-                      controller: pass,
-                      obscureText: hide,
-                      textInputAction: TextInputAction.done,
-                      autofillHints: [mode == _Mode.signIn ? AutofillHints.password : AutofillHints.newPassword],
-                      decoration: InputDecoration(
-                        labelText: mode == _Mode.reset ? 'New password' : 'Password',
-                        helperText: mode == _Mode.signIn ? null : 'At least 6 characters',
-                        prefixIcon: const Icon(Icons.lock_outline),
-                        suffixIcon: IconButton(
-                          tooltip: hide ? 'Show password' : 'Hide password',
-                          icon: Icon(hide ? Icons.visibility : Icons.visibility_off),
-                          onPressed: () => setState(() => hide = !hide),
-                        ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.account_balance, size: 56, color: cs.secondary),
+                  const SizedBox(height: 8),
+                  Text(
+                    StateScope.of(context).t('app_title'),
+                    style: tt.headlineSmall?.copyWith(color: cs.onPrimary, fontWeight: FontWeight.bold),
+                  ),
+                  Text(kIsWeb ? 'Administrator portal' : 'Every shilling, on the record', style: tt.bodyMedium?.copyWith(color: saccoGoldLight)),
+                  const SizedBox(height: 20),
+                  SaccoCard(
+                    child: AutofillGroup(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(switch (mode) {
+                            _Mode.signIn => 'Sign in',
+                            _Mode.signUp => 'Create account',
+                            _Mode.reset => 'Forgot password',
+                          }, style: tt.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                          gap,
+                          TextField(
+                            controller: id,
+                            keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.next,
+                            autofillHints: const [AutofillHints.username],
+                            decoration: const InputDecoration(
+                              labelText: 'Phone or email',
+                              helperText: 'Phone like 0772 123456, or your email',
+                              prefixIcon: Icon(Icons.person_outline),
+                            ),
+                          ),
+                          gap,
+                          if (mode == _Mode.reset) ...[
+                            TextField(
+                              controller: code,
+                              textCapitalization: TextCapitalization.characters,
+                              decoration: const InputDecoration(labelText: 'Code from your group secretary'),
+                            ),
+                            gap,
+                          ],
+                          TextField(
+                            controller: pass,
+                            obscureText: hide,
+                            textInputAction: TextInputAction.done,
+                            autofillHints: [mode == _Mode.signIn ? AutofillHints.password : AutofillHints.newPassword],
+                            decoration: InputDecoration(
+                              labelText: mode == _Mode.reset ? 'New password' : 'Password',
+                              helperText: mode == _Mode.signIn ? null : 'At least 6 characters',
+                              prefixIcon: const Icon(Icons.lock_outline),
+                              suffixIcon: IconButton(
+                                tooltip: hide ? 'Show password' : 'Hide password',
+                                icon: Icon(hide ? Icons.visibility : Icons.visibility_off),
+                                onPressed: () => setState(() => hide = !hide),
+                              ),
+                            ),
+                            onSubmitted: (_) => submit(),
+                          ),
+                          gap,
+                          FilledButton(
+                            onPressed: busy ? null : submit,
+                            child: busy
+                                ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                                : Text(switch (mode) {
+                                    _Mode.signIn => 'Sign in',
+                                    _Mode.signUp => 'Create account',
+                                    _Mode.reset => 'Change password',
+                                  }),
+                          ),
+                          if (mode != _Mode.reset) ...[
+                            const SizedBox(height: 12),
+                            const Row(
+                              children: [
+                                Expanded(child: Divider()),
+                                Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Text('or')),
+                                Expanded(child: Divider()),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            OutlinedButton.icon(
+                              onPressed: busy ? null : google,
+                              icon: const Text(
+                                'G',
+                                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Color(0xFF4285F4)),
+                              ),
+                              label: const Text('Continue with Google'),
+                            ),
+                          ],
+                          const SizedBox(height: 8),
+                          if (mode != _Mode.signIn) TextButton(onPressed: () => setState(() => mode = _Mode.signIn), child: const Text('Back to sign in')),
+                          if (mode == _Mode.signIn) ...[
+                            TextButton(onPressed: () => setState(() => mode = _Mode.signUp), child: const Text('New here? Create account')),
+                            TextButton(onPressed: () => setState(() => mode = _Mode.reset), child: const Text('Forgot password?')),
+                          ],
+                        ],
                       ),
-                      onSubmitted: (_) => submit(),
                     ),
-                    gap,
-                    FilledButton(
-                      onPressed: busy ? null : submit,
-                      child: busy
-                          ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                          : Text(switch (mode) { _Mode.signIn => 'Sign in', _Mode.signUp => 'Create account', _Mode.reset => 'Change password' }),
-                    ),
-                    const SizedBox(height: 8),
-                    if (mode != _Mode.signIn) TextButton(onPressed: () => setState(() => mode = _Mode.signIn), child: const Text('Back to sign in')),
-                    if (mode == _Mode.signIn) ...[
-                      TextButton(onPressed: () => setState(() => mode = _Mode.signUp), child: const Text('New here? Create account')),
-                      TextButton(onPressed: () => setState(() => mode = _Mode.reset), child: const Text('Forgot password?')),
-                    ],
-                  ])),
-                ),
-                const SizedBox(height: 16),
-                Text('We never hold your money. We keep the records.', textAlign: TextAlign.center, style: tt.bodySmall?.copyWith(color: cs.onPrimary)),
-              ]),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'We never hold your money. We keep the records.',
+                    textAlign: TextAlign.center,
+                    style: tt.bodySmall?.copyWith(color: cs.onPrimary),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -197,9 +252,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         title: 'Create your group',
         confirm: 'Create',
         fields: (ctx, set) => [
-          TextField(controller: name, decoration: const InputDecoration(labelText: 'Group name')),
-          TextField(controller: me, decoration: const InputDecoration(labelText: 'Your full name')),
-          TextField(controller: phone, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Your phone')),
+          TextField(
+            controller: name,
+            decoration: const InputDecoration(labelText: 'Group name'),
+          ),
+          TextField(
+            controller: me,
+            decoration: const InputDecoration(labelText: 'Your full name'),
+          ),
+          TextField(
+            controller: phone,
+            keyboardType: TextInputType.phone,
+            decoration: const InputDecoration(labelText: 'Your phone'),
+          ),
           DropdownButtonFormField<String>(
             initialValue: edition,
             isExpanded: true,
@@ -211,11 +276,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             initialValue: currency,
             decoration: const InputDecoration(labelText: 'Currency'),
             items: [
-              for (final c in const ['UGX', 'KES', 'TZS', 'RWF']) DropdownMenuItem(value: c, child: Text(c))
+              for (final c in const ['UGX', 'KES', 'TZS', 'RWF']) DropdownMenuItem(value: c, child: Text(c)),
             ],
             onChanged: (v) => set(() => currency = v ?? currency),
           ),
-          TextField(controller: share, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Price of one share')),
+          TextField(
+            controller: share,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(labelText: 'Price of one share'),
+          ),
         ],
         onConfirm: (ctx) async {
           final nav = Navigator.of(ctx);
@@ -226,15 +295,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           }
           try {
             final id = await st.api.createOrganization(
-                name: name.text.trim(),
-                edition: edition,
-                currency: currency,
-                sharePrice: price,
-                multiplier: 3,
-                interest: 10,
-                quorum: 67,
-                myName: me.text.trim(),
-                myPhone: phone.text);
+              name: name.text.trim(),
+              edition: edition,
+              currency: currency,
+              sharePrice: price,
+              multiplier: 3,
+              interest: 10,
+              quorum: 67,
+              myName: me.text.trim(),
+              myPhone: phone.text,
+            );
             await st.loadOrgs(select: id);
             nav.pop();
           } on ApiError catch (e) {
@@ -250,67 +320,85 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final st = StateScope.of(context);
     final cs = Theme.of(context).colorScheme;
     return Scaffold(
-      appBar: AppBar(backgroundColor: saccoEmerald, foregroundColor: Colors.white, title: const Text('Welcome'), actions: [
-        IconButton(icon: const Icon(Icons.account_circle), tooltip: 'My Account', onPressed: () => openAccount(context)),
-        IconButton(icon: const Icon(Icons.logout), tooltip: 'Sign out', onPressed: st.signOut),
-      ]),
+      appBar: AppBar(
+        backgroundColor: saccoEmerald,
+        foregroundColor: Colors.white,
+        title: const Text('Welcome'),
+        actions: [
+          IconButton(icon: const Icon(Icons.account_circle), tooltip: 'My Account', onPressed: () => openAccount(context)),
+          IconButton(icon: const Icon(Icons.logout), tooltip: 'Sign out', onPressed: st.signOut),
+        ],
+      ),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 480),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-              SaccoCard(
-                color: cs.secondaryContainer,
-                child: CheckboxListTile(
-                  contentPadding: EdgeInsets.zero,
-                  value: agree,
-                  onChanged: (v) => setState(() => agree = v ?? false),
-                  title: const Text('Data notice', style: TextStyle(fontWeight: FontWeight.bold)),
-                  subtitle: const Text(dataNotice),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SaccoCard(
+                  color: cs.secondaryContainer,
+                  child: CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    value: agree,
+                    onChanged: (v) => setState(() => agree = v ?? false),
+                    title: const Text('Data notice', style: TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: const Text(dataNotice),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              SaccoCard(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  Text('Join my group', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                  const Text('Your secretary gives you an 8-letter code.'),
-                  gap,
-                  TextField(controller: code, textCapitalization: TextCapitalization.characters, decoration: const InputDecoration(labelText: 'Invite code')),
-                  gap,
-                  FilledButton(
-                    onPressed: busy
-                        ? null
-                        : () => run(() async {
-                              await st.api.claimInvite(code.text);
-                              return null;
-                            }),
-                    child: const Text('Join'),
+                const SizedBox(height: 16),
+                SaccoCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text('Join my group', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                      const Text('Your secretary gives you an 8-letter code.'),
+                      gap,
+                      TextField(
+                        controller: code,
+                        textCapitalization: TextCapitalization.characters,
+                        decoration: const InputDecoration(labelText: 'Invite code'),
+                      ),
+                      gap,
+                      FilledButton(
+                        onPressed: busy
+                            ? null
+                            : () => run(() async {
+                                await st.api.claimInvite(code.text);
+                                return null;
+                              }),
+                        child: const Text('Join'),
+                      ),
+                    ],
                   ),
-                ]),
-              ),
-              const SizedBox(height: 16),
-              SaccoCard(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  Text('Start a new group', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                  gap,
-                  FilledButton.tonal(
-                    onPressed: busy
-                        ? null
-                        : () {
-                            if (!agree) {
-                              showMsg(context, 'Please tick the data notice first.', error: true);
-                            } else {
-                              createGroup();
-                            }
-                          },
-                    child: const Text('Create group'),
+                ),
+                const SizedBox(height: 16),
+                SaccoCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text('Start a new group', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                      gap,
+                      FilledButton.tonal(
+                        onPressed: busy
+                            ? null
+                            : () {
+                                if (!agree) {
+                                  showMsg(context, 'Please tick the data notice first.', error: true);
+                                } else {
+                                  createGroup();
+                                }
+                              },
+                        child: const Text('Create group'),
+                      ),
+                      const SizedBox(height: 8),
+                      OutlinedButton(onPressed: busy ? null : () => run(() => st.api.seedDemo('Me (demo admin)')), child: const Text('Try with demo data')),
+                    ],
                   ),
-                  const SizedBox(height: 8),
-                  OutlinedButton(onPressed: busy ? null : () => run(() => st.api.seedDemo('Me (demo admin)')), child: const Text('Try with demo data')),
-                ]),
-              ),
-            ]),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -328,14 +416,21 @@ class MembersUseAppScreen extends StatelessWidget {
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Icon(Icons.phone_android, size: 56, color: Theme.of(context).colorScheme.primary),
-            gap,
-            const Text('This website is for group administrators.', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold)),
-            const Text('Members use the SACCO Ledger app on Android or iPhone.', textAlign: TextAlign.center),
-            gap,
-            OutlinedButton(onPressed: st.signOut, child: const Text('Sign out')),
-          ]),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.phone_android, size: 56, color: Theme.of(context).colorScheme.primary),
+              gap,
+              const Text(
+                'This website is for group administrators.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const Text('Members use the SACCO Ledger app on Android or iPhone.', textAlign: TextAlign.center),
+              gap,
+              OutlinedButton(onPressed: st.signOut, child: const Text('Sign out')),
+            ],
+          ),
         ),
       ),
     );
@@ -347,14 +442,14 @@ class NotConfiguredScreen extends StatelessWidget {
   const NotConfiguredScreen({super.key});
   @override
   Widget build(BuildContext context) => const Scaffold(
-        body: Center(
-          child: Padding(
-            padding: EdgeInsets.all(24),
-            child: Text(
-              'App needs its database keys.\n\nBuild with:\n--dart-define=SUPABASE_URL=...\n--dart-define=SUPABASE_KEY=...\n\nSee README, step 3.',
-              textAlign: TextAlign.center,
-            ),
-          ),
+    body: Center(
+      child: Padding(
+        padding: EdgeInsets.all(24),
+        child: Text(
+          'App needs its database keys.\n\nBuild with:\n--dart-define=SUPABASE_URL=...\n--dart-define=SUPABASE_KEY=...\n\nSee README, step 3.',
+          textAlign: TextAlign.center,
         ),
-      );
+      ),
+    ),
+  );
 }

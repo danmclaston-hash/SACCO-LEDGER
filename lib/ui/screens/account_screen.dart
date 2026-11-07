@@ -17,15 +17,17 @@ import '../widgets.dart';
 /// Opens My Account on top of whatever screen is showing (used where there is no side menu).
 void openAccount(BuildContext context) {
   final st = StateScope.of(context);
-  Navigator.of(context).push(MaterialPageRoute(
-    builder: (_) => StateScope(
-      state: st,
-      child: Scaffold(
-        appBar: AppBar(title: const Text('My Account'), backgroundColor: saccoEmerald, foregroundColor: Colors.white),
-        body: const AccountScreen(),
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (_) => StateScope(
+        state: st,
+        child: Scaffold(
+          appBar: AppBar(title: const Text('My Account'), backgroundColor: saccoEmerald, foregroundColor: Colors.white),
+          body: const AccountScreen(),
+        ),
       ),
     ),
-  ));
+  );
 }
 
 /// The person's own space: who they are, how they sign in, how the app looks, and their data.
@@ -38,27 +40,35 @@ class AccountScreen extends StatelessWidget {
     final st = StateScope.of(context);
     final a = st.account;
     if (a.isEmpty) {
-      return AppPageView(children: [
-        const Center(child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator())),
-        Center(child: TextButton(onPressed: st.loadAccount, child: const Text('Reload'))),
-      ]);
+      return AppPageView(
+        children: [
+          const Center(
+            child: Padding(padding: EdgeInsets.all(24), child: CircularProgressIndicator()),
+          ),
+          Center(
+            child: TextButton(onPressed: st.loadAccount, child: const Text('Reload')),
+          ),
+        ],
+      );
     }
-    return AppPageView(children: [
-      const _Header(),
-      const _ProfileCard(),
-      const _SecurityCard(),
-      const _LookCard(),
-      const _PrivacyCard(),
-      OutlinedButton.icon(
-        onPressed: () async {
-          final nav = Navigator.of(context);
-          await st.signOut();
-          if (nav.canPop()) nav.popUntil((r) => r.isFirst);
-        },
-        icon: const Icon(Icons.logout),
-        label: const Text('Sign out'),
-      ),
-    ]);
+    return AppPageView(
+      children: [
+        const _Header(),
+        const _ProfileCard(),
+        const _SecurityCard(),
+        const _LookCard(),
+        const _PrivacyCard(),
+        OutlinedButton.icon(
+          onPressed: () async {
+            final nav = Navigator.of(context);
+            await st.signOut();
+            if (nav.canPop()) nav.popUntil((r) => r.isFirst);
+          },
+          icon: const Icon(Icons.logout),
+          label: const Text('Sign out'),
+        ),
+      ],
+    );
   }
 }
 
@@ -82,7 +92,10 @@ class Avatar extends StatelessWidget {
       radius: size / 2,
       backgroundColor: saccoGold,
       foregroundImage: bytes == null ? null : MemoryImage(bytes),
-      child: Text(initials(name), style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: size * 0.38)),
+      child: Text(
+        initials(name),
+        style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: size * 0.38),
+      ),
     );
   }
 }
@@ -97,22 +110,35 @@ class _Header extends StatelessWidget {
     final groups = a.l('memberships').where((m) => m.b('is_active')).toList();
     return SaccoCard(
       color: saccoEmerald,
-      child: Row(children: [
-        Avatar(name: a.s('full_name'), photo: a.n('avatar'), size: 64),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(a.s('full_name').isEmpty ? 'No name yet' : a.s('full_name'), style: tt.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 2),
-            Text(_signInLabel(a.s('sign_in_id')), style: tt.bodySmall?.copyWith(color: saccoGoldLight)),
-            const SizedBox(height: 8),
-            Wrap(spacing: 6, runSpacing: 6, children: [
-              for (final g in groups) Pill(text: '${g.s('org_name')} • ${roleNames[g.s('role')] ?? g.s('role')}', color: Colors.white.withValues(alpha: 0.16)),
-              if (a.b('is_platform_admin')) const Pill(text: 'Platform Admin', color: saccoGold, foreground: Colors.black),
-            ]),
-          ]),
-        ),
-      ]),
+      child: Row(
+        children: [
+          Avatar(name: a.s('full_name'), photo: a.n('avatar'), size: 64),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  a.s('full_name').isEmpty ? 'No name yet' : a.s('full_name'),
+                  style: tt.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 2),
+                Text(_signInLabel(a.s('sign_in_id')), style: tt.bodySmall?.copyWith(color: saccoGoldLight)),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    for (final g in groups)
+                      Pill(text: '${g.s('org_name')} • ${roleNames[g.s('role')] ?? g.s('role')}', color: Colors.white.withValues(alpha: 0.16)),
+                    if (a.b('is_platform_admin')) const Pill(text: 'Platform Admin', color: saccoGold, foreground: Colors.black),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -139,15 +165,25 @@ class _Section extends StatelessWidget {
     final tt = Theme.of(context).textTheme;
     return SaccoCard(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          ExcludeSemantics(child: Icon(icon, color: cs.primary)),
-          const SizedBox(width: 8),
-          Expanded(child: Text(title, style: tt.titleMedium?.copyWith(fontWeight: FontWeight.bold))),
-        ]),
-        Padding(padding: const EdgeInsets.only(left: 32, top: 2, bottom: 4), child: Text(hint, style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant))),
-        ...children,
-      ]),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              ExcludeSemantics(child: Icon(icon, color: cs.primary)),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(title, style: tt.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(left: 32, top: 2, bottom: 4),
+            child: Text(hint, style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
+          ),
+          ...children,
+        ],
+      ),
     );
   }
 }
@@ -163,14 +199,14 @@ class _Row extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-        minTileHeight: 56,
-        leading: ExcludeSemantics(child: Icon(icon, color: color)),
-        title: Text(title, style: TextStyle(color: color)),
-        subtitle: subtitle == null ? null : Text(subtitle!),
-        trailing: trailing ?? (onTap == null ? null : const Icon(Icons.chevron_right)),
-        onTap: onTap,
-      );
+    contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+    minTileHeight: 56,
+    leading: ExcludeSemantics(child: Icon(icon, color: color)),
+    title: Text(title, style: TextStyle(color: color)),
+    subtitle: subtitle == null ? null : Text(subtitle!),
+    trailing: trailing ?? (onTap == null ? null : const Icon(Icons.chevron_right)),
+    onTap: onTap,
+  );
 }
 
 // ---------------------------------------------------------------- profile
@@ -188,10 +224,11 @@ class _ProfileCard extends StatelessWidget {
       hint: 'Your name, phone and photo.',
       children: [
         _Row(
-            icon: Icons.edit_outlined,
-            title: 'Name and phone',
-            subtitle: '${a.s('full_name')} • ${Money.maskPhone(a.n('phone'))}',
-            onTap: () => _editProfile(context, st)),
+          icon: Icons.edit_outlined,
+          title: 'Name and phone',
+          subtitle: '${a.s('full_name')} • ${Money.maskPhone(a.n('phone'))}',
+          onTap: () => _editProfile(context, st),
+        ),
         _Row(
           icon: Icons.photo_camera_outlined,
           title: a.n('avatar') == null ? 'Add photo' : 'Change photo',
@@ -226,27 +263,29 @@ class _ProfileCard extends StatelessWidget {
         fields: (ctx, set) => [
           Form(
             key: key,
-            child: Column(children: [
-              TextFormField(
-                controller: name,
-                textCapitalization: TextCapitalization.words,
-                autofillHints: const [AutofillHints.name],
-                decoration: const InputDecoration(labelText: 'Full name'),
-                validator: (v) => (v ?? '').trim().length < 2 ? 'Write at least 2 letters.' : null,
-              ),
-              gap,
-              TextFormField(
-                controller: phone,
-                keyboardType: TextInputType.phone,
-                autofillHints: const [AutofillHints.telephoneNumber],
-                decoration: const InputDecoration(labelText: 'Phone', helperText: 'Like 0772 123456'),
-                validator: (v) {
-                  final n = Phones.normalize(v);
-                  if (n == null) return null;
-                  return n.length >= 11 && n.length <= 13 ? null : 'Phone looks wrong.';
-                },
-              ),
-            ]),
+            child: Column(
+              children: [
+                TextFormField(
+                  controller: name,
+                  textCapitalization: TextCapitalization.words,
+                  autofillHints: const [AutofillHints.name],
+                  decoration: const InputDecoration(labelText: 'Full name'),
+                  validator: (v) => (v ?? '').trim().length < 2 ? 'Write at least 2 letters.' : null,
+                ),
+                gap,
+                TextFormField(
+                  controller: phone,
+                  keyboardType: TextInputType.phone,
+                  autofillHints: const [AutofillHints.telephoneNumber],
+                  decoration: const InputDecoration(labelText: 'Phone', helperText: 'Like 0772 123456'),
+                  validator: (v) {
+                    final n = Phones.normalize(v);
+                    if (n == null) return null;
+                    return n.length >= 11 && n.length <= 13 ? null : 'Phone looks wrong.';
+                  },
+                ),
+              ],
+            ),
           ),
           CheckboxListTile(
             contentPadding: EdgeInsets.zero,
@@ -305,42 +344,44 @@ class _ProfileCard extends StatelessWidget {
           Form(
             key: key,
             child: AutofillGroup(
-              child: Column(children: [
-                TextFormField(
-                  controller: current,
-                  obscureText: hide,
-                  autofillHints: const [AutofillHints.password],
-                  decoration: InputDecoration(
-                    labelText: 'Current password',
-                    suffixIcon: IconButton(
-                      tooltip: hide ? 'Show passwords' : 'Hide passwords',
-                      icon: Icon(hide ? Icons.visibility : Icons.visibility_off),
-                      onPressed: () => set(() => hide = !hide),
+              child: Column(
+                children: [
+                  TextFormField(
+                    controller: current,
+                    obscureText: hide,
+                    autofillHints: const [AutofillHints.password],
+                    decoration: InputDecoration(
+                      labelText: 'Current password',
+                      suffixIcon: IconButton(
+                        tooltip: hide ? 'Show passwords' : 'Hide passwords',
+                        icon: Icon(hide ? Icons.visibility : Icons.visibility_off),
+                        onPressed: () => set(() => hide = !hide),
+                      ),
                     ),
+                    validator: (v) => (v ?? '').isEmpty ? 'Type your current password.' : null,
                   ),
-                  validator: (v) => (v ?? '').isEmpty ? 'Type your current password.' : null,
-                ),
-                gap,
-                TextFormField(
-                  controller: next,
-                  obscureText: hide,
-                  autofillHints: const [AutofillHints.newPassword],
-                  decoration: const InputDecoration(labelText: 'New password', helperText: 'At least 8 characters. Longer is safer.'),
-                  validator: (v) {
-                    if ((v ?? '').length < 8) return 'Use at least 8 characters.';
-                    if (v == current.text) return 'Choose a different password.';
-                    return null;
-                  },
-                ),
-                gap,
-                TextFormField(
-                  controller: again,
-                  obscureText: hide,
-                  autofillHints: const [AutofillHints.newPassword],
-                  decoration: const InputDecoration(labelText: 'New password again'),
-                  validator: (v) => v != next.text ? 'The two new passwords are different.' : null,
-                ),
-              ]),
+                  gap,
+                  TextFormField(
+                    controller: next,
+                    obscureText: hide,
+                    autofillHints: const [AutofillHints.newPassword],
+                    decoration: const InputDecoration(labelText: 'New password', helperText: 'At least 8 characters. Longer is safer.'),
+                    validator: (v) {
+                      if ((v ?? '').length < 8) return 'Use at least 8 characters.';
+                      if (v == current.text) return 'Choose a different password.';
+                      return null;
+                    },
+                  ),
+                  gap,
+                  TextFormField(
+                    controller: again,
+                    obscureText: hide,
+                    autofillHints: const [AutofillHints.newPassword],
+                    decoration: const InputDecoration(labelText: 'New password again'),
+                    validator: (v) => v != next.text ? 'The two new passwords are different.' : null,
+                  ),
+                ],
+              ),
             ),
           ),
         ],
@@ -426,7 +467,10 @@ class _SecurityCardState extends State<_SecurityCard> {
           onTap: () => _signOutEverywhere(context, st),
         ),
         const Divider(),
-        Padding(padding: const EdgeInsets.fromLTRB(4, 4, 4, 4), child: Text('Recent sign-ins', style: tt.labelLarge?.copyWith(fontWeight: FontWeight.bold))),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(4, 4, 4, 4),
+          child: Text('Recent sign-ins', style: tt.labelLarge?.copyWith(fontWeight: FontWeight.bold)),
+        ),
         if (signIns.isEmpty) const Padding(padding: EdgeInsets.all(4), child: EmptyNote('No sign-ins recorded yet.')),
         for (final s in shown)
           _Row(
@@ -441,8 +485,10 @@ class _SecurityCardState extends State<_SecurityCard> {
           ),
         Padding(
           padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
-          child: Text('Not you? Change your password, then sign out of all devices.',
-              style: tt.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          child: Text(
+            'Not you? Change your password, then sign out of all devices.',
+            style: tt.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+          ),
         ),
       ],
     );
@@ -460,13 +506,19 @@ class _SecurityCardState extends State<_SecurityCard> {
         fields: (ctx, set) => [
           const Text('4 to 6 numbers. Not your MoMo PIN. Forgot it? Sign in again with your password.'),
           TextField(
-              controller: first, obscureText: true, keyboardType: TextInputType.number, maxLength: 6, decoration: const InputDecoration(labelText: 'PIN')),
+            controller: first,
+            obscureText: true,
+            keyboardType: TextInputType.number,
+            maxLength: 6,
+            decoration: const InputDecoration(labelText: 'PIN'),
+          ),
           TextField(
-              controller: second,
-              obscureText: true,
-              keyboardType: TextInputType.number,
-              maxLength: 6,
-              decoration: const InputDecoration(labelText: 'PIN again')),
+            controller: second,
+            obscureText: true,
+            keyboardType: TextInputType.number,
+            maxLength: 6,
+            decoration: const InputDecoration(labelText: 'PIN again'),
+          ),
         ],
         onConfirm: (ctx) async {
           if (!PinLock.validPin(first.text)) {
@@ -518,8 +570,10 @@ class _LookCard extends StatelessWidget {
       if (err != null && context.mounted) showMsg(context, err, error: true);
     }
 
-    Widget label(String t) =>
-        Padding(padding: const EdgeInsets.fromLTRB(4, 12, 4, 6), child: Text(t, style: tt.labelLarge?.copyWith(fontWeight: FontWeight.bold)));
+    Widget label(String t) => Padding(
+      padding: const EdgeInsets.fromLTRB(4, 12, 4, 6),
+      child: Text(t, style: tt.labelLarge?.copyWith(fontWeight: FontWeight.bold)),
+    );
 
     return _Section(
       icon: Icons.palette_outlined,
@@ -540,26 +594,41 @@ class _LookCard extends StatelessWidget {
           ),
         ),
         label('Text size'),
-        Wrap(spacing: 8, runSpacing: 8, children: [
-          for (final (v, name) in textSizes)
-            ChoiceChip(
-              label: Text(name),
-              selected: (st.textScale - v).abs() < 0.01,
-              onSelected: (_) => save(st.updateLook(scale: v)),
-            ),
-        ]),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final (v, name) in textSizes)
+              ChoiceChip(
+                label: Text(name),
+                selected: (st.textScale - v).abs() < 0.01,
+                onSelected: (_) => save(st.updateLook(scale: v)),
+              ),
+          ],
+        ),
         Padding(
           padding: const EdgeInsets.fromLTRB(4, 8, 4, 0),
           child: Text('Example: Savings UGX 25,000', style: tt.bodyMedium),
         ),
         label('Language'),
-        Wrap(spacing: 8, runSpacing: 8, children: [
-          for (final l in AppLanguage.values) ChoiceChip(label: Text(l.label), selected: st.language == l, onSelected: (_) => save(st.updateLook(language: l))),
-        ]),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final l in AppLanguage.values)
+              ChoiceChip(
+                label: Text(l.label),
+                selected: st.language == l,
+                onSelected: (_) => save(st.updateLook(language: l)),
+              ),
+          ],
+        ),
         Padding(
           padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
-          child: Text('Only some words are translated so far. The rest stay in English.',
-              style: tt.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant)),
+          child: Text(
+            'Only some words are translated so far. The rest stay in English.',
+            style: tt.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
+          ),
         ),
       ],
     );
@@ -592,10 +661,11 @@ class _PrivacyCard extends StatelessWidget {
                 : 'Agreed to the data notice on ${Dates.day(g['consent_at'])}${g.b('is_active') ? '' : ' • left'}',
           ),
         _Row(
-            icon: Icons.download_outlined,
-            title: 'Download my data',
-            subtitle: 'One file with your profile, statements, payments and loans.',
-            onTap: () => _export(context, st)),
+          icon: Icons.download_outlined,
+          title: 'Download my data',
+          subtitle: 'One file with your profile, statements, payments and loans.',
+          onTap: () => _export(context, st),
+        ),
         if (pending)
           _Row(
             icon: Icons.hourglass_top,
@@ -614,11 +684,12 @@ class _PrivacyCard extends StatelessWidget {
           )
         else
           _Row(
-              icon: Icons.person_remove_outlined,
-              title: 'Close my account',
-              subtitle: 'Your money records stay, as groups must keep proof.',
-              color: cs.error,
-              onTap: () => _close(context, st)),
+            icon: Icons.person_remove_outlined,
+            title: 'Close my account',
+            subtitle: 'Your money records stay, as groups must keep proof.',
+            color: cs.error,
+            onTap: () => _close(context, st),
+          ),
       ],
     );
   }
@@ -628,11 +699,13 @@ class _PrivacyCard extends StatelessWidget {
       final data = await st.api.exportMyData();
       final bytes = utf8.encode(const JsonEncoder.withIndent('  ').convert(data));
       final name = 'my-sacco-ledger-data-${DateTime.now().toIso8601String().substring(0, 10)}.json';
-      await SharePlus.instance.share(ShareParams(
-        files: [XFile.fromData(Uint8List.fromList(bytes), mimeType: 'application/json', name: name)],
-        fileNameOverrides: [name],
-        subject: 'My SACCO Ledger data',
-      ));
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile.fromData(Uint8List.fromList(bytes), mimeType: 'application/json', name: name)],
+          fileNameOverrides: [name],
+          subject: 'My SACCO Ledger data',
+        ),
+      );
     } catch (e) {
       if (context.mounted) showMsg(context, e.toString(), error: true);
     }
@@ -646,12 +719,18 @@ class _PrivacyCard extends StatelessWidget {
         title: 'Close my account?',
         confirm: 'Send request',
         fields: (ctx, set) => [
-          const Text('What happens:\n'
-              '• You leave every group and can no longer sign in to them.\n'
-              '• Your photo, phone and sign-in history are removed.\n'
-              '• Past payments and loans stay, with your name, because groups must keep proof.\n\n'
-              'Download your data first if you want a copy.'),
-          TextField(controller: reason, maxLines: 2, decoration: const InputDecoration(labelText: 'Why? (optional)')),
+          const Text(
+            'What happens:\n'
+            '• You leave every group and can no longer sign in to them.\n'
+            '• Your photo, phone and sign-in history are removed.\n'
+            '• Past payments and loans stay, with your name, because groups must keep proof.\n\n'
+            'Download your data first if you want a copy.',
+          ),
+          TextField(
+            controller: reason,
+            maxLines: 2,
+            decoration: const InputDecoration(labelText: 'Why? (optional)'),
+          ),
         ],
         onConfirm: (ctx) => runAndClose(ctx, st, () async {
           await st.api.requestDeletion(reason.text);
