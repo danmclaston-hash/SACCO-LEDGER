@@ -27,6 +27,20 @@ class Api {
     }
   }
 
+  /// Calls a server function (online payments). Same friendly errors as the database.
+  Future<Json> _fn(String name, Json body) async {
+    try {
+      final r = await _c.functions.invoke(name, body: body);
+      return asJson(r.data);
+    } on FunctionException catch (e) {
+      final d = e.details;
+      final msg = d is Map && d['error'] != null ? d['error'].toString() : 'The payment server said no (${e.status}). Try again.';
+      throw ApiError(msg);
+    } catch (e) {
+      throw const ApiError('No connection. Check your internet and try again.', isNetwork: true);
+    }
+  }
+
   // ----- Sign in -----
   User? get user => _c.auth.currentUser;
   Stream<AuthState> get authChanges => _c.auth.onAuthStateChange;
@@ -231,4 +245,37 @@ class Api {
   Future<void> executeShareOut(String org) => _rpc('execute_shareout', {'p_org': org});
   Future<List<Json>> search(String org, String q) async => asJsonList(await _rpc('global_search', {'p_org': org, 'p_q': q}));
   Future<List<Json>> platformOverview() async => asJsonList(await _rpc('platform_overview'));
+
+  // ----- Online payments (the group's own Flutterwave or Pesapal account) -----
+  Future<Json> gatewayStatus(String org) async => asJson(await _rpc('gateway_status', {'p_org': org}));
+  Future<void> disableGateway(String org) => _rpc('disable_gateway', {'p_org': org});
+  Future<List<Json>> onlinePayments(String org) async => asJsonList(await _rpc('list_gateway_payments', {'p_org': org, 'p_limit': 50}));
+
+  /// Keys go straight to the server function, which checks them with the gateway and locks them.
+  Future<Json> saveGatewayKeys(String org, {required String gateway, required String mode, required Map<String, String> keys}) =>
+      _fn('pay', {'action': 'save_keys', 'org_id': org, 'gateway': gateway, 'mode': mode, ...keys});
+
+  /// Returns {id, tx_ref, checkout_url}. The app then opens checkout_url.
+  Future<Json> startOnlinePayment(String org,
+          {required String memberId, required String purpose, required int amount, String? loanId, String? goalId, String? note}) =>
+      _fn('pay', {
+        'action': 'start',
+        'org_id': org,
+        'member_id': memberId,
+        'purpose': purpose,
+        'amount': amount,
+        'loan_id': loanId,
+        'goal_id': goalId,
+        'note': note,
+      });
+
+  /// Asks the gateway (through our server) whether it is paid. Returns {status, verify_note}.
+  Future<Json> checkOnlinePayment(String id) => _fn('pay', {'action': 'check', 'id': id});
+
+  // ----- Platform administrators -----
+  Future<Json> platformAdmins() async => asJson(await _rpc('list_platform_admins'));
+  Future<List<Json>> searchUsers(String q) async => asJsonList(await _rpc('search_users', {'p_q': q}));
+  Future<Json> addPlatformAdmin(String email) async => asJson(await _rpc('add_platform_admin', {'p_email': email}));
+  Future<void> removePlatformAdmin(String userId) => _rpc('remove_platform_admin', {'p_user': userId});
+  Future<void> cancelAdminInvite(String email) => _rpc('cancel_admin_invite', {'p_email': email});
 }

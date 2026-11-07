@@ -121,7 +121,7 @@ class _StatementsScreenState extends State<StatementsScreen> {
                         style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
                       ),
                       Text(
-                        'Recorded by ${r.s('recorded_by')}${r.n('channel') != null ? ' • ${channelNames[r.s('channel')]}' : ''}${r.n('external_ref') != null ? ' • ID ${r.s('external_ref')}' : ''}',
+                        'Recorded by ${r.s('recorded_by')}${r.n('channel') != null ? ' • ${allChannelNames[r.s('channel')]}' : ''}${r.n('external_ref') != null ? ' • ID ${r.s('external_ref')}' : ''}',
                         style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
                       ),
                     ],

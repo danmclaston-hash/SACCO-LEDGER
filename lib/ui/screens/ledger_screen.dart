@@ -69,7 +69,7 @@ class _Journals extends StatelessWidget {
                 ),
                 Text(j.s('description'), style: tt.bodySmall),
                 Text(
-                  'By ${j.s('actor_name')} • ${Dates.dayTime(j['created_at'])}${j.n('external_ref') != null ? ' • ID ${j.s('external_ref')}' : ''}${j.n('channel') != null ? ' • ${channelNames[j.s('channel')]}' : ''}',
+                  'By ${j.s('actor_name')} • ${Dates.dayTime(j['created_at'])}${j.n('external_ref') != null ? ' • ID ${j.s('external_ref')}' : ''}${j.n('channel') != null ? ' • ${allChannelNames[j.s('channel')]}' : ''}',
                   style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
                 ),
                 const Divider(height: 12),

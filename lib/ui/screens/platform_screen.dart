@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/json.dart';
 import '../../core/money.dart';
 import '../widgets.dart';
+import 'admins_card.dart';
 
 /// For you, the platform owner: every group, its size, and licence expiry.
 class PlatformScreen extends StatefulWidget {
@@ -27,6 +28,7 @@ class _PlatformScreenState extends State<PlatformScreen> {
         if (!snap.hasData) return const Center(child: CircularProgressIndicator());
         return AppPageView(
           children: [
+            const AdminsCard(),
             _DeletionRequests(onChanged: () => setState(() => reload++)),
             SectionTitle('All Groups (${snap.data!.length})'),
             for (final o in snap.data!)

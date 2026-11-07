@@ -49,6 +49,13 @@ A record book that nobody can quietly change. Money moves on MTN, Airtel, bank o
 4. Confirmed: a balanced journal posts, audit row added.
 5. Mistake: reverse with a reason. The old row stays forever.
 
+**Online (Flutterwave or Pesapal), when the group connects its own account:**
+
+1. Member taps **Pay online**. Our server makes the reference, so nobody types an ID.
+2. Member pays on the gateway's page. Money goes to the group's own gateway account.
+3. Gateway tells our server. Our server does not believe the message: it asks the gateway's verify API with the group's key.
+4. Right amount: a balanced journal posts at once, with the gateway's ID and receipt. Wrong amount: it waits for an officer.
+
 Cash handed to an officer during an open meeting posts at once, since the room is the witness. The meeting closes only if counted cash equals ledger cash.
 
 ## Roadmap (gates, not dates)

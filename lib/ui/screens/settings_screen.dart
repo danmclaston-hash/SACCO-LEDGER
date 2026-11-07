@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/json.dart';
 import '../widgets.dart';
+import 'online_pay.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -105,6 +106,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   },
             child: const Text('Save'),
           ),
+        if (st.canReview) const GatewaySetupCard(),
         const Divider(),
         OutlinedButton.icon(onPressed: st.signOut, icon: const Icon(Icons.logout), label: const Text('Sign out')),
       ],

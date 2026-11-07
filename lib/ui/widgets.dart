@@ -12,6 +12,9 @@ class StateScope extends InheritedNotifier<AppState> {
 }
 
 const channelNames = {'mtn_momo': 'MTN MoMo', 'airtel_money': 'Airtel Money', 'bank': 'Bank', 'cash': 'Cash'};
+/// Channels a person can pick by hand. Online ones below are set only by the server, after the gateway confirms.
+const allChannelNames = {...channelNames, 'flutterwave': 'Flutterwave (verified)', 'pesapal': 'Pesapal (verified)'};
+const gatewayNames = {'flutterwave': 'Flutterwave', 'pesapal': 'Pesapal'};
 const purposeNames = {
   'shares': 'Buy shares',
   'savings': 'Savings deposit',
@@ -150,8 +153,8 @@ class StatusPill extends StatelessWidget {
       'confirmed' || 'paid' || 'closed' => (okGreenBg, okGreen),
       'active' || 'open' => (okGreen, Colors.white),
       'approved' => (saccoEmeraldLight, Colors.white),
-      'pending' || 'pending_approval' => (warnOrange, Colors.white),
-      'rejected' || 'reversed' => (cs.error, cs.onError),
+      'pending' || 'pending_approval' || 'waiting' || 'needs_review' => (warnOrange, Colors.white),
+      'rejected' || 'reversed' || 'failed' => (cs.error, cs.onError),
       _ => (Colors.grey, Colors.white),
     };
     return Pill(text: status.replaceAll('_', ' ').toUpperCase(), color: bg, foreground: fg);

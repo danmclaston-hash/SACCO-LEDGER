@@ -14,7 +14,7 @@ Read also: [Simple plan](docs/PLAN.md) · [Licences](docs/LICENCES.md)
 ### Step 1: Make the database
 **Why:** every phone and browser shares this one record book.
 1. Go to [supabase.com](https://supabase.com), sign up, click **New project**. Pick the region closest to Uganda. Save the database password somewhere private. **Never share it.**
-2. Open **SQL Editor**. Paste all of `supabase/migrations/20261106000000_init.sql` and click **Run**. Then do the same with `20261107000000_accounts.sql`, then `20261107000100_hardening.sql`, then `20261107000200_owner.sql`, then `20261107000300_goals.sql`. Order matters: each file needs the one before.
+2. Open **SQL Editor**. Paste all of `supabase/migrations/20261106000000_init.sql` and click **Run**. Then do the same with `20261107000000_accounts.sql`, then `20261107000100_hardening.sql`, then `20261107000200_owner.sql`, then `20261107000300_goals.sql`, then `20261107000400_online_payments.sql`. Order matters: each file needs the one before.
 3. Open **Authentication → Providers (or Sign In) → Email**, turn **Confirm email** off. Members use phones, so no email can be confirmed.
 
 **Check it worked:** **Table Editor** shows `journals`, `members`, `audit_log` and others.
@@ -61,6 +61,43 @@ insert into public.platform_admins select id from auth.users where email = 'you@
 
 **Check it worked:** **Ledger → Trial Balance** says BALANCED, and **Check for tampering** passes.
 
+### Step 6: Switch on online payments (optional)
+**Why:** members pay through Flutterwave or Pesapal. The gateway confirms each payment and our server asks it again, so nobody types a transaction ID and nobody can fake one. Money goes to the **group's own** gateway account, never to you.
+
+1. Install the [Supabase CLI](https://supabase.com/docs/guides/cli). In this folder run `supabase login`, then `supabase link`.
+2. Make a lock key (32 random bytes) and give it to the server:
+   ```bash
+   supabase secrets set GATEWAY_ENC_KEY=$(openssl rand -base64 32)
+   ```
+   **Keep it safe.** If it is lost, every group must paste their keys again.
+3. Send the two server functions:
+   ```bash
+   supabase functions deploy pay
+   supabase functions deploy pay-webhook --no-verify-jwt
+   ```
+   `--no-verify-jwt` is only for `pay-webhook`, because gateways cannot sign in. It trusts nothing it is sent: it always asks the gateway itself.
+4. In the admin site, open the group, then **Group Settings → Online payments → Connect a gateway**. Paste the group's own keys:
+   - **Flutterwave:** Settings → API keys → Secret key. Make up a long webhook secret hash. Then, in Flutterwave **Settings → Webhooks**, paste the URL the app shows and the same hash.
+   - **Pesapal:** consumer key and consumer secret. Notifications set themselves up.
+
+**Test first:** test keys work only in a **demo** group, so pretend money never enters a real group's books. Use Flutterwave's test keys there, tap **Channels → Pay online**, and pay with their test number.
+**Check it worked:** the payment shows **PAID**, the ledger shows a new journal with the gateway's ID, and **Check for tampering** passes.
+**If it fails:** the app shows the gateway's own message (usually a wrong key or wrong mode). For notifications, open Supabase **Edge Functions → pay-webhook → Logs**.
+
+| What happens | Result |
+|---|---|
+| Gateway says paid, right amount | Posts at once. Audit trail notes the gateway ID and receipt |
+| Wrong amount or currency | Kept as a pending record. An officer checks it in **Approvals** |
+| Same gateway ID twice | Refused, flagged for an officer |
+| Payer cancels | Marked failed. Nothing posts. **Check** again if they retry |
+
+### Step 7: Add other administrators
+**Why:** fellow developers can help run the platform without your password.
+
+Web → **All groups → Administrators**. Type their email and tap **Add**, or search people who already signed up and tap **Make admin**. Someone not signed up yet becomes administrator the moment they sign up with that email. They choose their own password. Only you (the owner) can add or remove. Every change goes in a history nobody can edit.
+
+**Check it worked:** they sign in on the web and see **All groups**. After **Remove**, it disappears for them.
+
 ## Run on your own computer
 **Needs:** [Flutter](https://docs.flutter.dev/get-started/install) stable.
 ```bash
@@ -106,6 +143,8 @@ Each rule lives in the database, so no app or browser can get around it. Tests a
 - Emergency fund is never lent.
 - Members see only their own records. Strangers see nothing.
 - Share-out pays exactly the pool, by largest remainder.
+- Online payments post only after our server asks the gateway itself. Test keys only in demo groups. Gateway keys are locked and no app can read them.
+- Only the owner adds or removes platform administrators. The owner cannot be removed.
 
 ## Folders
 ```
@@ -113,7 +152,7 @@ lib/core      money, share-out, risk, search index, licences (plain logic)
 lib/data      door to the database
 lib/state     what screens show
 lib/ui        screens (same look as the original Android app)
-supabase      database rules and tests
+supabase      database rules, tests, and server functions for online payments
 web           admin PWA files
 android, ios  native app shells
 docs          plan and licences

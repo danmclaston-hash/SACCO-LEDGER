@@ -6,6 +6,7 @@ import '../../core/json.dart';
 import '../../core/money.dart';
 import '../theme.dart';
 import '../widgets.dart';
+import 'online_pay.dart';
 
 /// Money moves on MTN, Airtel, bank or cash, into the group's OWN account.
 /// This screen helps dial, then records the transaction ID. It never touches the money.
@@ -79,6 +80,7 @@ class ChannelsScreen extends StatelessWidget {
             ],
           ),
         ),
+        const OnlinePayCard(),
         FilledButton.icon(
           onPressed: st.myMemberId == null ? null : () => showRecordPayment(context),
           icon: const Icon(Icons.edit_note),
@@ -125,7 +127,7 @@ class PaymentTile extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            '${p.n('member_name') ?? 'Group'} • ${channelNames[p.s('channel')]}${p.n('external_ref') != null ? ' • ID ${p.s('external_ref')}' : ''}',
+            '${p.n('member_name') ?? 'Group'} • ${allChannelNames[p.s('channel')]}${p.n('external_ref') != null ? ' • ID ${p.s('external_ref')}' : ''}',
             style: tt.bodySmall,
           ),
           Text('Recorded by ${p.s('submitted_by_name')} • ${Dates.dayTime(p['submitted_at'])}', style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant)),
