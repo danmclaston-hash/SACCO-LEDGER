@@ -453,7 +453,7 @@ class _LoanRulesCardState extends State<LoanRulesCard> {
                     if (!context.mounted) return;
                     setState(() {
                       busy = false;
-                      if (ok) loadedFor = null; // reload from the saved group
+                      if (ok) loadedFor = null;
                     });
                   },
             child: Text(changed ? 'Save loan rules' : 'Saved'),

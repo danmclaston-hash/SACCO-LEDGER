@@ -13,7 +13,6 @@ const _light = ColorScheme(
   brightness: Brightness.light,
   primary: saccoEmerald,
   onPrimary: Colors.white,
-  // Calm, not glowing: soft mint and sand instead of bright cyan and peach.
   primaryContainer: Color(0xFFCFE6DF),
   onPrimaryContainer: Color(0xFF00382F),
   secondary: saccoGold,
@@ -76,7 +75,6 @@ ThemeData _theme(ColorScheme c, Color background) => ThemeData(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         insetPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       ),
-      // Comfortable tap size on every button.
       filledButtonTheme: FilledButtonThemeData(style: FilledButton.styleFrom(minimumSize: const Size(64, 44))),
       outlinedButtonTheme: OutlinedButtonThemeData(style: OutlinedButton.styleFrom(minimumSize: const Size(64, 44))),
       textButtonTheme: TextButtonThemeData(style: TextButton.styleFrom(minimumSize: const Size(48, 44))),

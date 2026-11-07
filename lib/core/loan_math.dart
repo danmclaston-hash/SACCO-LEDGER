@@ -136,30 +136,29 @@ DateTime addMonths(DateTime d, int m) {
 }
 
 // Rates are kept as hundredths of a percent (2.5% -> 250) so the maths is exact, like the database.
+// Amounts are never negative, so ~/ rounds down, like the database.
 int _rateH(double r) => (r * 100).round();
-int _floorDiv(int a, int b) => a ~/ b; // amounts are never negative, so this rounds down
 
 List<Installment> loanSchedule(int principal, int term, LoanTerms t, DateTime start) {
   if (principal <= 0 || term < 1) return const [];
   final rh = _rateH(t.rate);
-  // monthly: P*r/100 ; yearly: P*r/1200 ; with r in hundredths -> extra *100
   final d = t.interestMode == 'monthly' ? 10000 : (t.interestMode == 'yearly' ? 120000 : 1);
   final free = t.timeBased ? t.freeMonths.clamp(0, term - 1) : 0;
   if (t.plan == 'end') {
     final interest = switch (t.interestMode) {
       'none' => 0,
-      'once' => _floorDiv(principal * rh, 10000),
-      _ => _floorDiv(principal * rh * (term - free), d),
+      'once' => (principal * rh) ~/ 10000,
+      _ => (principal * rh * (term - free)) ~/ d,
     };
     return [Installment(1, addMonths(start, term), principal, interest, principal + interest, 0)];
   }
   final mp = principal ~/ term, pr = principal % term;
   int total = 0, n = 1;
   if (t.interestMode == 'once') {
-    total = _floorDiv(principal * rh, 10000);
+    total = (principal * rh) ~/ 10000;
     n = term;
   } else if (t.timeBased && t.calculation == 'flat') {
-    total = _floorDiv(principal * rh * (term - free), d);
+    total = (principal * rh * (term - free)) ~/ d;
     n = term - free;
   }
   final base = total ~/ n, rest = total % n;
@@ -173,7 +172,7 @@ List<Installment> loanSchedule(int principal, int term, LoanTerms t, DateTime st
     } else if (t.timeBased && t.calculation == 'flat') {
       interest = i <= free ? 0 : base + (i == term ? rest : 0);
     } else if (t.timeBased) {
-      interest = i <= free ? 0 : _floorDiv(rem * rh, d);
+      interest = i <= free ? 0 : (rem * rh) ~/ d;
     } else {
       interest = 0;
     }
@@ -187,7 +186,7 @@ List<Installment> loanSchedule(int principal, int term, LoanTerms t, DateTime st
 int lateFeeFor(int installment, int days, LoanTerms t) {
   final late = days - t.graceDays;
   if (t.lateType == 'none' || late <= 0) return 0;
-  final each = t.lateType == 'fixed' ? t.lateAmount : _floorDiv(installment * _rateH(t.latePct), 10000);
+  final each = t.lateType == 'fixed' ? t.lateAmount : (installment * _rateH(t.latePct)) ~/ 10000;
   final times = switch (t.lateEvery) {
     'once' => 1,
     'day' => late,
@@ -198,7 +197,7 @@ int lateFeeFor(int installment, int days, LoanTerms t) {
 }
 
 /// The most late fees can ever reach on this loan, or null for no limit.
-int? lateFeeCap(int principal, LoanTerms t) => t.capPct == null ? null : _floorDiv(principal * _rateH(t.capPct!), 10000);
+int? lateFeeCap(int principal, LoanTerms t) => t.capPct == null ? null : (principal * _rateH(t.capPct!)) ~/ 10000;
 
 String _free(int m) => m <= 0 ? '' : (m == 1 ? ', first month free' : ', first $m months free');
 

@@ -36,7 +36,6 @@ class GoalsScreen extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------- calculator
 
 enum _Mode { byDeadline, byAmount }
 
@@ -189,7 +188,6 @@ class _Answer extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------- goal card and details
 
 class GoalCard extends StatelessWidget {
   final Json g;
@@ -362,7 +360,6 @@ class _MemberLine extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------- create goal
 
 void showCreateGoal(BuildContext context, {int? target, DateTime? end, Frequency frequency = Frequency.weekly, int? perPerson}) {
   final st = StateScope.of(context);

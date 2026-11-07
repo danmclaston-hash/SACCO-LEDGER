@@ -1,11 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacco_ledger/core/app_lock.dart';
+import 'package:sacco_ledger/core/catalog.dart';
 import 'package:sacco_ledger/core/goal_math.dart';
 import 'package:sacco_ledger/core/money.dart';
 import 'package:sacco_ledger/core/names.dart';
 import 'package:sacco_ledger/core/risk.dart';
 import 'package:sacco_ledger/core/pages.dart';
 import 'package:sacco_ledger/core/share_out.dart';
+import 'package:sacco_ledger/data/api.dart';
+import 'package:sacco_ledger/state/app_state.dart';
 
 void main() {
   group('share-out', () {
@@ -43,6 +46,17 @@ void main() {
       expect(Money.parse('10.5', 'KES'), 1050);
       expect(Money.parse('10.555', 'KES'), null);
     });
+    test('zero only where an empty amount makes sense', () {
+      expect(Money.parse('0'), null);
+      expect(Money.parse('0', 'UGX', true), 0);
+      expect(Money.parse('', 'UGX', true), null);
+    });
+    test('the number people type back is the number shown', () {
+      for (final (v, c) in [(1234567, 'UGX'), (150050, 'KES'), (0, 'UGX')]) {
+        expect(Money.format(v, c), '$c ${Money.plain(v, c)}');
+        expect(Money.parse(Money.plain(v, c), c, true), v);
+      }
+    });
     test('masks', () {
       expect(Money.maskPhone('256772123456'), '256772 *** *456');
       expect(Money.maskNationalId('CM12345678ABCD'), 'CM*****BCD');
@@ -58,6 +72,10 @@ void main() {
     test('login email', () {
       expect(Phones.loginEmail('0772123456'), '256772123456@phone.saccoledger.app');
       expect(Phones.loginEmail('Boss@Mail.com '), 'boss@mail.com');
+    });
+    test('a phone sign-in shows as the phone, an email as itself', () {
+      expect(Phones.signInLabel(Phones.loginEmail('0772123456')), 'phone +256772123456');
+      expect(Phones.signInLabel(Phones.loginEmail('boss@mail.com')), 'boss@mail.com');
     });
     test('validation', () {
       expect(Phones.looksValid('0772123456'), isTrue);
@@ -105,16 +123,37 @@ void main() {
   });
 
   group('app index', () {
-    bool member(AppPage p) => p.audience == Audience.everyone;
-    bool officer(AppPage p) => p.audience != Audience.platform;
+    AppState asRole(String role) => AppState(Api())..org = {'id': 'g1', 'my_role': role};
+    final member = asRole('member'), treasurer = asRole('treasurer');
     test('finds pages by words', () {
-      expect(searchPages('licence', member).first, AppPage.licences);
-      expect(searchPages('momo', member).first, AppPage.channels);
-      expect(searchPages('x', member), isEmpty);
+      expect(searchPages('licence', member.canSee).first, AppPage.licences);
+      expect(searchPages('momo', member.canSee).first, AppPage.channels);
+      expect(searchPages('x', member.canSee), isEmpty);
     });
     test('hides officer pages from members', () {
-      expect(searchPages('checker', member), isEmpty);
-      expect(searchPages('checker', officer).first, AppPage.approvals);
+      expect(searchPages('checker', member.canSee), isEmpty);
+      expect(searchPages('checker', treasurer.canSee).first, AppPage.approvals);
+    });
+    test('only the platform owner sees all groups', () {
+      expect(treasurer.canSee(AppPage.platform), isFalse);
+      expect(asRole('platform_admin').canSee(AppPage.platform), isTrue);
+    });
+  });
+
+  group('who may do what', () {
+    test('only money officers record money leaving the group, and never online', () {
+      expect(Purpose.choices(handlesMoney: false, online: false), isNot(contains(Purpose.withdrawal)));
+      expect(Purpose.choices(handlesMoney: true, online: false), containsAll([Purpose.withdrawal, Purpose.expense]));
+      expect(Purpose.choices(handlesMoney: true, online: true), isNot(contains(Purpose.expense)));
+    });
+    test('cash needs no transaction ID, every other channel does', () {
+      expect(Channel.byHand.where((c) => !c.needsRef), [Channel.cash]);
+      expect(Channel.byHand.any((c) => c.online), isFalse);
+    });
+    test('unknown codes still show something readable', () {
+      expect(Role.labelOf('treasurer'), 'Treasurer');
+      expect(Channel.labelOf('flutterwave'), 'Flutterwave (verified)');
+      expect(Purpose.labelOf('new_thing'), 'new_thing');
     });
   });
 
@@ -135,7 +174,7 @@ void main() {
       expect(PinLock.validPin('12a4'), isFalse);
       expect(PinLock.validPin('1234567'), isFalse);
     });
-    test('initials', () {
+    test('initials on the avatar', () {
       expect(initials('Ann Namubiru'), 'AN');
       expect(initials('ben'), 'B');
       expect(initials('  '), '?');

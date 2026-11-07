@@ -39,7 +39,6 @@ class Api {
   /// Calls a server function (online payments).
   Future<Json> _fn(String name, Json body) => _guard(() async => asJson((await _c.functions.invoke(name, body: body)).data));
 
-  // ----- Sign in -----
   User? get user {
     try {
       return _c.auth.currentUser;
@@ -78,7 +77,6 @@ class Api {
     await _guard(() => _c.auth.updateUser(UserAttributes(password: next)));
   }
 
-  // ----- My account -----
   Future<Json> account() async => asJson(await _rpc('get_my_account'));
   Future<void> updateMyProfile(Json patch) => _rpc('update_my_profile', {'p': patch});
   Future<void> recordSignIn(String platform, String device) => _rpc('record_sign_in', {'p_platform': platform, 'p_device': device});
@@ -91,7 +89,6 @@ class Api {
   Future<bool> resetPassword(String email, String code, String password) async =>
       await _rpc('reset_password_with_code', {'p_email': email, 'p_code': code, 'p_new_password': password}) == true;
 
-  // ----- Groups and people -----
   Future<List<Json>> myMemberships() async => asJsonList(await _rpc('my_memberships'));
 
   Future<String> createOrganization({
@@ -150,7 +147,6 @@ class Api {
   Future<void> updateMember(String member, Json patch) => _rpc('update_member', {'p_member': member, 'p': patch});
   Future<String> newMemberCode(String member) async => (await _rpc('new_member_code', {'p_member': member})).toString();
 
-  // ----- Money records -----
   Future<Json> recordPayment(Json params) async => asJson(await _rpc('record_payment', params));
   Future<void> reviewPayment(String id, bool approve, String note) => _rpc('review_payment', {'p_payment': id, 'p_approve': approve, 'p_note': note});
   Future<List<Json>> payments(String org, {String? status}) async =>
@@ -159,7 +155,6 @@ class Api {
   Future<List<Json>> journals(String org, {int limit = 200, int? cycle}) async =>
       asJsonList(await _rpc('list_journals', {'p_org': org, 'p_limit': limit, 'p_cycle': cycle}));
 
-  // ----- Meetings -----
   Future<List<Json>> meetings(String org) async => asJsonList(await _rpc('list_meetings', {'p_org': org}));
   Future<void> openMeeting(String org, int cash, String c1, String c2) =>
       _rpc('open_meeting', {'p_org': org, 'p_date': Dates.iso(DateTime.now()), 'p_cash': cash, 'p_c1': c1, 'p_c2': c2});
@@ -168,7 +163,6 @@ class Api {
   Future<void> closeMeeting(String meeting, int cash, String c1, String c2, String minutes) =>
       _rpc('close_meeting', {'p_meeting': meeting, 'p_cash': cash, 'p_c1': c1, 'p_c2': c2, 'p_minutes': minutes});
 
-  // ----- Loans -----
   Future<List<Json>> loans(String org) async => asJsonList(await _rpc('list_loans', {'p_org': org}));
   Future<void> approveLoan(String loan, String resolution, String w1, String w2) =>
       _rpc('approve_loan', {'p_loan': loan, 'p_resolution': resolution, 'p_w1': w1, 'p_w2': w2});
@@ -182,14 +176,12 @@ class Api {
   Future<Json> lateFeeReport(String loan) async => asJson(await _rpc('loan_late_fee_report', {'p_loan': loan}));
   Future<void> waiveLateFees(String loan, int amount, String reason) => _rpc('waive_late_fees', {'p_loan': loan, 'p_amount': amount, 'p_reason': reason});
 
-  // ----- Emergency -----
   Future<List<Json>> emergency(String org) async => asJsonList(await _rpc('list_emergency', {'p_org': org}));
   Future<void> requestEmergency(String org, String member, int amount, String reason) =>
       _rpc('request_emergency', {'p_org': org, 'p_member': member, 'p_amount': amount, 'p_reason': reason});
   Future<void> decideEmergency(String claim, bool approve, String? channel, String? ref, String note) =>
       _rpc('decide_emergency', {'p_claim': claim, 'p_approve': approve, 'p_channel': channel, 'p_ref': ref, 'p_note': note});
 
-  // ----- Savings goals -----
   Future<List<Json>> goals(String org) async => asJsonList(await _rpc('list_goals', {'p_org': org}));
   Future<Json> allocation(String org) async => asJson(await _rpc('savings_allocation', {'p_org': org}));
   Future<List<Json>> flows(String org) async => asJsonList(await _rpc('monthly_flows', {'p_org': org, 'p_months': 12}));
@@ -209,7 +201,6 @@ class Api {
   Future<void> setPaymentGoal(String payment, String? goal, String reason) =>
       _rpc('set_payment_goal', {'p_payment': payment, 'p_goal': goal, 'p_reason': reason});
 
-  // ----- Reports -----
   Future<Json> dashboard(String org) async => asJson(await _rpc('dashboard', {'p_org': org}));
   Future<Json> trialBalance(String org) async => asJson(await _rpc('trial_balance', {'p_org': org}));
   Future<Json> statement(String org, String member, {int? cycle}) async =>
@@ -221,7 +212,6 @@ class Api {
   Future<List<Json>> search(String org, String q) async => asJsonList(await _rpc('global_search', {'p_org': org, 'p_q': q}));
   Future<List<Json>> platformOverview() async => asJsonList(await _rpc('platform_overview'));
 
-  // ----- Online payments (the group's own Flutterwave or Pesapal account) -----
   Future<Json> gatewayStatus(String org) async => asJson(await _rpc('gateway_status', {'p_org': org}));
   Future<void> disableGateway(String org) => _rpc('disable_gateway', {'p_org': org});
   Future<List<Json>> onlinePayments(String org) async => asJsonList(await _rpc('list_gateway_payments', {'p_org': org, 'p_limit': 50}));
@@ -247,7 +237,6 @@ class Api {
   /// Asks the gateway (through our server) whether it is paid. Returns {status, verify_note}.
   Future<Json> checkOnlinePayment(String id) => _fn('pay', {'action': 'check', 'id': id});
 
-  // ----- Platform administrators -----
   Future<Json> platformAdmins() async => asJson(await _rpc('list_platform_admins'));
   Future<List<Json>> searchUsers(String q) async => asJsonList(await _rpc('search_users', {'p_q': q}));
   Future<Json> addPlatformAdmin(String email) async => asJson(await _rpc('add_platform_admin', {'p_email': email}));

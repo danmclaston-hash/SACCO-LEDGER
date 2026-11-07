@@ -64,10 +64,11 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
                           children: [
                             Text(
                               org?.s('name') ?? 'SACCO Ledger',
+                              maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: tt.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: Colors.white),
                             ),
-                            Text(Edition.parse(org?.s('edition')).tier, style: tt.labelSmall?.copyWith(color: cs.secondary)),
+                            Text(Edition.parse(org?.s('edition')).tier, maxLines: 1, overflow: TextOverflow.ellipsis, style: tt.labelSmall?.copyWith(color: cs.secondary)),
                           ],
                         ),
                       ),
@@ -102,7 +103,6 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
                   ],
                 ),
               ),
-              // Language, theme and the rest now live in My Account, opened from your picture.
               IconButton(
                 tooltip: st.t(AppPage.account.title),
                 onPressed: () => st.goTo(AppPage.account),

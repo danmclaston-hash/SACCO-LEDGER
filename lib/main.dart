@@ -41,7 +41,6 @@ class SaccoApp extends StatelessWidget {
             theme: lightTheme,
             darkTheme: darkTheme,
             themeMode: state.themeMode,
-            // The person's text size, on top of the phone's own setting, capped so layouts hold.
             builder: (context, child) {
               final mq = MediaQuery.of(context);
               final scale = (mq.textScaler.scale(16) / 16 * state.textScale).clamp(0.85, 2.0);

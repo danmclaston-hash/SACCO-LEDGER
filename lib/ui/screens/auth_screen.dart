@@ -55,7 +55,6 @@ class _AuthScreenState extends State<AuthScreen> {
         case _Mode.signUp:
           await st.api.signUp(email, pass.text);
           TextInput.finishAutofillContext();
-          // Keep the country and language chosen on this screen on the new account.
           await st.updateSettings(country: st.country, language: st.language);
           await st.refresh();
         case _Mode.reset:
@@ -125,7 +124,6 @@ class _AuthScreenState extends State<AuthScreen> {
                               },
                               style: tt.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                           gap,
-                          // Country first: it decides the phone code (+256, +254...).
                           DropdownButtonFormField<String>(
                             initialValue: st.country,
                             isExpanded: true,
@@ -136,9 +134,8 @@ class _AuthScreenState extends State<AuthScreen> {
                             onChanged: (v) {
                               if (v == null) return;
                               st.updateSettings(country: v);
-                              // A new account starts in that country's usual language.
                               if (mode == _Mode.signUp) {
-                                st.updateSettings(language: AppLanguage.values.firstWhere((l) => l.name == countryByCode(v).language));
+                                st.updateSettings(language: countryByCode(v).language);
                               }
                             },
                           ),
@@ -311,7 +308,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             items: [for (final c in countries) DropdownMenuItem(value: c.code, child: Text('${c.flag}  ${c.name}'))],
             onChanged: (v) => set(() {
               country = countryByCode(v);
-              // Money follows the country. Change it below only if the group really uses another.
               currency = country.currency;
               share.text = Money.plain(suggestedSharePrice(currency), currency);
             }),

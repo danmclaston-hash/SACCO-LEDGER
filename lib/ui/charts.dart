@@ -299,7 +299,7 @@ class GoalChart extends StatelessWidget {
     final actual = <FlSpot>[const FlSpot(0, 0)];
     for (final p in points) {
       final d = DateTime.parse(p.s('day'));
-      actual.add(FlSpot(x(d), actual.last.y)); // flat until the day money came in
+      actual.add(FlSpot(x(d), actual.last.y));
       actual.add(FlSpot(x(d), p.i('total').toDouble()));
     }
     final upTo = today.isAfter(end) ? end : today;
@@ -373,7 +373,6 @@ class AllocationBar extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final total = allocation.i('total');
     var goals = allocation.l('goals');
-    // Never more than 6 goal colours: the rest fold into "Other goals".
     if (goals.length > 6) {
       final other = goals.skip(5).fold<int>(0, (a, g) => a + g.i('amount'));
       goals = [

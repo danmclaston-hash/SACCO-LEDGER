@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sacco_ledger/data/api.dart';
 import 'package:sacco_ledger/state/app_state.dart';
+import 'package:sacco_ledger/core/pages.dart';
 import 'package:sacco_ledger/ui/screens/auth_screen.dart';
+import 'package:sacco_ledger/ui/screens/channels_screen.dart';
 import 'package:sacco_ledger/ui/screens/loan_calculator.dart';
+import 'package:sacco_ledger/ui/shells.dart';
 import 'package:sacco_ledger/ui/theme.dart';
 import 'package:sacco_ledger/ui/tour.dart';
 import 'package:sacco_ledger/ui/widgets.dart';
@@ -124,5 +127,62 @@ void main() {
     await t.scrollUntilVisible(find.text('Pay back in total'), -300, scrollable: find.byType(Scrollable).first);
     await t.pumpAndSettle();
     expect(find.text('UGX 12,000'), findsWidgets);
+  });
+
+  AppState inGroup(String role) => AppState(Api())
+    ..org = {'id': 'g1', 'name': 'Test Group', 'currency_code': 'UGX', 'my_role': role, 'my_member_id': 'm1', 'share_price': 5000, 'edition': 'tier_1_vsla'};
+
+  Future<void> openPayment(WidgetTester t, AppState st, {bool online = false}) async {
+    await t.pumpWidget(app(st, Builder(builder: (c) => Scaffold(body: TextButton(onPressed: () => showPaymentDialog(c, online: online), child: const Text('go'))))));
+    await t.tap(find.text('go'));
+    await t.pumpAndSettle();
+  }
+
+  testWidgets('record a payment: cash needs no transaction ID', (t) async {
+    await phone(t);
+    await openPayment(t, inGroup('member'));
+    expect(find.text('Record a Payment'), findsOneWidget);
+    expect(find.text('Transaction ID from the SMS'), findsOneWidget);
+    await t.tap(find.text('MTN MoMo'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('Cash').last);
+    await t.pumpAndSettle();
+    expect(find.text('Transaction ID from the SMS'), findsNothing);
+  });
+
+  testWidgets('a member cannot record money leaving the group', (t) async {
+    await phone(t);
+    await openPayment(t, inGroup('member'));
+    await t.tap(find.text('Buy shares'));
+    await t.pumpAndSettle();
+    expect(find.text('Loan repayment'), findsWidgets);
+    expect(find.text('Savings withdrawal'), findsNothing);
+  });
+
+  testWidgets('pay online asks the same questions but no channel', (t) async {
+    await phone(t);
+    await openPayment(t, inGroup('treasurer'), online: true);
+    expect(find.text('Pay online'), findsOneWidget);
+    expect(find.text('Savings deposit'), findsOneWidget);
+    expect(find.text('How the money moved'), findsNothing);
+    expect(find.textContaining('secure payment page'), findsOneWidget);
+  });
+
+  testWidgets('phone tabs and admin menu come from the page list', (t) async {
+    await phone(t);
+    await t.pumpWidget(app(inGroup('member'), const MobileShell()));
+    await t.pumpAndSettle();
+    expect(find.byType(NavigationDestination), findsNWidgets(7));
+    expect(find.text('Channels'), findsOneWidget);
+
+    t.view.physicalSize = const Size(1280 * 3, 900 * 3);
+    final admin = inGroup('treasurer');
+    await t.pumpWidget(app(admin, const AdminShell()));
+    await t.pumpAndSettle();
+    for (final p in [AppPage.approvals, AppPage.members, AppPage.settings]) {
+      expect(find.text(p.title), findsWidgets);
+    }
+    expect(find.text(AppPage.channels.title), findsNothing);
+    expect(find.text(AppPage.platform.title), findsNothing);
   });
 }

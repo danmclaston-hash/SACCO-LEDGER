@@ -75,7 +75,6 @@ class AccountScreen extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------- header
 
 class Avatar extends StatelessWidget {
   final String name;
@@ -146,7 +145,6 @@ class _Header extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------- shared bits
 
 class _Section extends StatelessWidget {
   final IconData icon;
@@ -205,7 +203,6 @@ class _Row extends StatelessWidget {
       );
 }
 
-// ---------------------------------------------------------------- profile
 
 class _ProfileCard extends StatelessWidget {
   const _ProfileCard();
@@ -392,7 +389,6 @@ class _ProfileCard extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------- security
 
 class _SecurityCard extends StatefulWidget {
   const _SecurityCard();
@@ -547,7 +543,6 @@ class _SecurityCardState extends State<_SecurityCard> {
   }
 }
 
-// ---------------------------------------------------------------- look and language
 
 const _textSizes = <(double, String)>[(0.9, 'Small'), (1.0, 'Normal'), (1.15, 'Large'), (1.3, 'Extra large')];
 
@@ -640,7 +635,6 @@ class _LookCard extends StatelessWidget {
   }
 }
 
-// ---------------------------------------------------------------- privacy
 
 class _PrivacyCard extends StatelessWidget {
   const _PrivacyCard();

@@ -1,3 +1,5 @@
+import 'i18n.dart';
+
 /// Countries the app supports. Picking one sets the phone code, money and a suggested language.
 class Country {
   final String code; // ISO, e.g. UG
@@ -5,17 +7,16 @@ class Country {
   final String flag;
   final String dial; // phone country code without +
   final String currency;
-  final String language; // suggested app language (AppLanguage name)
-  final int localLength; // digits after the country code
+  final AppLanguage language; // suggested app language
   final String example;
-  const Country(this.code, this.name, this.flag, this.dial, this.currency, this.language, this.localLength, this.example);
+  const Country(this.code, this.name, this.flag, this.dial, this.currency, this.language, this.example);
 }
 
 const countries = [
-  Country('UG', 'Uganda', '🇺🇬', '256', 'UGX', 'en', 9, '0772 123456'),
-  Country('KE', 'Kenya', '🇰🇪', '254', 'KES', 'sw', 9, '0712 345678'),
-  Country('TZ', 'Tanzania', '🇹🇿', '255', 'TZS', 'sw', 9, '0754 123456'),
-  Country('RW', 'Rwanda', '🇷🇼', '250', 'RWF', 'en', 9, '0788 123456'),
+  Country('UG', 'Uganda', '🇺🇬', '256', 'UGX', AppLanguage.en, '0772 123456'),
+  Country('KE', 'Kenya', '🇰🇪', '254', 'KES', AppLanguage.sw, '0712 345678'),
+  Country('TZ', 'Tanzania', '🇹🇿', '255', 'TZS', AppLanguage.sw, '0754 123456'),
+  Country('RW', 'Rwanda', '🇷🇼', '250', 'RWF', AppLanguage.en, '0788 123456'),
 ];
 
 Country countryByCode(String? code) => countries.firstWhere((c) => c.code == code, orElse: () => countries.first);

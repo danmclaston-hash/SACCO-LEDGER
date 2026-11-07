@@ -90,7 +90,6 @@ class MobileShell extends StatelessWidget {
         bottomNavigationBar: MediaQuery.withClampedTextScaling(
           maxScaleFactor: 1.0,
           child: NavigationBar(
-            // Pages reached from Overview (members, approvals...) keep Overview lit.
             selectedIndex: index < 0 ? 0 : index,
             labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
             onDestinationSelected: (i) => st.goTo(_tabs[i]),

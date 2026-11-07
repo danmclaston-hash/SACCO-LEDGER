@@ -122,13 +122,12 @@ class AppState extends ChangeNotifier {
         _clear();
         notifyListeners();
       } else {
-        // Every new sign-in (password or Google) goes in the person's sign-in list.
         if (e.event == AuthChangeEvent.signedIn && !booting) unawaited(noteSignIn());
         if (orgs.isEmpty && !booting) await refresh();
       }
     });
     if (signedIn) {
-      locked = hasPin; // a reopened app asks for the PIN first
+      locked = hasPin;
       await refresh();
     }
     booting = false;
@@ -149,7 +148,6 @@ class AppState extends ChangeNotifier {
     page = AppPage.overview;
   }
 
-  // ----- Settings: saved on this phone at once, and on the account so they follow the person -----
   void _applySettings(Json j) {
     themeMode = switch (j.s('theme')) {
       'light' => ThemeMode.light,
@@ -203,7 +201,7 @@ class AppState extends ChangeNotifier {
       _applySettings(account);
       await _prefs?.setString('look', jsonEncode({..._look, ..._prefsJson}));
     } on ApiError {
-      // keep what the phone remembers
+      // Offline: the phone's copy stays.
     }
     notifyListeners();
   }
@@ -223,11 +221,10 @@ class AppState extends ChangeNotifier {
     try {
       await api.recordSignIn(platform, kIsWeb ? 'Browser' : 'Phone app');
     } on ApiError {
-      // not important enough to block sign-in
+      // The sign-in itself already worked.
     }
   }
 
-  // ----- App lock (this device only) -----
   String get _lockKey => 'lock_${api.user?.id}';
   Json get _lock => asJson(jsonDecode(_prefs?.getString(_lockKey) ?? '{}'));
   bool get hasPin => _lock.s('hash').isNotEmpty;
@@ -370,7 +367,6 @@ class AppState extends ChangeNotifier {
     }
   }
 
-  // ----- Payments can be queued when there is no signal -----
   void _loadOutbox() {
     final c = _prefs?.getString('outbox');
     outbox = c == null ? [] : asJsonList(jsonDecode(c));

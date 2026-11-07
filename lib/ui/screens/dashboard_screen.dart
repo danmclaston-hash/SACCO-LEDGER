@@ -169,12 +169,10 @@ class DashboardScreen extends StatelessWidget {
             if (!st.role.isOfficer) OutlinedButton.icon(onPressed: st.signOut, icon: const Icon(Icons.logout, size: 16), label: const Text('Sign out')),
           ],
         ),
-        // Goals running now: one line each, tap to open.
         if (st.activeGoals.isNotEmpty) ...[
           SectionTitle('Our goals', trailing: TextButton(onPressed: () => st.goTo(AppPage.goals), child: const Text('All goals'))),
           for (final g in st.activeGoals.take(3)) GoalCard(g),
         ],
-        // How the group is doing: simple charts from checked records only.
         if (st.flows.any((f) => f.i('paid_in') > 0 || f.i('paid_out') > 0 || f.i('savings') > 0)) ...[
           SectionTitle(st.role.isOfficer ? 'How the group is doing' : 'How I am doing'),
           MoneyFlowChart(flows: st.flows, currency: st.currency, mine: !st.role.isOfficer),
