@@ -66,13 +66,9 @@ class ChannelsScreen extends StatelessWidget {
               gap,
               Row(
                 children: [
-                  Expanded(
-                    child: FilledButton(onPressed: () => dial(context, '*165#'), child: const Text('MTN *165#')),
-                  ),
+                  Expanded(child: BrandButton(channel: 'mtn_momo', label: 'MTN *165#', onPressed: () => dial(context, '*165#'))),
                   const SizedBox(width: 8),
-                  Expanded(
-                    child: FilledButton.tonal(onPressed: () => dial(context, '*185#'), child: const Text('Airtel *185#')),
-                  ),
+                  Expanded(child: BrandButton(channel: 'airtel_money', label: 'Airtel *185#', onPressed: () => dial(context, '*185#'))),
                 ],
               ),
               if (org.n('mtn_merchant_code') != null) ...[gap, Text('MTN pay to: ${org.s('mtn_merchant_code')}', style: tt.bodySmall)],
@@ -92,7 +88,7 @@ class ChannelsScreen extends StatelessWidget {
             child: Pill(text: '${st.outbox.length} record(s) waiting for signal. They send by themselves.', color: warnOrange),
           ),
         for (final f in st.outboxFailures) Text('Not accepted: $f', style: TextStyle(color: cs.error)),
-        SectionTitle(st.isOfficer ? 'Latest Payment Records' : 'My Payment Records'),
+        SectionTitle(st.isOfficer ? 'Latest Payment Records' : 'My Payment Records', info: 'two_person'),
         if (st.payments.isEmpty) const EmptyNote('No payment records yet.'),
         for (final p in st.payments.take(30)) PaymentTile(p),
       ],
@@ -126,10 +122,10 @@ class PaymentTile extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 4),
-          Text(
-            '${p.n('member_name') ?? 'Group'} • ${allChannelNames[p.s('channel')]}${p.n('external_ref') != null ? ' • ID ${p.s('external_ref')}' : ''}',
-            style: tt.bodySmall,
-          ),
+          Wrap(crossAxisAlignment: WrapCrossAlignment.center, spacing: 6, children: [
+            BrandChip(p.s('channel')),
+            Text('${p.n('member_name') ?? 'Group'}${p.n('external_ref') != null ? ' • ID ${p.s('external_ref')}' : ''}', style: tt.bodySmall),
+          ]),
           Text('Recorded by ${p.s('submitted_by_name')} • ${Dates.dayTime(p['submitted_at'])}', style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant)),
           if (p.n('reviewed_by_name') != null)
             Text(

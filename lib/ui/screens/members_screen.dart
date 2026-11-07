@@ -146,7 +146,13 @@ class MembersScreen extends StatelessWidget {
           ),
         ],
         onConfirm: (ctx) => runAndClose(ctx, st, () async {
-          await st.api.addMember(st.orgId, name: name.text, phone: phone.text, nationalId: nin.text, role: role, kinName: kin.text, kinPhone: kinPhone.text);
+          await st.api.addMember(st.orgId,
+              name: name.text,
+              phone: Phones.normalize(phone.text, dial: st.dial),
+              nationalId: nin.text,
+              role: role,
+              kinName: kin.text,
+              kinPhone: Phones.normalize(kinPhone.text, dial: st.dial));
         }, done: 'Member added. Their invite code is on their card.'),
       ),
     );
@@ -189,7 +195,8 @@ class MembersScreen extends StatelessWidget {
         onConfirm: (ctx) => runAndClose(
           ctx,
           st,
-          () => st.api.updateMember(m.s('id'), {'full_name': name.text, 'phone': phone.text, 'national_id': nin.text, 'role': role, 'is_active': active}),
+          () => st.api.updateMember(m.s('id'),
+              {'full_name': name.text, 'phone': Phones.normalize(phone.text, dial: st.dial) ?? '', 'national_id': nin.text, 'role': role, 'is_active': active}),
           done: 'Saved.',
         ),
       ),

@@ -8,6 +8,7 @@ import 'state/app_state.dart';
 import 'ui/screens/auth_screen.dart';
 import 'ui/screens/lock_screen.dart';
 import 'ui/shells.dart';
+import 'ui/tour.dart';
 import 'ui/theme.dart';
 import 'ui/widgets.dart';
 
@@ -95,8 +96,8 @@ class _Root extends StatelessWidget {
       // The web address is the admin portal. Members use the phone app.
       final anyOfficer = st.orgs.any((o) => o['my_role'] != 'member');
       if (!anyOfficer) return const MembersUseAppScreen();
-      return const AdminShell();
+      return const TourGate(child: AdminShell());
     }
-    return const MobileShell();
+    return const TourGate(child: MobileShell());
   }
 }

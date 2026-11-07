@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/countries.dart';
 import '../../core/json.dart';
 import '../widgets.dart';
 import 'online_pay.dart';
@@ -47,6 +48,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
           enabled: edit,
           decoration: const InputDecoration(labelText: 'Group name'),
         ),
+        DropdownButtonFormField<String>(
+          key: ValueKey(o.s('country_code')),
+          initialValue: countryByCode(o.n('country_code')).code,
+          isExpanded: true,
+          decoration: InputDecoration(labelText: 'Country', helperText: 'Sets the phone code. Money stays in ${st.currency}.'),
+          items: [for (final c in countries) DropdownMenuItem(value: c.code, child: Text('${c.flag}  ${c.name}  (+${c.dial})'))],
+          onChanged: !edit
+              ? null
+              : (v) async {
+                  if (v == null) return;
+                  final err = await st.act(() async {
+                    await st.api.setOrgCountry(st.orgId, v);
+                    await st.loadOrgs(select: st.orgId); // the group's details come with the group list
+                  });
+                  if (context.mounted) showMsg(context, err ?? 'Country saved.', error: err != null);
+                },
+        ),
         TextField(
           controller: share,
           enabled: edit,
@@ -71,17 +89,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
           keyboardType: TextInputType.number,
           decoration: const InputDecoration(labelText: 'Meeting quorum (%)'),
         ),
-        const SectionTitle('Group Payment Accounts'),
+        const SectionTitle('Group Payment Accounts', info: 'merchant_code'),
         const EmptyNote('Your group\'s OWN merchant codes or numbers. Members pay here directly. The app never receives this money.'),
         TextField(
           controller: mtn,
           enabled: edit,
-          decoration: const InputDecoration(labelText: 'MTN MoMo merchant code or number'),
+          decoration: const InputDecoration(
+            labelText: 'MTN MoMo merchant code or number',
+            prefixIcon: Padding(padding: EdgeInsets.all(12), child: BrandMark('mtn_momo')),
+          ),
         ),
         TextField(
           controller: airtel,
           enabled: edit,
-          decoration: const InputDecoration(labelText: 'Airtel Money merchant code or number'),
+          decoration: const InputDecoration(
+            labelText: 'Airtel Money merchant code or number',
+            prefixIcon: Padding(padding: EdgeInsets.all(12), child: BrandMark('airtel_money')),
+          ),
         ),
         if (edit)
           FilledButton(

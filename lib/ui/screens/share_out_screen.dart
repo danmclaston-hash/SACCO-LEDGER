@@ -160,7 +160,7 @@ class _ShareOutScreenState extends State<ShareOutScreen> {
               ],
             ),
           ),
-        const SectionTitle('Member Payout Allocation Table'),
+        const SectionTitle('Member Payout Allocation Table', info: 'share_out'),
         if (rows.isEmpty) const EmptyNote('No savings recorded yet.'),
         for (final r in rows)
           SaccoCard(

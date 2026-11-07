@@ -12,6 +12,7 @@ import '../../core/json.dart';
 import '../../core/money.dart';
 import '../../state/app_state.dart';
 import '../theme.dart';
+import '../tour.dart';
 import '../widgets.dart';
 
 /// Opens My Account on top of whatever screen is showing (used where there is no side menu).
@@ -279,7 +280,7 @@ class _ProfileCard extends StatelessWidget {
                   autofillHints: const [AutofillHints.telephoneNumber],
                   decoration: const InputDecoration(labelText: 'Phone', helperText: 'Like 0772 123456'),
                   validator: (v) {
-                    final n = Phones.normalize(v);
+                    final n = Phones.normalize(v, dial: st.dial);
                     if (n == null) return null;
                     return n.length >= 11 && n.length <= 13 ? null : 'Phone looks wrong.';
                   },
@@ -299,7 +300,8 @@ class _ProfileCard extends StatelessWidget {
         onConfirm: (ctx) async {
           if (!(key.currentState?.validate() ?? false)) return;
           final nav = Navigator.of(ctx);
-          final err = await st.updateProfile({'full_name': name.text.trim(), 'phone': phone.text.trim(), 'apply_to_groups': applyToGroups});
+          final err = await st
+              .updateProfile({'full_name': name.text.trim(), 'phone': Phones.normalize(phone.text, dial: st.dial) ?? '', 'apply_to_groups': applyToGroups});
           if (err != null) {
             if (ctx.mounted) showMsg(ctx, err, error: true);
             return;
@@ -622,6 +624,18 @@ class _LookCard extends StatelessWidget {
                 onSelected: (_) => save(st.updateLook(language: l)),
               ),
           ],
+        ),
+        label('Help'),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          value: st.showTips,
+          onChanged: (v) => save(st.updatePrefs(showTips: v)),
+          title: const Text('Explain words with (i) buttons'),
+          subtitle: const Text('Small buttons next to words like share-out and ledger.'),
+        ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(onPressed: () => showTour(context), icon: const Icon(Icons.slideshow), label: const Text('Show the welcome tour again')),
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),

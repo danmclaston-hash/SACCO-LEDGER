@@ -50,27 +50,29 @@ class Money {
 
 class Phones {
   /// 0772 123456 -> 256772123456. Same rule as the database.
-  static String? normalize(String? p) {
+  /// [dial] is the country code (256 Uganda, 254 Kenya, 255 Tanzania, 250 Rwanda).
+  /// A number typed with its own country code (+254...) keeps it.
+  static String? normalize(String? p, {String dial = '256'}) {
     if (p == null) return null;
     var d = p.replaceAll(RegExp(r'[^0-9]'), '');
     if (d.isEmpty) return null;
-    if (d.length == 10 && d.startsWith('0')) d = '256${d.substring(1)}';
-    if (d.length == 9) d = '256$d';
+    if (d.length == 10 && d.startsWith('0')) d = '$dial${d.substring(1)}';
+    if (d.length == 9) d = '$dial$d';
     return d;
   }
 
   /// Members sign in with phone + password, with no SMS cost. The login system needs an email,
   /// so a phone becomes a private address that no mail is ever sent to.
-  static String loginEmail(String input) {
+  static String loginEmail(String input, {String dial = '256'}) {
     final t = input.trim().toLowerCase();
     if (t.contains('@')) return t;
-    return '${normalize(t) ?? t}@phone.saccoledger.app';
+    return '${normalize(t, dial: dial) ?? t}@phone.saccoledger.app';
   }
 
-  static bool looksValid(String input) {
+  static bool looksValid(String input, {String dial = '256'}) {
     final t = input.trim();
     if (t.contains('@')) return RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(t);
-    final n = normalize(t);
+    final n = normalize(t, dial: dial);
     return n != null && n.length >= 11 && n.length <= 13;
   }
 }

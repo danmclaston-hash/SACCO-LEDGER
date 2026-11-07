@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/countries.dart';
+import '../../core/i18n.dart';
 import '../../core/money.dart';
 import '../../data/api.dart';
 import '../theme.dart';
@@ -32,8 +34,9 @@ class _AuthScreenState extends State<AuthScreen> {
 
   Future<void> submit() async {
     final st = StateScope.of(context);
-    if (!Phones.looksValid(id.text)) {
-      showMsg(context, 'Enter a valid phone like 0772 123456, or an email.', error: true);
+    final c = countryByCode(st.country);
+    if (!Phones.looksValid(id.text, dial: c.dial)) {
+      showMsg(context, 'Enter a valid phone like ${c.example}, or an email.', error: true);
       return;
     }
     if (pass.text.length < 6) {
@@ -41,7 +44,7 @@ class _AuthScreenState extends State<AuthScreen> {
       return;
     }
     setState(() => busy = true);
-    final email = Phones.loginEmail(id.text);
+    final email = Phones.loginEmail(id.text, dial: c.dial);
     try {
       switch (mode) {
         case _Mode.signIn:
@@ -51,6 +54,9 @@ class _AuthScreenState extends State<AuthScreen> {
         case _Mode.signUp:
           await st.api.signUp(email, pass.text);
           TextInput.finishAutofillContext();
+          // Keep the country and language chosen on this screen on the new account.
+          await st.updatePrefs(country: st.country);
+          await st.updateLook(language: st.language);
           await st.loadOrgs();
         case _Mode.reset:
           final ok = await st.api.resetPassword(email, code.text, pass.text);
@@ -85,6 +91,8 @@ class _AuthScreenState extends State<AuthScreen> {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
+    final st = StateScope.of(context);
+    final country = countryByCode(st.country);
     return Scaffold(
       backgroundColor: saccoEmerald,
       body: SafeArea(
@@ -99,7 +107,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   Icon(Icons.account_balance, size: 56, color: cs.secondary),
                   const SizedBox(height: 8),
                   Text(
-                    StateScope.of(context).t('app_title'),
+                    st.t('app_title'),
                     style: tt.headlineSmall?.copyWith(color: cs.onPrimary, fontWeight: FontWeight.bold),
                   ),
                   Text(kIsWeb ? 'Administrator portal' : 'Every shilling, on the record', style: tt.bodyMedium?.copyWith(color: saccoGoldLight)),
@@ -117,17 +125,44 @@ class _AuthScreenState extends State<AuthScreen> {
                               },
                               style: tt.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                           gap,
+                          // Country first: it decides the phone code (+256, +254...).
+                          DropdownButtonFormField<String>(
+                            initialValue: st.country,
+                            isExpanded: true,
+                            decoration: const InputDecoration(labelText: 'Country', prefixIcon: Icon(Icons.public)),
+                            items: [
+                              for (final c in countries) DropdownMenuItem(value: c.code, child: Text('${c.flag}  ${c.name}  (+${c.dial})')),
+                            ],
+                            onChanged: (v) {
+                              if (v == null) return;
+                              st.updatePrefs(country: v);
+                              // A new account starts in that country's usual language.
+                              if (mode == _Mode.signUp) {
+                                st.updateLook(language: AppLanguage.values.firstWhere((l) => l.name == countryByCode(v).language));
+                              }
+                            },
+                          ),
+                          gap,
                           TextField(
                             controller: id,
                             keyboardType: TextInputType.emailAddress,
                             textInputAction: TextInputAction.next,
                             autofillHints: const [AutofillHints.username],
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               labelText: 'Phone or email',
-                              helperText: 'Phone like 0772 123456, or your email',
-                              prefixIcon: Icon(Icons.person_outline),
+                              helperText: 'Phone like ${country.example} (we add +${country.dial}), or your email',
+                              prefixIcon: const Icon(Icons.person_outline),
                             ),
                           ),
+                          if (mode == _Mode.signUp) ...[
+                            gap,
+                            Text('Language', style: tt.labelLarge),
+                            const SizedBox(height: 6),
+                            Wrap(spacing: 8, children: [
+                              for (final l in AppLanguage.values)
+                                ChoiceChip(label: Text(l.label), selected: st.language == l, onSelected: (_) => st.updateLook(language: l)),
+                            ]),
+                          ],
                           gap,
                           if (mode == _Mode.reset) ...[
                             TextField(
@@ -244,9 +279,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final name = TextEditingController();
     final me = TextEditingController();
     final phone = TextEditingController();
-    final share = TextEditingController(text: '5000');
+    var country = countryByCode(st.country);
+    var currency = country.currency;
+    final share = TextEditingController(text: Money.format(suggestedSharePrice(currency), currency).substring(currency.length + 1));
     var edition = 'tier_1_vsla';
-    var currency = 'UGX';
+    var more = false;
+    final interest = TextEditingController(text: '10');
+    final multiplier = TextEditingController(text: '3');
+    final quorum = TextEditingController(text: '67');
     showDialog(
       context: context,
       builder: (_) => FormDialog(
@@ -261,10 +301,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             controller: me,
             decoration: const InputDecoration(labelText: 'Your full name'),
           ),
+          DropdownButtonFormField<String>(
+            initialValue: country.code,
+            isExpanded: true,
+            decoration: const InputDecoration(labelText: 'Country'),
+            items: [for (final c in countries) DropdownMenuItem(value: c.code, child: Text('${c.flag}  ${c.name}'))],
+            onChanged: (v) => set(() {
+              country = countryByCode(v);
+              // Money follows the country. Change it below only if the group really uses another.
+              currency = country.currency;
+              share.text = Money.format(suggestedSharePrice(currency), currency).substring(currency.length + 1);
+            }),
+          ),
           TextField(
             controller: phone,
             keyboardType: TextInputType.phone,
-            decoration: const InputDecoration(labelText: 'Your phone'),
+            decoration: InputDecoration(labelText: 'Your phone', helperText: 'Like ${country.example}'),
           ),
           DropdownButtonFormField<String>(
             initialValue: edition,
@@ -274,8 +326,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             onChanged: (v) => set(() => edition = v ?? edition),
           ),
           DropdownButtonFormField<String>(
+            key: ValueKey(currency),
             initialValue: currency,
-            decoration: const InputDecoration(labelText: 'Currency'),
+            decoration: const InputDecoration(labelText: 'Currency', helperText: 'Cannot change after money is recorded'),
             items: [
               for (final c in const ['UGX', 'KES', 'TZS', 'RWF']) DropdownMenuItem(value: c, child: Text(c)),
             ],
@@ -283,15 +336,45 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
           TextField(
             controller: share,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'Price of one share'),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(labelText: 'Price of one share ($currency)'),
           ),
+          TextButton.icon(
+            onPressed: () => set(() => more = !more),
+            icon: Icon(more ? Icons.expand_less : Icons.expand_more),
+            label: Text(more ? 'Fewer settings' : 'More settings (loans, meetings)'),
+          ),
+          if (more) ...[
+            TextField(
+              controller: interest,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Interest rate (% per year)', helperText: 'Most groups use 10'),
+            ),
+            TextField(
+              controller: multiplier,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Biggest loan (times the member\'s savings)', helperText: 'Most groups use 3'),
+            ),
+            TextField(
+              controller: quorum,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Members needed for a meeting (%)', helperText: 'Most groups use 67 (two thirds)'),
+            ),
+          ],
+          const EmptyNote('You can change all of these later in Group Settings.'),
         ],
         onConfirm: (ctx) async {
           final nav = Navigator.of(ctx);
           final price = Money.parse(share.text, currency);
+          final rate = int.tryParse(interest.text.trim());
+          final times = int.tryParse(multiplier.text.trim());
+          final q = int.tryParse(quorum.text.trim());
           if (name.text.trim().length < 2 || me.text.trim().length < 2 || price == null) {
             showMsg(ctx, 'Fill in group name, your name and share price.', error: true);
+            return;
+          }
+          if (rate == null || rate < 0 || rate > 100 || times == null || times < 1 || times > 20 || q == null || q < 1 || q > 100) {
+            showMsg(ctx, 'Check the extra settings: interest 0-100, loan times 1-20, meeting 1-100%.', error: true);
             return;
           }
           try {
@@ -300,12 +383,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               edition: edition,
               currency: currency,
               sharePrice: price,
-              multiplier: 3,
-              interest: 10,
-              quorum: 67,
+              multiplier: times,
+              interest: rate,
+              quorum: q,
               myName: me.text.trim(),
-              myPhone: phone.text,
+              myPhone: Phones.normalize(phone.text, dial: country.dial) ?? '',
             );
+            await st.api.setOrgCountry(id, country.code);
             await st.loadOrgs(select: id);
             nav.pop();
           } on ApiError catch (e) {

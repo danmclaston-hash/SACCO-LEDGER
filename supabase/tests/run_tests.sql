@@ -446,6 +446,21 @@ select t.ok(jsonb_array_length(public.list_platform_admins()->'invites')=0,'owne
 reset role;
 select t.fails($$update public.platform_audit set details='x'$$,'permanent','admin history cannot be edited');
 select t.ok((select count(*) from public.platform_audit)>=6,'admin changes are in the history');
+-- COUNTRIES AND PREFERENCES
+reset role;
+\i ../migrations/20261107000500_countries_prefs.sql
+select t.ok((select country_code from public.organizations where id=t.id('org'))='UG','existing UGX group is Uganda');
+set role authenticated; select t.as_user(t.id('treas_u'));
+select t.fails($$select public.set_org_country(t.id('org'),'KE')$$,'Your role','treasurer cannot change country');
+select t.as_user(t.id('admin_u'));
+select public.set_org_country(t.id('org'),'KE');
+select t.ok((select country_code from public.organizations where id=t.id('org'))='KE','admin sets the country');
+select t.fails($$select public.set_org_country(t.id('org'),'XX')$$,'Choose Uganda','unknown country refused');
+select public.set_org_country(t.id('org'),'UG');
+select public.update_my_prefs('{"country":"TZ","show_tips":false}');
+select public.update_my_prefs('{"tour_done":true,"evil":"x"}');
+select t.ok(public.get_my_account()->'prefs' = '{"country":"TZ","show_tips":false,"tour_done":true}'::jsonb,'preferences saved, unknown keys ignored');
+select t.fails($$select public.update_my_prefs('{"country":"ZZ"}')$$,'Unknown country','bad country preference refused');
 reset role;
 \pset format aligned
 select count(*) filter (where ok) passed, count(*) filter (where not ok) failed from t.res;

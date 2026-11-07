@@ -67,7 +67,7 @@ class EmergencyScreen extends StatelessWidget {
             ],
           ),
         ),
-        const SectionTitle('Relief Claims'),
+        const SectionTitle('Relief Claims', info: 'emergency_fund'),
         if (st.claims.isEmpty) const EmptyNote('No claims yet.'),
         for (final c in st.claims)
           SaccoCard(

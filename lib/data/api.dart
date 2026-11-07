@@ -42,7 +42,14 @@ class Api {
   }
 
   // ----- Sign in -----
-  User? get user => _c.auth.currentUser;
+  User? get user {
+    try {
+      return _c.auth.currentUser;
+    } catch (_) {
+      return null; // not started yet (tests, or before Supabase starts)
+    }
+  }
+
   Stream<AuthState> get authChanges => _c.auth.onAuthStateChange;
 
   Future<void> signIn(String email, String password) async {
@@ -150,6 +157,8 @@ class Api {
           .toString();
 
   Future<void> updateOrganization(String org, Json patch) => _rpc('update_organization', {'p_org': org, 'p': patch});
+  Future<void> setOrgCountry(String org, String country) => _rpc('set_org_country', {'p_org': org, 'p_country': country});
+  Future<void> updateMyPrefs(Json prefs) => _rpc('update_my_prefs', {'p': prefs});
   Future<String> seedDemo(String myName) async => (await _rpc('seed_demo', {'p_my_name': myName})).toString();
   Future<void> claimInvite(String code) => _rpc('claim_invite', {'p_code': code, 'p_consent': true});
   Future<List<Json>> members(String org) async => asJsonList(await _rpc('list_members', {'p_org': org}));

@@ -13,24 +13,25 @@ const _light = ColorScheme(
   brightness: Brightness.light,
   primary: saccoEmerald,
   onPrimary: Colors.white,
-  primaryContainer: Color(0xFF70F7E6),
-  onPrimaryContainer: Color(0xFF00201B),
+  // Calm, not glowing: soft mint and sand instead of bright cyan and peach.
+  primaryContainer: Color(0xFFCFE6DF),
+  onPrimaryContainer: Color(0xFF00382F),
   secondary: saccoGold,
   onSecondary: Colors.black,
-  secondaryContainer: Color(0xFFFFDEA6),
-  onSecondaryContainer: Color(0xFF261900),
+  secondaryContainer: Color(0xFFF1E6CC),
+  onSecondaryContainer: Color(0xFF3A2A00),
   tertiary: saccoEmeraldLight,
   onTertiary: Colors.white,
   error: Color(0xFFB3261E),
   onError: Colors.white,
   errorContainer: Color(0xFFF9DEDC),
   onErrorContainer: Color(0xFF410E0B),
-  surface: Color(0xFFFFFFFF),
-  onSurface: Color(0xFF191C1B),
-  surfaceContainerHighest: Color(0xFFE7E0EC),
-  onSurfaceVariant: Color(0xFF3F4945),
-  outline: Color(0xFF79747E),
-  outlineVariant: Color(0xFFCAC4D0),
+  surface: Color(0xFFF9FBF9),
+  onSurface: Color(0xFF1B2421),
+  surfaceContainerHighest: Color(0xFFE2E9E5),
+  onSurfaceVariant: Color(0xFF465550),
+  outline: Color(0xFF75837E),
+  outlineVariant: Color(0xFFD0D9D4),
 );
 
 const _dark = ColorScheme(
@@ -82,5 +83,29 @@ ThemeData _theme(ColorScheme c, Color background) => ThemeData(
       dividerTheme: DividerThemeData(color: c.outlineVariant, space: 16),
     );
 
-final lightTheme = _theme(_light, const Color(0xFFFAFBF9));
+// Light grey-green page behind off-white cards: less glare than pure white on white.
+final lightTheme = _theme(_light, const Color(0xFFECF1EE));
 final darkTheme = _theme(_dark, const Color(0xFF101715));
+
+// ---------------- Payment brands ----------------
+// Colours as the networks use them, so people recognise them at a glance.
+// Logos are NOT drawn here: they belong to MTN, Airtel and Safaricom. To show the real logos,
+// put the official files you have permission to use in assets/brands/ (see the README there).
+class Brand {
+  final String name;
+  final Color color;
+  final Color onColor;
+  final IconData icon;
+  final String? logo; // asset path, shown only if the file is there
+  const Brand(this.name, this.color, this.onColor, this.icon, [this.logo]);
+}
+
+const brands = <String, Brand>{
+  'mtn_momo': Brand('MTN MoMo', Color(0xFFFFCB05), Color(0xFF000000), Icons.phone_android, 'assets/brands/mtn.png'),
+  'airtel_money': Brand('Airtel Money', Color(0xFFE40000), Color(0xFFFFFFFF), Icons.phone_android, 'assets/brands/airtel.png'),
+  'mpesa': Brand('M-Pesa', Color(0xFF00A650), Color(0xFFFFFFFF), Icons.phone_android, 'assets/brands/mpesa.png'),
+  'bank': Brand('Bank', Color(0xFF1F4E79), Color(0xFFFFFFFF), Icons.account_balance),
+  'cash': Brand('Cash', Color(0xFF2E7D32), Color(0xFFFFFFFF), Icons.payments_outlined),
+  'flutterwave': Brand('Flutterwave', Color(0xFFF5A623), Color(0xFF000000), Icons.verified_user, 'assets/brands/flutterwave.png'),
+  'pesapal': Brand('Pesapal', Color(0xFF26338F), Color(0xFFFFFFFF), Icons.verified_user, 'assets/brands/pesapal.png'),
+};

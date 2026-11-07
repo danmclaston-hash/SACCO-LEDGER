@@ -47,7 +47,7 @@ class ApprovalsScreen extends StatelessWidget {
               ],
             ],
           ),
-        const SectionTitle('Reviewed'),
+        const SectionTitle('Reviewed', info: 'two_person'),
         for (final p in done)
           PaymentTile(p, actions: [
             // Fix a forgotten or wrong goal label. The money does not move; the audit trail keeps who and why.

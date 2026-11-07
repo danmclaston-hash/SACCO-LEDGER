@@ -71,7 +71,10 @@ class DashboardScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('My savings', style: tt.labelMedium?.copyWith(fontWeight: FontWeight.w600)),
+                Row(children: [
+                  Text('My savings', style: tt.labelMedium?.copyWith(fontWeight: FontWeight.w600)),
+                  const InfoTip('savings'),
+                ]),
                 Text(money(context, me.i('savings')), style: tt.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
                 Text('${org.i('share_price') > 0 ? me.i('savings') ~/ org.i('share_price') : 0} shares', style: tt.labelSmall),
               ],
@@ -97,7 +100,7 @@ class DashboardScreen extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SectionTitle('Financial Position (Double-Entry Balanced)'),
+            const SectionTitle('Financial Position (Double-Entry Balanced)', info: 'double_entry'),
             const SizedBox(height: 8),
             Row(
               children: [

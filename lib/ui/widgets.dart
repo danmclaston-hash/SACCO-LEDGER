@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/glossary.dart';
 import '../core/json.dart';
 import '../core/money.dart';
 import '../state/app_state.dart';
@@ -12,6 +13,7 @@ class StateScope extends InheritedNotifier<AppState> {
 }
 
 const channelNames = {'mtn_momo': 'MTN MoMo', 'airtel_money': 'Airtel Money', 'bank': 'Bank', 'cash': 'Cash'};
+
 /// Channels a person can pick by hand. Online ones below are set only by the server, after the gateway confirms.
 const allChannelNames = {...channelNames, 'flutterwave': 'Flutterwave (verified)', 'pesapal': 'Pesapal (verified)'};
 const gatewayNames = {'flutterwave': 'Flutterwave', 'pesapal': 'Pesapal'};
@@ -96,17 +98,63 @@ class AppPageView extends StatelessWidget {
 class SectionTitle extends StatelessWidget {
   final String text;
   final Widget? trailing;
-  const SectionTitle(this.text, {super.key, this.trailing});
+
+  /// A glossary word (see core/glossary.dart). Adds an (i) button that explains it.
+  final String? info;
+  const SectionTitle(this.text, {super.key, this.trailing, this.info});
   @override
   Widget build(BuildContext context) => Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Flexible(
-            child: Text(text, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              Flexible(child: Text(text, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold))),
+              if (info != null) InfoTip(info!),
+            ]),
           ),
           if (trailing != null) trailing!,
         ],
       );
+}
+
+/// Small (i) button. Tap it to read what a word means. Hidden when "Explain words" is off in My Account.
+class InfoTip extends StatelessWidget {
+  final String term;
+  const InfoTip(this.term, {super.key});
+  @override
+  Widget build(BuildContext context) {
+    final st = StateScope.of(context);
+    final t = glossary[term];
+    if (!st.showTips || t == null) return const SizedBox.shrink();
+    final cs = Theme.of(context).colorScheme;
+    return IconButton(
+      tooltip: 'What is ${t.title.toLowerCase()}?',
+      visualDensity: VisualDensity.compact,
+      iconSize: 18,
+      icon: Icon(Icons.info_outline, color: cs.primary),
+      onPressed: () => showModalBottomSheet<void>(
+        context: context,
+        showDragHandle: true,
+        builder: (ctx) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+            child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                Icon(Icons.info_outline, color: cs.primary),
+                const SizedBox(width: 8),
+                Text(t.title, style: Theme.of(ctx).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+              ]),
+              const SizedBox(height: 10),
+              Text(t.text, style: Theme.of(ctx).textTheme.bodyLarge),
+              const SizedBox(height: 16),
+              Text('You can hide these (i) buttons in My Account → Look and language.',
+                  style: Theme.of(ctx).textTheme.labelSmall?.copyWith(color: cs.onSurfaceVariant)),
+            ]),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class SaccoCard extends StatelessWidget {
@@ -276,6 +324,59 @@ class MemberPicker extends StatelessWidget {
       );
 }
 
+/// Small square in the brand colour, with the official logo if its file is in assets/brands/.
+class BrandMark extends StatelessWidget {
+  final String channel;
+  final double size;
+  const BrandMark(this.channel, {super.key, this.size = 22});
+  @override
+  Widget build(BuildContext context) {
+    final b = brands[channel];
+    if (b == null) return SizedBox(width: size, height: size);
+    final fallback = Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(color: b.color, borderRadius: BorderRadius.circular(size / 4)),
+      child: Icon(b.icon, size: size * 0.62, color: b.onColor),
+    );
+    if (b.logo == null) return fallback;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(size / 4),
+      child: Image.asset(b.logo!, width: size, height: size, fit: BoxFit.contain, errorBuilder: (_, __, ___) => fallback),
+    );
+  }
+}
+
+/// Channel name with its brand mark, e.g. on a payment record.
+class BrandChip extends StatelessWidget {
+  final String channel;
+  const BrandChip(this.channel, {super.key});
+  @override
+  Widget build(BuildContext context) => Row(mainAxisSize: MainAxisSize.min, children: [
+        BrandMark(channel, size: 16),
+        const SizedBox(width: 6),
+        Text(allChannelNames[channel] ?? channel, style: Theme.of(context).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
+      ]);
+}
+
+/// Big button in the network's own colours, e.g. "MTN MoMo".
+class BrandButton extends StatelessWidget {
+  final String channel;
+  final String label;
+  final VoidCallback? onPressed;
+  const BrandButton({super.key, required this.channel, required this.label, this.onPressed});
+  @override
+  Widget build(BuildContext context) {
+    final b = brands[channel]!;
+    return FilledButton.icon(
+      style: FilledButton.styleFrom(backgroundColor: b.color, foregroundColor: b.onColor, minimumSize: const Size(64, 48)),
+      onPressed: onPressed,
+      icon: BrandMark(channel, size: 20),
+      label: Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+    );
+  }
+}
+
 class ChannelPicker extends StatelessWidget {
   final String value;
   final ValueChanged<String> onChanged;
@@ -285,7 +386,10 @@ class ChannelPicker extends StatelessWidget {
         initialValue: value,
         isExpanded: true,
         decoration: const InputDecoration(labelText: 'How the money moved'),
-        items: [for (final e in channelNames.entries) DropdownMenuItem(value: e.key, child: Text(e.value))],
+        items: [
+          for (final e in channelNames.entries)
+            DropdownMenuItem(value: e.key, child: Row(children: [BrandMark(e.key), const SizedBox(width: 10), Text(e.value)])),
+        ],
         onChanged: (v) => onChanged(v ?? value),
       );
 }

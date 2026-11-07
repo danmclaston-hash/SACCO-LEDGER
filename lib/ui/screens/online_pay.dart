@@ -98,7 +98,9 @@ class _OnlinePayCardState extends State<OnlinePayCard> with WidgetsBindingObserv
               Row(children: [
                 Icon(Icons.verified_user, color: cs.primary),
                 const SizedBox(width: 8),
-                Expanded(child: Text('Pay online (checked automatically)', style: tt.titleSmall?.copyWith(fontWeight: FontWeight.bold))),
+                Flexible(child: Text('Pay online (checked automatically)', style: tt.titleSmall?.copyWith(fontWeight: FontWeight.bold))),
+                const InfoTip('verified_payment'),
+                const Spacer(),
                 if (status.n('mode') == 'test') const Pill(text: 'TEST MONEY', color: warnOrange),
               ]),
               const SizedBox(height: 6),

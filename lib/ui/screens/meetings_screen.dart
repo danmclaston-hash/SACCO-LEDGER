@@ -154,7 +154,7 @@ class MeetingsScreen extends StatelessWidget {
               ],
             ),
         ],
-        const SectionTitle('Meeting History'),
+        const SectionTitle('Meeting History', info: 'quorum'),
         if (past.isEmpty) const EmptyNote('No completed meetings in this cycle yet.'),
         for (final m in past)
           SaccoCard(

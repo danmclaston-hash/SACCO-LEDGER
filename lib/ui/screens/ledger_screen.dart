@@ -198,7 +198,10 @@ class _AuditState extends State<_Audit> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text('Immutable Governance Audit Trail', style: tt.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                  Row(children: [
+                    Flexible(child: Text('Immutable Governance Audit Trail', style: tt.titleSmall?.copyWith(fontWeight: FontWeight.bold))),
+                    const InfoTip('audit_trail'),
+                  ]),
                   Text('Each row seals the one before it. If anyone changes an old row, this check fails.', style: tt.bodySmall),
                   gap,
                   OutlinedButton.icon(

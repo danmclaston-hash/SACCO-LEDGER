@@ -14,7 +14,7 @@ Read also: [Simple plan](docs/PLAN.md) · [Licences](docs/LICENCES.md)
 ### Step 1: Make the database
 **Why:** every phone and browser shares this one record book.
 1. Go to [supabase.com](https://supabase.com), sign up, click **New project**. Pick the region closest to Uganda. Save the database password somewhere private. **Never share it.**
-2. Open **SQL Editor**. Paste all of `supabase/migrations/20261106000000_init.sql` and click **Run**. Then do the same with `20261107000000_accounts.sql`, then `20261107000100_hardening.sql`, then `20261107000200_owner.sql`, then `20261107000300_goals.sql`, then `20261107000400_online_payments.sql`. Order matters: each file needs the one before.
+2. Open **SQL Editor**. Paste all of `supabase/migrations/20261106000000_init.sql` and click **Run**. Then do the same with `20261107000000_accounts.sql`, then `20261107000100_hardening.sql`, then `20261107000200_owner.sql`, then `20261107000300_goals.sql`, then `20261107000400_online_payments.sql`, then `20261107000500_countries_prefs.sql`. Order matters: each file needs the one before.
 3. Open **Authentication → Providers (or Sign In) → Email**, turn **Confirm email** off. Members use phones, so no email can be confirmed.
 
 **Check it worked:** **Table Editor** shows `journals`, `members`, `audit_log` and others.
@@ -60,6 +60,20 @@ insert into public.platform_admins select id from auth.users where email = 'you@
 4. On the web: **Approvals**. You cannot confirm your own record, so use a different officer.
 
 **Check it worked:** **Ledger → Trial Balance** says BALANCED, and **Check for tampering** passes.
+
+### Step 5b: Put the admin site on Cloudflare (optional, free)
+**Why:** your own address (like `admin.yourcompany.com`), fast in Africa, and it works with a private GitHub repo. The build robot already makes the Cloudflare copy. You only connect it.
+
+1. In Cloudflare: **Workers & Pages → Create → Pages → Upload assets**, name it (for example `sacco-ledger`). Upload any small file once; the robot replaces it.
+2. In Cloudflare: **My Profile → API Tokens → Create Token → "Edit Cloudflare Workers"** template. Copy the token. Also copy your **Account ID** (right side of the dashboard).
+3. In GitHub: **Settings → Secrets and variables → Actions**:
+   - Secrets: `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`
+   - Variables: `CLOUDFLARE_PROJECT` = the name from step 1
+4. Push any change, or re-run the last build.
+
+**Check it worked:** the build shows a green **deploy-cloudflare** step, and `https://<name>.pages.dev` opens the sign-in page.
+**If it fails:** a red "Authentication error" means the token or Account ID is wrong. Make a new token.
+**Own address:** in the Pages project, **Custom domains → Set up a domain**. Then in Supabase **Authentication → URL Configuration**, add that address so Google sign-in comes back to it.
 
 ### Step 6: Switch on online payments (optional)
 **Why:** members pay through Flutterwave or Pesapal. The gateway confirms each payment and our server asks it again, so nobody types a transaction ID and nobody can fake one. Money goes to the **group's own** gateway account, never to you.

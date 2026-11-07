@@ -61,7 +61,7 @@ class LoansScreen extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SectionTitle('Arrears Aging Classification'),
+            const SectionTitle('Arrears Aging Classification', info: 'arrears'),
             const SizedBox(height: 8),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,

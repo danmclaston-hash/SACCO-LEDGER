@@ -9,6 +9,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' show AuthChangeEvent;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../core/app_lock.dart';
+import '../core/countries.dart';
 import '../core/i18n.dart';
 import '../core/json.dart';
 import '../core/search_index.dart';
@@ -53,6 +54,16 @@ class AppState extends ChangeNotifier {
   StreamSubscription? _authSub;
   Json account = {};
   ThemeMode themeMode = ThemeMode.system;
+
+  /// Phone code at sign-in (UG, KE, TZ, RW). Groups have their own country.
+  String country = 'UG';
+
+  /// Show the small (i) buttons that explain words like "share-out".
+  bool showTips = true;
+
+  /// Welcome tour finished or skipped. "Later" only hides it until the app restarts.
+  bool tourDone = false;
+  bool tourLater = false;
   double textScale = 1.0;
   bool locked = false;
   int pinTries = 0;
@@ -149,9 +160,44 @@ class AppState extends ChangeNotifier {
     final ts = double.tryParse(j.s('text_scale'));
     textScale = ts == null ? 1.0 : ts.clamp(0.85, 1.6);
     language = AppLanguage.values.firstWhere((l) => l.name == j.s('language'), orElse: () => AppLanguage.en);
+    final p = j['prefs'] is Map ? j.m('prefs') : j;
+    if (p['country'] != null) country = countryByCode(p.s('country')).code;
+    if (p['show_tips'] != null) showTips = p['show_tips'] == true;
+    if (p['tour_done'] != null) tourDone = p['tour_done'] == true;
   }
 
-  Json get _lookJson => {'theme': themeMode.name, 'text_scale': textScale, 'language': language.name};
+  Json get _lookJson => {
+        'theme': themeMode.name,
+        'text_scale': textScale,
+        'language': language.name,
+        'country': country,
+        'show_tips': showTips,
+        'tour_done': tourDone,
+      };
+
+  /// The group's phone code (+256...), or the person's own country before they join a group.
+  String get dial => countryByCode(org?.n('country_code') ?? country).dial;
+
+  /// Saves country, (i) tips and tour on this phone at once, and on the account.
+  Future<String?> updatePrefs({String? country, bool? showTips, bool? tourDone}) async {
+    if (country != null) this.country = country;
+    if (showTips != null) this.showTips = showTips;
+    if (tourDone != null) this.tourDone = tourDone;
+    notifyListeners();
+    await _prefs?.setString('look', jsonEncode(_lookJson));
+    if (!signedIn) return null;
+    try {
+      await api.updateMyPrefs({'country': this.country, 'show_tips': this.showTips, 'tour_done': this.tourDone});
+      return null;
+    } on ApiError catch (e) {
+      return e.isNetwork ? null : e.message;
+    }
+  }
+
+  void tourLaterThisTime() {
+    tourLater = true;
+    notifyListeners();
+  }
 
   Future<String?> updateLook({ThemeMode? theme, double? scale, AppLanguage? language}) async {
     if (theme != null) themeMode = theme;
