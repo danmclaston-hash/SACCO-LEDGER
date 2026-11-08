@@ -129,12 +129,54 @@ Change `chrome` to your phone's name for the phone layout. Find it with `flutter
 
 Database tests need Postgres: `PGHOST=localhost PGUSER=postgres PGPASSWORD=x bash supabase/tests/run.sh`. **Check:** `failed` shows 0.
 
-## Publish
+## Phone apps
+
+### Android: test now (free)
+Every build makes the Android app by itself.
+- **Easiest:** open your site and tap **Get the Android app** (`https://sacco-ledger.pages.dev/download/sacco-ledger.apk`). Works on almost every phone made since 2017.
+- **Or:** GitHub → **Actions** → newest green run → **Artifacts** → `android-apk` (works on every phone, bigger file).
+
+To install, the phone asks to allow "install unknown apps" for your browser. Say yes once.
+**Check it worked:** the SACCO Ledger icon appears and opens the sign-in page.
+**If it fails:** "App not installed" usually means an older copy signed with a different key. Uninstall it, then install again.
+
+### Android: your own key (do this before sharing widely)
+**Why:** the test key is public. Your own key proves updates really come from you. Google Play needs it. Change it later and everyone must uninstall and reinstall, so do it early.
+
+1. On a computer with Java, make the key (choose your own passwords, write them down safely):
+   ```bash
+   keytool -genkey -v -keystore upload.jks -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+   ```
+2. Turn it into text: `base64 -w0 upload.jks > upload.txt` (Mac: `base64 -i upload.jks -o upload.txt`).
+3. GitHub → **Settings → Secrets and variables → Actions → New repository secret**, four times:
+
+   | Name | Value |
+   |---|---|
+   | `ANDROID_KEYSTORE_BASE64` | everything inside `upload.txt` |
+   | `ANDROID_KEYSTORE_PASSWORD` | the keystore password |
+   | `ANDROID_KEY_ALIAS` | `upload` |
+   | `ANDROID_KEY_PASSWORD` | the key password |
+4. **Back up `upload.jks` and the passwords** somewhere safe (not in Git, not in chat). Then delete `upload.txt`.
+
+**Check it worked:** the next build log says "Signing with your own key", and Artifacts has `android-play-store-aab`.
+
+### Google Play
+1. Make a **Google Play Console** account (about $25 once). A company account needs your company papers and a D-U-N-S number.
+2. **Create app**, fill in the store listing, privacy policy and data safety form.
+3. Upload `android-play-store-aab` to **Internal testing** first. Turn on **Play App Signing** (Google then keeps the final key safe).
+
+### iPhone (iOS)
+Apple only lets signed apps onto iPhones, even for testing. You need:
+1. An **Apple Developer Program** account (about $99 a year). Enrol as your company once it is registered (needs a D-U-N-S number).
+2. Then tell me. The build robot can sign and send each build to **TestFlight** (Apple's free tester app) with an App Store Connect API key, so no Mac is needed.
+
+Today the robot only checks that the iPhone app builds.
 
 | Where | Needs | Notes |
 |---|---|---|
-| Google Play | Developer account (about $25 once), your own signing key | Add the key in `android/app/build.gradle.kts`. Test builds use a debug key, which Play refuses. Keep the key file out of Git |
-| Apple App Store | Developer account (about $99 a year), a Mac | Open `ios/Runner.xcworkspace` in Xcode, choose your team, archive |
+| Android test APK | Nothing | Built every push, also on your site |
+| Google Play | Developer account (about $25 once), your own key | See above |
+| Apple App Store / TestFlight | Developer account (about $99 a year) | See above |
 | Admin web | Nothing extra | Deployed by the build robot |
 
 Before real groups: see [Licences](docs/LICENCES.md) and move to Supabase Pro for backups.

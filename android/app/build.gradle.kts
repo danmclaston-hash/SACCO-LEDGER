@@ -15,7 +15,7 @@ android {
     }
 
     defaultConfig {
-                applicationId = "com.saccoledger.app"
+        applicationId = "com.saccoledger.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -28,10 +28,24 @@ android {
         versionName = flutter.versionName
     }
 
+    // Your own signing key (README "Phone apps"). The build robot fills these from GitHub secrets.
+    // Without them, the app is signed with a test key: fine for testing, not for the Play Store.
+    val keystorePath = System.getenv("ANDROID_KEYSTORE_PATH")
+    val hasReleaseKey = !keystorePath.isNullOrBlank() && file(keystorePath).exists()
+    signingConfigs {
+        if (hasReleaseKey) {
+            create("release") {
+                storeFile = file(keystorePath!!)
+                storePassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("ANDROID_KEY_ALIAS")
+                keyPassword = System.getenv("ANDROID_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // Test builds only. Before Play Store, add your own key: see README, "Publish".
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName(if (hasReleaseKey) "release" else "debug")
         }
     }
 }

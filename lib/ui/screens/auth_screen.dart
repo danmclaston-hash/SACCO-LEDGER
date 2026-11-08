@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/catalog.dart';
 import '../../core/countries.dart';
@@ -228,6 +229,14 @@ class _AuthScreenState extends State<AuthScreen> {
                     textAlign: TextAlign.center,
                     style: tt.bodySmall?.copyWith(color: cs.onPrimary),
                   ),
+                  // On the website, members can get the Android app straight from here.
+                  if (kIsWeb && !Uri.base.path.contains('SACCO-LEDGER')) // not on the GitHub Pages copy, which has no APK
+                    TextButton.icon(
+                      onPressed: () => launchUrl(Uri.base.resolve('/download/sacco-ledger.apk')),
+                      style: TextButton.styleFrom(foregroundColor: cs.onPrimary),
+                      icon: const Icon(Icons.android),
+                      label: const Text('Get the Android app'),
+                    ),
                 ],
               ),
             ),

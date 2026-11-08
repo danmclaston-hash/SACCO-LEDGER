@@ -35,17 +35,51 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze --no-fatal-infos
       - run: flutter test
-      - name: Android test app (APK)
-        run: flutter build apk --release
+      # Android. Each build gets a bigger build number, so a new APK installs over the old one.
+      # With the 4 ANDROID_* secrets (README "Phone apps") it is signed with your own key and also makes
+      # the .aab file the Play Store wants. Without them it uses a test key.
+      - name: Android signing key (if added)
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/upload.jks"
+            echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/upload.jks" >> "$GITHUB_ENV"
+            echo "Signing with your own key."
+          else
+            echo "No ANDROID_KEYSTORE_BASE64 secret: signing with the test key."
+          fi
+      - name: Android app (APK for all phones, plus a small one for most phones)
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          flutter build apk --release --build-number=${{ github.run_number }}
+          flutter build apk --release --split-per-abi --target-platform android-arm64 --build-number=${{ github.run_number }}
+          if [ -n "$ANDROID_KEYSTORE_PATH" ]; then flutter build appbundle --release --build-number=${{ github.run_number }}; fi
       - uses: actions/upload-artifact@v4
         with: { name: android-apk, path: build/app/outputs/flutter-apk/app-release.apk }
+      - if: env.ANDROID_KEYSTORE_PATH != ''
+        uses: actions/upload-artifact@v4
+        with: { name: android-play-store-aab, path: build/app/outputs/bundle/release/app-release.aab }
       - name: Admin web app (PWA)
         run: flutter build web --release --no-web-resources-cdn --base-href "/${{ github.event.repository.name }}/"
       - uses: actions/upload-pages-artifact@v3
         with: { path: build/web }
       # Second copy for your own site (Cloudflare Pages). It lives at the site root, so no /SACCO-LEDGER/ path.
-      - name: Admin web app for Cloudflare
-        run: flutter build web --release --no-web-resources-cdn -o build/web_root
+      - name: Admin web app for Cloudflare (with the Android app to download)
+        run: |
+          flutter build web --release --no-web-resources-cdn -o build/web_root
+          # Download link on your site: /download/sacco-ledger.apk (Cloudflare allows files up to 25 MB).
+          apk=build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+          size=$(stat -c %s "$apk")
+          if [ "$size" -lt 25000000 ]; then
+            mkdir -p build/web_root/download && cp "$apk" build/web_root/download/sacco-ledger.apk
+            echo "APK on the site: $((size/1000000)) MB"
+          else
+            echo "APK is $((size/1000000)) MB, too big for Cloudflare. Use the GitHub download instead."
+          fi
       - uses: actions/upload-artifact@v4
         with: { name: web-root, path: build/web_root }
 
