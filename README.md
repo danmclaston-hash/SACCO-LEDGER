@@ -15,7 +15,7 @@ Read also: [Simple plan](docs/PLAN.md) · [Licences](docs/LICENCES.md)
 **Why:** every phone and browser shares this one record book.
 1. Go to [supabase.com](https://supabase.com), sign up, click **New project**. Pick the region closest to Uganda. Save the database password somewhere private. **Never share it.**
 2. Open **SQL Editor**. Paste all of `supabase/migrations/20261106000000_init.sql` and click **Run**. Then do the same with `20261107000000_accounts.sql`, then `20261107000100_hardening.sql`, then `20261107000200_owner.sql`, then `20261107000300_goals.sql`, then `20261107000400_online_payments.sql`, then `20261107000500_countries_prefs.sql`, then `20261107000600_loan_rules.sql`, then `20261107000700_owners_shared_demo.sql`. Order matters: each file needs the one before.
-3. Open **Authentication → Providers (or Sign In) → Email**, turn **Confirm email** off. Members use phones, so no email can be confirmed.
+3. Open **Authentication → Providers (or Sign In) → Email** and leave **Confirm email** on, so every new email account must click a link before it can sign in (see Step 8).
 
 **Check it worked:** **Table Editor** shows `journals`, `members`, `audit_log` and others.
 **If it fails:** copy the red message and send it to your developer. Run on a new empty project, since the file runs only once.
@@ -126,6 +126,16 @@ Web → **All groups → Platform team**:
 People always choose their own password. Every change goes in a history nobody can edit.
 **Check it worked:** they sign in on the web and see **All groups**. After **Remove**, it disappears for them.
 **If it fails:** "Only the platform owner" means you are signed in as an admin, not an owner.
+
+### Step 8: Real emails only (stop fake accounts)
+
+You cannot tell a real email from a fake one by looking at it: `fads@gmail.com` looks fine. The only proof is a link sent to the inbox and clicked. Google sign-in is already proved by Google.
+
+1. **Turn on the link.** Supabase → **Authentication → Sign In / Providers → Email** → switch **Confirm email** on → Save.
+2. **Let the link come back.** **Authentication → URL Configuration**: Site URL `https://sacco-ledger.pages.dev`; Redirect URLs add `https://sacco-ledger.pages.dev/**` and `com.saccoledger.app://login-callback`.
+3. **Use a real mail sender.** Supabase's built-in sender only sends a few emails an hour and often lands in Spam. Make a free account at [Resend](https://resend.com) or [Brevo](https://www.brevo.com), add your domain (once the company domain is ready), and copy its SMTP details into **Authentication → Emails → SMTP Settings**. Until then the built-in sender works for testing.
+4. **Turn on the gatekeeper.** **Authentication → Hooks → Add hook → Before User Created** → type **Postgres** → schema `public`, function `hook_before_user_created` → Save. It refuses throwaway inboxes (mailinator and similar), addresses that are not real email shapes, and new phone-number accounts (paused until WhatsApp/SMS codes exist). Phone accounts already made keep working.
+5. **Clean up.** In the app: **Platform team → People who signed up**. ✓ means proved, ? means never proved. Owners tap ⋮ → **Block (fake account)**. They are signed out at once. Nothing is deleted, and **Unblock** undoes it. Every block is in the history.
 
 ## Run on your own computer
 **Needs:** [Flutter](https://docs.flutter.dev/get-started/install) stable.

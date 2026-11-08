@@ -607,3 +607,38 @@ select t.fails($$select public.list_platform_admins()$$,'Platform admins only','
 select t.fails(format($$select public.set_platform_role(%L,'owner')$$,t.id('ann_u')),'Only the platform owner','normal user cannot make themselves owner');
 reset role;
 select t.ok((select count(*) from public.platform_audit where action in ('MERGE_DEMOS','ADD_OWNER','MAKE_OWNER','MAKE_ADMIN','REMOVE_OWNER'))>=5,'every owner change is in the history');
+
+-- ===== Real emails: gatekeeper, checked mark, blocking =====
+\i ../migrations/20261107000800_real_emails.sql
+create function t.hook(e text, prov text default 'email') returns text language sql as $$
+  select public.hook_before_user_created(jsonb_build_object('user', jsonb_build_object('email', e, 'app_metadata', jsonb_build_object('provider', prov))))->'error'->>'message' $$;
+select t.ok(t.hook('jane.doe@gmail.com') is null,'real-looking email may sign up');
+select t.ok(t.hook('x@mailinator.com') like 'Throwaway%','throwaway inbox refused');
+select t.ok(t.hook('x@inbox.yopmail.com') like 'Throwaway%','throwaway sub-domain refused');
+select t.ok(t.hook('fads@gmail') like '%real email%','email without .com refused');
+select t.ok(t.hook('256700000000@phone.saccoledger.app') like '%paused%','new phone account waits for codes');
+select t.ok(t.hook('anything@mailinator.com','google') is null,'Google accounts are already proved');
+update auth.users set raw_app_meta_data='{"provider":"google"}' where email='ann@test.local';
+update auth.users set email_confirmed_at=now(), confirmation_sent_at=now() where email='ben@test.local';
+update auth.users set email_confirmed_at=now() where email='cy@test.local';
+set role authenticated; select t.as_user(t.id('owner_u'));
+select t.ok((select bool_and(case x->>'email' when 'ann@test.local' then (x->>'checked')::boolean when 'ben@test.local' then (x->>'checked')::boolean
+  when 'cy@test.local' then not (x->>'checked')::boolean else true end) from jsonb_array_elements(public.list_platform_admins()->'people') x),
+  'people list marks Google and clicked-link emails as checked, auto-confirmed as not');
+reset role; insert into auth.sessions(user_id) select id from auth.users where email='stranger@test.local';
+set role authenticated; select t.as_user(t.id('owner_u'));
+select public.set_account_blocked(t.id('stranger_u'), true);
+select t.ok((select (x->>'blocked')::boolean from jsonb_array_elements(public.list_platform_admins()->'people') x where x->>'email'='stranger@test.local'),'owner blocks a fake account');
+reset role;
+select t.ok(not exists(select 1 from auth.sessions s join auth.users u on u.id=s.user_id where u.email='stranger@test.local'),'blocked account is signed out everywhere');
+set role authenticated; select t.as_user(t.id('owner_u'));
+select public.set_account_blocked(t.id('stranger_u'), false);
+select t.ok(not (select (x->>'blocked')::boolean from jsonb_array_elements(public.list_platform_admins()->'people') x where x->>'email'='stranger@test.local'),'owner can unblock');
+select t.fails(format($$select public.set_account_blocked(%L,true)$$,t.id('owner_u')),'yourself','cannot block yourself');
+select t.fails(format($$select public.set_account_blocked(%L,true)$$,t.id('plat_u')),'platform team first','team members must be removed before blocking');
+select t.as_user(t.id('ann_u'));
+select t.fails(format($$select public.set_account_blocked(%L,true)$$,t.id('stranger_u')),'Only the platform owner','normal user cannot block anyone');
+reset role;
+select t.fails($$set role authenticated; select public.hook_before_user_created('{}')$$,'permission denied','app users cannot call the gatekeeper');
+reset role;
+select t.ok((select count(*) from public.platform_audit where action in ('BLOCK_ACCOUNT','UNBLOCK_ACCOUNT'))=2,'blocking is in the history');

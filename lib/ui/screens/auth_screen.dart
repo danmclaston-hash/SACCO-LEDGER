@@ -34,11 +34,38 @@ class _AuthScreenState extends State<AuthScreen> {
   bool busy = false;
   bool hide = true;
 
+  /// Set after sign-up (or a sign-in before the link was clicked): the email we are waiting on.
+  String? waitingFor;
+
+  Future<void> resend() async {
+    final e = waitingFor;
+    if (e == null) return;
+    setState(() => busy = true);
+    try {
+      await StateScope.of(context).api.resendConfirmation(e);
+      if (mounted) showMsg(context, 'Sent again to $e. It can take a minute. Check Spam too.');
+    } on ApiError catch (err) {
+      if (mounted) showMsg(context, err.message, error: true);
+    } finally {
+      if (mounted) setState(() => busy = false);
+    }
+  }
+
   Future<void> submit() async {
     final st = StateScope.of(context);
     final c = countryByCode(st.country);
     if (!Phones.looksValid(id.text, dial: c.dial)) {
       showMsg(context, 'Enter a valid phone like ${c.example}, or an email.', error: true);
+      return;
+    }
+    final typed = id.text.trim().toLowerCase();
+    if (mode == _Mode.signUp && !typed.contains('@')) {
+      showMsg(context, 'New accounts with a phone number are paused until we can text you a code. Use your email or Google for now.', error: true);
+      return;
+    }
+    final fix = emailTypo(typed);
+    if (mode == _Mode.signUp && fix != null) {
+      showMsg(context, 'Did you mean $fix? Fix the email and try again.', error: true);
       return;
     }
     if (pass.text.length < 6) {
@@ -54,9 +81,16 @@ class _AuthScreenState extends State<AuthScreen> {
           await st.api.signIn(email, pass.text);
           TextInput.finishAutofillContext();
         case _Mode.signUp:
-          await st.api.signUp(email, pass.text);
+          final open = await st.api.signUp(email, pass.text);
           TextInput.finishAutofillContext();
-          await st.updateSettings(country: st.country, language: st.language);
+          if (open) {
+            await st.updateSettings(country: st.country, language: st.language);
+          } else if (mounted) {
+            setState(() {
+              waitingFor = email;
+              mode = _Mode.signIn;
+            });
+          }
         case _Mode.reset:
           final ok = await st.api.resetPassword(email, code.text, pass.text);
           if (!mounted) return;
@@ -68,7 +102,9 @@ class _AuthScreenState extends State<AuthScreen> {
           }
       }
     } on ApiError catch (e) {
-      if (mounted) showMsg(context, e.message, error: true);
+      if (!mounted) return;
+      if (e.message == Api.notConfirmed) setState(() => waitingFor = email);
+      showMsg(context, e.message, error: true);
     } finally {
       if (mounted) setState(() => busy = false);
     }
@@ -116,6 +152,30 @@ class _AuthScreenState extends State<AuthScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          if (waitingFor != null) ...[
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(color: cs.primaryContainer, borderRadius: BorderRadius.circular(12)),
+                              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                Row(children: [
+                                  Icon(Icons.mark_email_unread_outlined, color: cs.onPrimaryContainer),
+                                  const SizedBox(width: 8),
+                                  Expanded(child: Text('Check your email', style: tt.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: cs.onPrimaryContainer))),
+                                ]),
+                                const SizedBox(height: 6),
+                                Text(
+                                  'We sent a link to $waitingFor. Click it to prove the email is yours, then sign in here. '
+                                  'No email after a few minutes? Check Spam, or send it again.',
+                                  style: tt.bodyMedium?.copyWith(color: cs.onPrimaryContainer),
+                                ),
+                                Wrap(spacing: 8, children: [
+                                  TextButton.icon(onPressed: busy ? null : resend, icon: const Icon(Icons.refresh), label: const Text('Send the link again')),
+                                  TextButton(onPressed: () => setState(() => waitingFor = null), child: const Text('Use another email')),
+                                ]),
+                              ]),
+                            ),
+                            gap,
+                          ],
                           Text(
                               switch (mode) {
                                 _Mode.signIn => 'Sign in',
@@ -146,8 +206,10 @@ class _AuthScreenState extends State<AuthScreen> {
                             textInputAction: TextInputAction.next,
                             autofillHints: const [AutofillHints.username],
                             decoration: InputDecoration(
-                              labelText: 'Phone or email',
-                              helperText: 'Phone like ${country.example} (we add +${country.dial}), or your email',
+                              labelText: mode == _Mode.signUp ? 'Email' : 'Phone or email',
+                              helperText: mode == _Mode.signUp
+                                  ? 'Your real email. We send a link to prove it is yours.'
+                                  : 'Phone like ${country.example} (we add +${country.dial}), or your email',
                               prefixIcon: const Icon(Icons.person_outline),
                             ),
                           ),
@@ -548,4 +610,21 @@ class NotConfiguredScreen extends StatelessWidget {
           ),
         ),
       );
+}
+
+
+/// Common slips in email addresses ("gmial.com"). Returns the fixed address, or null if it looks fine.
+String? emailTypo(String email) {
+  final at = email.lastIndexOf('@');
+  if (at < 1) return null;
+  final domain = email.substring(at + 1);
+  const fixes = {
+    'gmial.com': 'gmail.com', 'gmai.com': 'gmail.com', 'gmal.com': 'gmail.com', 'gamil.com': 'gmail.com', 'gnail.com': 'gmail.com',
+    'gmail.co': 'gmail.com', 'gmail.con': 'gmail.com', 'gmail.cm': 'gmail.com', 'gmail.om': 'gmail.com', 'gmaill.com': 'gmail.com',
+    'gmail': 'gmail.com', 'yahoo.co': 'yahoo.com', 'yaho.com': 'yahoo.com', 'yahooo.com': 'yahoo.com', 'yahoo.con': 'yahoo.com',
+    'hotmal.com': 'hotmail.com', 'hotmai.com': 'hotmail.com', 'hotmail.co': 'hotmail.com', 'hotmail.con': 'hotmail.com',
+    'outlok.com': 'outlook.com', 'outlook.co': 'outlook.com', 'outlook.con': 'outlook.com', 'iclod.com': 'icloud.com', 'icloud.co': 'icloud.com',
+  };
+  final f = fixes[domain];
+  return f == null ? null : '${email.substring(0, at)}@$f';
 }

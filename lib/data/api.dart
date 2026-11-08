@@ -49,7 +49,20 @@ class Api {
 
   Stream<AuthState> get authChanges => _c.auth.onAuthStateChange;
 
-  Future<void> signIn(String email, String password) => _guard(() => _c.auth.signInWithPassword(email: email, password: password));
+  Future<void> signIn(String email, String password) => _guard(
+        () => _c.auth.signInWithPassword(email: email, password: password),
+        auth: (e) => switch (e.code) {
+          'email_not_confirmed' => notConfirmed,
+          'user_banned' => 'This account is blocked. If this is a mistake, contact the SACCO Ledger team.',
+          _ => e.message,
+        },
+      );
+
+  /// Shown when someone signs in before clicking the link in their email. The sign-in screen offers "Send the link again".
+  static const notConfirmed = 'Open your email and click the link we sent first. Check Spam too.';
+
+  /// Where the email link brings people back: this website, or the phone app.
+  static String get _backHere => Uri.base.scheme.startsWith('http') ? '${Uri.base.origin}${Uri.base.path}' : mobileRedirect;
 
   /// Google sign-in. Web comes back to the same page; phones come back through the app link.
   static const mobileRedirect = 'com.saccoledger.app://login-callback';
@@ -63,10 +76,17 @@ class Api {
         auth: (e) => e.message.contains('not enabled') ? 'Google sign-in is not switched on yet. Use phone or email for now.' : e.message,
       );
 
-  Future<void> signUp(String email, String password) => _guard(() async {
-        final r = await _c.auth.signUp(email: email, password: password);
-        if (r.session == null) throw const ApiError('Account made, but sign-in is off. Turn off "Confirm email" in Supabase (see README).');
+  /// Returns true when the account is open now, false when the person must first click the link we emailed.
+  /// Supabase answers a used email the same way as a new one, so nobody can find out who has an account.
+  Future<bool> signUp(String email, String password) => _guard(() async {
+        final r = await _c.auth.signUp(email: email, password: password, emailRedirectTo: _backHere);
+        return r.session != null;
       });
+
+  /// Sends the "confirm your email" link again.
+  Future<void> resendConfirmation(String email) =>
+      _guard(() => _c.auth.resend(type: OtpType.signup, email: email, emailRedirectTo: _backHere),
+          auth: (e) => e.statusCode == '429' ? 'Please wait a minute before asking for another email.' : e.message);
 
   /// [everywhere] also ends sessions on every other phone and browser.
   Future<void> signOut({bool everywhere = false}) => _c.auth.signOut(scope: everywhere ? SignOutScope.global : SignOutScope.local);
@@ -243,5 +263,8 @@ class Api {
       asJson(await _rpc('add_platform_admin', {'p_email': email, 'p_role': role}));
   Future<void> setPlatformRole(String userId, String role) => _rpc('set_platform_role', {'p_user': userId, 'p_role': role});
   Future<void> removePlatformAdmin(String userId) => _rpc('remove_platform_admin', {'p_user': userId});
+
+  /// Owners only. Blocks a fake account (signed out everywhere, cannot sign in). Nothing is deleted.
+  Future<void> setAccountBlocked(String userId, bool blocked) => _rpc('set_account_blocked', {'p_user': userId, 'p_blocked': blocked});
   Future<void> cancelAdminInvite(String email) => _rpc('cancel_admin_invite', {'p_email': email});
 }

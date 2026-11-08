@@ -83,6 +83,32 @@ class _AdminsCardState extends State<AdminsCard> {
     }
   }
 
+  Future<void> _personAction(Json u, String action) async {
+    final api = StateScope.of(context).api;
+    final who = Phones.signInLabel(u.s('email'));
+    switch (action) {
+      case 'owner':
+        if (!await _confirm('Make $who an owner?', 'Owners can change the whole team (except the founder).', 'Make owner')) return;
+        await _add(u.s('email'), 'owner');
+      case 'admin':
+        await _add(u.s('email'), 'admin');
+      case 'block':
+        if (!await _confirm('Block $who?',
+            'They are signed out everywhere and cannot sign in again. Nothing is deleted: group records stay whole. You can unblock later.', 'Block')) {
+          return;
+        }
+        await _run(() async {
+          await api.setAccountBlocked(u.s('user_id'), true);
+          return '$who is blocked.';
+        });
+      case 'unblock':
+        await _run(() async {
+          await api.setAccountBlocked(u.s('user_id'), false);
+          return '$who can sign in again.';
+        });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final st = StateScope.of(context);
@@ -96,6 +122,7 @@ class _AdminsCardState extends State<AdminsCard> {
         final q = filter.trim().toLowerCase();
         final people = d.l('people').where((u) => q.isEmpty || u.s('email').toLowerCase().contains(q) || (u.n('name') ?? '').toLowerCase().contains(q)).toList();
         final shown = showAll || q.isNotEmpty ? people : people.take(10).toList();
+        final unproved = d.l('people').where((u) => !u.b('checked') && !u.b('blocked')).length;
         Widget roleChip(String r) => Pill(text: r == 'owner' ? 'OWNER' : 'ADMIN', color: r == 'owner' ? cs.primary : cs.secondary);
 
         return SaccoCard(
@@ -181,7 +208,10 @@ class _AdminsCardState extends State<AdminsCard> {
               ],
               const Divider(),
               Text('People who signed up (${d.l('people').length})', style: tt.labelLarge?.copyWith(fontWeight: FontWeight.bold)),
-              Text('Newest first.', style: tt.labelSmall),
+              Text(
+                  'Newest first. ✓ = email proved (Google, or clicked our link). '
+                  '? = not proved yet${unproved > 0 ? ' ($unproved)' : ''}. Owners can block a fake account; nothing is deleted.',
+                  style: tt.labelSmall),
               const SizedBox(height: 6),
               TextField(
                 decoration: const InputDecoration(labelText: 'Find by name or email', prefixIcon: Icon(Icons.search)),
@@ -190,9 +220,22 @@ class _AdminsCardState extends State<AdminsCard> {
               for (final u in shown)
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: Text(u.n('name') ?? u.s('email'), overflow: TextOverflow.ellipsis),
+                  leading: Tooltip(
+                    message: u.b('blocked')
+                        ? 'Blocked: cannot sign in'
+                        : u.b('checked')
+                            ? 'Email proved (${u.s('via') == 'google' ? 'Google' : 'clicked our link'})'
+                            : 'Not proved: ${u.s('via') == 'phone' ? 'phone number with no code check' : 'never clicked an email link'}',
+                    child: Icon(
+                      u.b('blocked') ? Icons.block : (u.b('checked') ? Icons.verified : Icons.help_outline),
+                      color: u.b('blocked') ? cs.error : (u.b('checked') ? cs.primary : cs.tertiary),
+                    ),
+                  ),
+                  title: Text(u.n('name') ?? Phones.signInLabel(u.s('email')), overflow: TextOverflow.ellipsis),
                   subtitle: Text(
-                    '${u.n('name') != null ? '${u.s('email')}\n' : ''}Joined ${Dates.day(u['joined_at'])} • '
+                    '${u.n('name') != null ? '${Phones.signInLabel(u.s('email'))}\n' : ''}'
+                    '${u.b('blocked') ? 'BLOCKED • ' : (u.b('checked') ? '' : 'Not proved • ')}'
+                    'Joined ${Dates.day(u['joined_at'])} • '
                     '${u.i('groups')} group${u.i('groups') == 1 ? '' : 's'}'
                     '${u.n('last_sign_in') != null ? ' • last in ${Dates.day(u['last_sign_in'])}' : ''}',
                   ),
@@ -202,18 +245,16 @@ class _AdminsCardState extends State<AdminsCard> {
                       : owner
                           ? PopupMenuButton<String>(
                               enabled: !busy,
-                              tooltip: 'Add to team',
-                              icon: const Icon(Icons.person_add_alt),
-                              onSelected: (r) async {
-                                if (r == 'owner' &&
-                                    !await _confirm('Make ${u.s('email')} an owner?', 'Owners can change the whole team (except the founder).', 'Make owner')) {
-                                  return;
-                                }
-                                await _add(u.s('email'), r);
-                              },
-                              itemBuilder: (_) => const [
-                                PopupMenuItem(value: 'admin', child: Text('Make admin')),
-                                PopupMenuItem(value: 'owner', child: Text('Make owner')),
+                              tooltip: 'Team or block',
+                              icon: const Icon(Icons.more_vert),
+                              onSelected: (r) => _personAction(u, r),
+                              itemBuilder: (_) => [
+                                if (!u.b('blocked')) ...const [
+                                  PopupMenuItem(value: 'admin', child: Text('Make admin')),
+                                  PopupMenuItem(value: 'owner', child: Text('Make owner')),
+                                  PopupMenuItem(value: 'block', child: Text('Block (fake account)')),
+                                ],
+                                if (u.b('blocked')) const PopupMenuItem(value: 'unblock', child: Text('Unblock')),
                               ],
                             )
                           : null,
