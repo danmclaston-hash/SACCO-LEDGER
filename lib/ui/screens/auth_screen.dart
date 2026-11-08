@@ -208,10 +208,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             const SizedBox(height: 12),
                             OutlinedButton.icon(
                               onPressed: busy ? null : google,
-                              icon: const Text(
-                                'G',
-                                style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Color(0xFF4285F4)),
-                              ),
+                              icon: Image.asset('assets/brands/google.png', width: 20, height: 20),
                               label: const Text('Continue with Google'),
                             ),
                           ],

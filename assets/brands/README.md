@@ -1,19 +1,18 @@
-# Payment logos
+# Payment and sign-in logos
 
-Put the **official** logo files here, with these exact names:
+| File | Brand | Used on |
+|---|---|---|
+| `google.png` | Google | "Continue with Google" button |
+| `mtn.png` | MTN MoMo | payment buttons and records |
+| `airtel.png` | Airtel Money (the swirl only, easier to see small) | payment buttons and records |
+| `orange_money.png` / `.svg` | Orange Money (arrows only in the PNG) | kept for later, not shown: not in our 4 countries |
+| `flutterwave.png`, `pesapal.png` | gateways | **missing** |
 
-| File | Brand |
-|---|---|
-| `mtn.png` | MTN MoMo |
-| `airtel.png` | Airtel Money |
-| `mpesa.png` | M-Pesa |
-| `flutterwave.png` | Flutterwave |
-| `pesapal.png` | Pesapal |
+M-Pesa is not a payment choice yet, so it has no file here.
 
-**Why:** these logos belong to the companies. Use only files they give you (brand kit or partner pack)
-and only once you have permission, usually when you sign as a merchant or partner.
+**Why permission matters:** these logos belong to the companies. Use them only within each company's brand rules
+(Google has sign-in button rules; MTN and Airtel give logos to merchants and partners).
 
-**Size:** square PNG, about 96×96, transparent background.
-
-**Check it worked:** rebuild the app. The logo appears on the payment buttons.
-**If a file is missing:** the app shows the brand colour with a phone icon instead. Nothing breaks.
+**Size:** square PNG, 192×192, transparent background.
+**If a file is missing:** the app shows the brand colour with an icon. Nothing breaks.
+**Check it worked:** rebuild the app and look at Channels and the sign-in page.

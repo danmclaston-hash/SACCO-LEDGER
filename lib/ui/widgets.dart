@@ -375,9 +375,15 @@ class BrandMark extends StatelessWidget {
       child: Icon(b.icon, size: size * 0.62, color: b.onColor),
     );
     if (b.logo == null) return fallback;
+    // White tile behind the logo, so a red logo still shows on a red button.
     return ClipRRect(
       borderRadius: BorderRadius.circular(size / 4),
-      child: Image.asset(b.logo!, width: size, height: size, fit: BoxFit.contain, errorBuilder: (_, __, ___) => fallback),
+      child: Container(
+        width: size,
+        height: size,
+        color: Colors.white,
+        child: Image.asset(b.logo!, fit: BoxFit.contain, errorBuilder: (_, __, ___) => fallback),
+      ),
     );
   }
 }
