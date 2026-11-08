@@ -4,9 +4,9 @@ import '../../core/json.dart';
 import '../../core/money.dart';
 import '../widgets.dart';
 
-/// Who may open the admin website as a platform administrator.
-/// Everyone here can see the list. Only the owner can add or remove people.
-/// People always choose their own password: you add an email, never a password.
+/// The platform team: owners and admins, plus everyone who has signed up.
+/// Admins can open every group (read only). Owners can also add, promote and remove team members.
+/// The founder can never be removed or demoted. People always choose their own password.
 class AdminsCard extends StatefulWidget {
   const AdminsCard({super.key});
   @override
@@ -15,14 +15,14 @@ class AdminsCard extends StatefulWidget {
 
 class _AdminsCardState extends State<AdminsCard> {
   bool busy = false;
+  bool showAll = false;
+  String newRole = 'admin';
+  String filter = '';
   final email = TextEditingController();
-  final search = TextEditingController();
-  List<Json> found = const [];
 
   @override
   void dispose() {
     email.dispose();
-    search.dispose();
     super.dispose();
   }
 
@@ -35,24 +35,51 @@ class _AdminsCardState extends State<AdminsCard> {
     setState(() => busy = false);
   }
 
-  Future<void> _add(String e) => _run(() async {
-        final r = await StateScope.of(context).api.addPlatformAdmin(e);
+  static String _roleName(String r) => r == 'owner' ? 'owner' : 'admin';
+
+  Future<void> _add(String e, String role) => _run(() async {
+        final r = await StateScope.of(context).api.addPlatformAdmin(e, role: role);
         email.clear();
-        found = const [];
         return r.s('status') == 'added'
-            ? '${r.s('email')} is now an administrator.'
-            : '${r.s('email')} has not signed up yet. They become administrator when they sign up with this email.';
+            ? '${r.s('email')} is now ${role == 'owner' ? 'an owner' : 'an admin'}.'
+            : '${r.s('email')} has not signed up yet. They become ${_roleName(role)} the moment they sign up with this email.';
       });
 
-  Future<void> _search() async {
-    final q = search.text.trim();
-    if (q.length < 2) return showMsg(context, 'Type at least 2 letters.', error: true);
-    try {
-      final r = await StateScope.of(context).api.searchUsers(q);
-      setState(() => found = r);
-      if (r.isEmpty && mounted) showMsg(context, 'Nobody found. Add them by email instead.');
-    } catch (e) {
-      if (mounted) showMsg(context, e.toString(), error: true);
+  Future<bool> _confirm(String title, String body, String yes) async =>
+      await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: Text(title),
+          content: Text(body),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text(yes)),
+          ],
+        ),
+      ) ==
+      true;
+
+  Future<void> _teamAction(Json a, String action) async {
+    final api = StateScope.of(context).api;
+    final who = a.s('email');
+    switch (action) {
+      case 'owner':
+        if (!await _confirm('Make $who an owner?', 'Owners can add, promote and remove everyone on the team (except the founder).', 'Make owner')) return;
+        await _run(() async {
+          await api.setPlatformRole(a.s('user_id'), 'owner');
+          return '$who is now an owner.';
+        });
+      case 'admin':
+        await _run(() async {
+          await api.setPlatformRole(a.s('user_id'), 'admin');
+          return '$who is now an admin (no longer an owner).';
+        });
+      case 'remove':
+        if (!await _confirm('Remove $who from the team?', 'They lose platform access at once. Their own account and groups stay.', 'Remove')) return;
+        await _run(() async {
+          await api.removePlatformAdmin(a.s('user_id'));
+          return '$who is no longer on the team.';
+        });
     }
   }
 
@@ -66,54 +93,53 @@ class _AdminsCardState extends State<AdminsCard> {
       waiting: const SizedBox.shrink(),
       builder: (context, d) {
         final owner = d.b('me_owner');
+        final q = filter.trim().toLowerCase();
+        final people = d.l('people').where((u) => q.isEmpty || u.s('email').toLowerCase().contains(q) || (u.n('name') ?? '').toLowerCase().contains(q)).toList();
+        final shown = showAll || q.isNotEmpty ? people : people.take(10).toList();
+        Widget roleChip(String r) => Pill(text: r == 'owner' ? 'OWNER' : 'ADMIN', color: r == 'owner' ? cs.primary : cs.secondary);
+
         return SaccoCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('Administrators (${d.l('admins').length})', style: tt.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+              Row(children: [
+                Expanded(child: Text('Platform team (${d.l('admins').length})', style: tt.titleSmall?.copyWith(fontWeight: FontWeight.bold))),
+              ]),
               Text(
-                owner ? 'You are the owner. Only you can add or remove administrators.' : 'Only the owner can add or remove administrators.',
+                owner
+                    ? 'You are an owner: you can add people, make them owner or admin, and remove them.'
+                    : 'Only owners can change the team.',
                 style: tt.bodySmall,
               ),
+              const SizedBox(height: 4),
+              Text('Admin: can open every group to look and help. Owner: an admin who can also change the team.', style: tt.labelSmall),
               for (final a in d.l('admins'))
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: Icon(a.s('role') == 'owner' ? Icons.workspace_premium : Icons.admin_panel_settings, color: cs.primary),
-                  title: Text('${a.n('name') ?? a.s('email')}${a.b('is_me') ? ' (you)' : ''}'),
-                  subtitle: Text('${a.s('email')} • ${a.s('role') == 'owner' ? 'Owner' : 'Admin'} since ${Dates.day(a['added_at'])}'
-                      '${a.n('added_by') != null ? ' • added by ${a.s('added_by')}' : ''}'),
-                  trailing: owner && a.s('role') != 'owner'
-                      ? TextButton(
-                          onPressed: busy
-                              ? null
-                              : () async {
-                                  final ok = await showDialog<bool>(
-                                    context: context,
-                                    builder: (ctx) => AlertDialog(
-                                      title: const Text('Remove administrator?'),
-                                      content: Text('${a.s('email')} will lose admin access at once. Their account stays.'),
-                                      actions: [
-                                        TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-                                        FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Remove')),
-                                      ],
-                                    ),
-                                  );
-                                  if (ok != true) return;
-                                  await _run(() async {
-                                    await st.api.removePlatformAdmin(a.s('user_id'));
-                                    return '${a.s('email')} is no longer an administrator.';
-                                  });
-                                },
-                          child: const Text('Remove'),
-                        )
-                      : null,
+                  title: Text('${a.n('name') ?? a.s('email')}${a.b('is_me') ? ' (you)' : ''}${a.b('is_founder') ? ' • founder' : ''}'),
+                  subtitle: Text('${a.s('email')} • since ${Dates.day(a['added_at'])}${a.n('added_by') != null ? ' • added by ${a.s('added_by')}' : ''}'),
+                  trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+                    roleChip(a.s('role')),
+                    if (owner && !a.b('is_founder') && !a.b('is_me'))
+                      PopupMenuButton<String>(
+                        enabled: !busy,
+                        tooltip: 'Change',
+                        onSelected: (v) => _teamAction(a, v),
+                        itemBuilder: (_) => [
+                          if (a.s('role') != 'owner') const PopupMenuItem(value: 'owner', child: Text('Make owner')),
+                          if (a.s('role') == 'owner') const PopupMenuItem(value: 'admin', child: Text('Make admin only')),
+                          const PopupMenuItem(value: 'remove', child: Text('Remove from team')),
+                        ],
+                      ),
+                  ]),
                 ),
               for (final i in d.l('invites'))
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   leading: const Icon(Icons.schedule),
                   title: Text(i.s('email')),
-                  subtitle: Text('Waiting for sign-up • invited ${Dates.day(i['invited_at'])}'),
+                  subtitle: Text('Becomes ${_roleName(i.s('role'))} when they sign up • invited ${Dates.day(i['invited_at'])}'),
                   trailing: owner
                       ? TextButton(
                           onPressed: busy
@@ -129,40 +155,71 @@ class _AdminsCardState extends State<AdminsCard> {
               if (owner) ...[
                 const Divider(),
                 Text('Add by email', style: tt.labelLarge?.copyWith(fontWeight: FontWeight.bold)),
+                Text('Works even before they sign up. They choose their own password.', style: tt.labelSmall),
+                const SizedBox(height: 6),
+                TextField(
+                  controller: email,
+                  keyboardType: TextInputType.emailAddress,
+                  autocorrect: false,
+                  decoration: const InputDecoration(labelText: 'Their email'),
+                ),
+                const SizedBox(height: 8),
                 Row(children: [
                   Expanded(
-                    child: TextField(
-                      controller: email,
-                      keyboardType: TextInputType.emailAddress,
-                      autocorrect: false,
-                      decoration: const InputDecoration(labelText: 'Their email'),
+                    child: SegmentedButton<String>(
+                      segments: const [
+                        ButtonSegment(value: 'admin', label: Text('Admin')),
+                        ButtonSegment(value: 'owner', label: Text('Owner')),
+                      ],
+                      selected: {newRole},
+                      onSelectionChanged: (v) => setState(() => newRole = v.first),
                     ),
                   ),
                   const SizedBox(width: 8),
-                  FilledButton(onPressed: busy ? null : () => _add(email.text), child: const Text('Add')),
+                  FilledButton(onPressed: busy ? null : () => _add(email.text, newRole), child: const Text('Add')),
                 ]),
-                gap,
-                Text('Or find someone who already signed up', style: tt.labelLarge?.copyWith(fontWeight: FontWeight.bold)),
-                Row(children: [
-                  Expanded(
-                    child: TextField(
-                      controller: search,
-                      decoration: const InputDecoration(labelText: 'Name or email'),
-                      onSubmitted: (_) => _search(),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  FilledButton.tonal(onPressed: _search, child: const Text('Search')),
-                ]),
-                for (final u in found)
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(u.n('name') ?? u.s('email')),
-                    subtitle: Text(u.s('email')),
-                    trailing:
-                        u.b('is_admin') ? const Text('Admin') : TextButton(onPressed: busy ? null : () => _add(u.s('email')), child: const Text('Make admin')),
-                  ),
               ],
+              const Divider(),
+              Text('People who signed up (${d.l('people').length})', style: tt.labelLarge?.copyWith(fontWeight: FontWeight.bold)),
+              Text('Newest first.', style: tt.labelSmall),
+              const SizedBox(height: 6),
+              TextField(
+                decoration: const InputDecoration(labelText: 'Find by name or email', prefixIcon: Icon(Icons.search)),
+                onChanged: (v) => setState(() => filter = v),
+              ),
+              for (final u in shown)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(u.n('name') ?? u.s('email'), overflow: TextOverflow.ellipsis),
+                  subtitle: Text(
+                    '${u.n('name') != null ? '${u.s('email')}\n' : ''}Joined ${Dates.day(u['joined_at'])} • '
+                    '${u.i('groups')} group${u.i('groups') == 1 ? '' : 's'}'
+                    '${u.n('last_sign_in') != null ? ' • last in ${Dates.day(u['last_sign_in'])}' : ''}',
+                  ),
+                  isThreeLine: u.n('name') != null,
+                  trailing: u.n('role') != null
+                      ? roleChip(u.s('role'))
+                      : owner
+                          ? PopupMenuButton<String>(
+                              enabled: !busy,
+                              tooltip: 'Add to team',
+                              icon: const Icon(Icons.person_add_alt),
+                              onSelected: (r) async {
+                                if (r == 'owner' &&
+                                    !await _confirm('Make ${u.s('email')} an owner?', 'Owners can change the whole team (except the founder).', 'Make owner')) {
+                                  return;
+                                }
+                                await _add(u.s('email'), r);
+                              },
+                              itemBuilder: (_) => const [
+                                PopupMenuItem(value: 'admin', child: Text('Make admin')),
+                                PopupMenuItem(value: 'owner', child: Text('Make owner')),
+                              ],
+                            )
+                          : null,
+                ),
+              if (!showAll && q.isEmpty && people.length > shown.length)
+                TextButton(onPressed: () => setState(() => showAll = true), child: Text('Show all ${people.length}')),
               if (d.l('history').isNotEmpty)
                 ExpansionTile(
                   tilePadding: EdgeInsets.zero,

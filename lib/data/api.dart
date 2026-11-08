@@ -239,7 +239,9 @@ class Api {
 
   Future<Json> platformAdmins() async => asJson(await _rpc('list_platform_admins'));
   Future<List<Json>> searchUsers(String q) async => asJsonList(await _rpc('search_users', {'p_q': q}));
-  Future<Json> addPlatformAdmin(String email) async => asJson(await _rpc('add_platform_admin', {'p_email': email}));
+  Future<Json> addPlatformAdmin(String email, {String role = 'admin'}) async =>
+      asJson(await _rpc('add_platform_admin', {'p_email': email, 'p_role': role}));
+  Future<void> setPlatformRole(String userId, String role) => _rpc('set_platform_role', {'p_user': userId, 'p_role': role});
   Future<void> removePlatformAdmin(String userId) => _rpc('remove_platform_admin', {'p_user': userId});
   Future<void> cancelAdminInvite(String email) => _rpc('cancel_admin_invite', {'p_email': email});
 }

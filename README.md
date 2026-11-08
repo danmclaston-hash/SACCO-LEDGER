@@ -14,7 +14,7 @@ Read also: [Simple plan](docs/PLAN.md) · [Licences](docs/LICENCES.md)
 ### Step 1: Make the database
 **Why:** every phone and browser shares this one record book.
 1. Go to [supabase.com](https://supabase.com), sign up, click **New project**. Pick the region closest to Uganda. Save the database password somewhere private. **Never share it.**
-2. Open **SQL Editor**. Paste all of `supabase/migrations/20261106000000_init.sql` and click **Run**. Then do the same with `20261107000000_accounts.sql`, then `20261107000100_hardening.sql`, then `20261107000200_owner.sql`, then `20261107000300_goals.sql`, then `20261107000400_online_payments.sql`, then `20261107000500_countries_prefs.sql`, then `20261107000600_loan_rules.sql`. Order matters: each file needs the one before.
+2. Open **SQL Editor**. Paste all of `supabase/migrations/20261106000000_init.sql` and click **Run**. Then do the same with `20261107000000_accounts.sql`, then `20261107000100_hardening.sql`, then `20261107000200_owner.sql`, then `20261107000300_goals.sql`, then `20261107000400_online_payments.sql`, then `20261107000500_countries_prefs.sql`, then `20261107000600_loan_rules.sql`, then `20261107000700_owners_shared_demo.sql`. Order matters: each file needs the one before.
 3. Open **Authentication → Providers (or Sign In) → Email**, turn **Confirm email** off. Members use phones, so no email can be confirmed.
 
 **Check it worked:** **Table Editor** shows `journals`, `members`, `audit_log` and others.
@@ -54,7 +54,7 @@ insert into public.platform_admins select id from auth.users where email = 'you@
 **Check it worked:** after refresh, **All groups** shows in the side menu.
 
 ### Step 5: Try it
-1. Sign in. Tick the data notice. Click **Try with demo data**.
+1. Sign in. Tick the data notice. Click **Look around the shared demo**. Everyone shares one demo group and can look at every screen but not change it. To try changing things, create your own group.
 2. On a phone, install the APK and make a second account. On the web, open **Members → Add**, and give the phone the invite code.
 3. On the phone: **Channels → Record a Payment** with any test ID.
 4. On the web: **Approvals**. You cannot confirm your own record, so use a different officer.
@@ -111,12 +111,21 @@ insert into public.platform_admins select id from auth.users where email = 'you@
 | Same gateway ID twice | Refused, flagged for an officer |
 | Payer cancels | Marked failed. Nothing posts. **Check** again if they retry |
 
-### Step 7: Add other administrators
-**Why:** fellow developers can help run the platform without your password.
+### Step 7: Your platform team (owners and admins)
+**Why:** fellow developers can help run and test the platform without your password, and without you opening the database.
 
-Web → **All groups → Administrators**. Type their email and tap **Add**, or search people who already signed up and tap **Make admin**. Someone not signed up yet becomes administrator the moment they sign up with that email. They choose their own password. Only you (the owner) can add or remove. Every change goes in a history nobody can edit.
+- **Admin:** can open every group to look and help.
+- **Owner:** an admin who can also add, promote and remove team members.
+- **Founder** (`danmclaston@gmail.com`): always an owner. Nobody can remove or demote it.
 
+Web → **All groups → Platform team**:
+1. **People who signed up** lists everyone, newest first, with their email and join date. Tap the person icon → **Make admin** or **Make owner**.
+2. Or type an email under **Add by email**, pick Admin or Owner, tap **Add**. Not signed up yet? They get that role the moment they sign up.
+3. Change someone later with the **⋮** menu: Make owner, Make admin only, Remove from team.
+
+People always choose their own password. Every change goes in a history nobody can edit.
 **Check it worked:** they sign in on the web and see **All groups**. After **Remove**, it disappears for them.
+**If it fails:** "Only the platform owner" means you are signed in as an admin, not an owner.
 
 ## Run on your own computer
 **Needs:** [Flutter](https://docs.flutter.dev/get-started/install) stable.

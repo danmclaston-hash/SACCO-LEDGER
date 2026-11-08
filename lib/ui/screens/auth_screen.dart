@@ -489,7 +489,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         child: const Text('Create group'),
                       ),
                       const SizedBox(height: 8),
-                      OutlinedButton(onPressed: busy ? null : () => run(() => st.api.seedDemo('Me (demo admin)')), child: const Text('Try with demo data')),
+                      OutlinedButton(onPressed: busy ? null : () => run(() => st.api.seedDemo('Me (demo admin)')), child: const Text('Look around the shared demo')),
                     ],
                   ),
                 ),

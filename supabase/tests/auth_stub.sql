@@ -5,7 +5,8 @@ do $$ declare r text; begin
   end loop;
 end $$;
 create schema auth;
-create table auth.users(id uuid primary key default gen_random_uuid(), email text unique, encrypted_password text);
+create table auth.users(id uuid primary key default gen_random_uuid(), email text unique, encrypted_password text,
+  created_at timestamptz not null default clock_timestamp(), last_sign_in_at timestamptz); -- same columns Supabase has
 create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('test.uid', true),'')::uuid $$;
 grant usage on schema auth to anon, authenticated;
 grant usage on schema public to anon, authenticated;

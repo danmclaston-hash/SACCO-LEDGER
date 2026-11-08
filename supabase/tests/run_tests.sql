@@ -543,3 +543,67 @@ update public.loans set disbursed_at = (current_date - 200 - interval '1 month')
 select t.ok((public.loan_late_fees(t.id('ln2'))->>'total')::bigint <= 600 and (public.loan_late_fees(t.id('ln2'))->>'capped')::boolean,'late fees stop at the limit (5% of 12000)');
 select t.fails($$update public.loan_fee_waivers set amount=1$$,'permanent','forgiven fees cannot be edited');
 reset role;
+
+-- FELLOW OWNERS AND ONE SHARED DEMO
+reset role;
+-- Before: a second tester made their own demo copy (with a loan, journals and audit rows)
+set role authenticated; select t.as_user(t.id('ann_u'));
+select t.put('demo2', public.seed_demo('Ann'));
+reset role;
+select t.ok((select count(*) from public.organizations where is_demo)=2,'two demo copies before cleanup');
+insert into t.n select 'orgs0', count(*) from public.organizations where not is_demo;
+insert into t.n select 'jl0', count(*) from public.journal_lines where org_id not in (select id from public.organizations where is_demo);
+\i ../migrations/20261107000700_owners_shared_demo.sql
+select t.ok((select count(*) from public.organizations where is_demo)=1,'one shared demo left');
+select t.ok(public.shared_demo()=t.id('demo'),'the oldest demo is the shared one');
+select t.ok((select name from public.organizations where id=t.id('demo'))='Twekembe Savings Group (Shared Demo)','shared demo is named so');
+select t.ok((select role from public.members where org_id=t.id('demo') and user_id=t.id('ann_u'))='auditor','tester from the removed copy joined the shared demo as auditor');
+select t.ok((select count(*) from public.organizations where not is_demo)=(select v from t.n where k='orgs0'),'real groups untouched');
+select t.ok((select count(*) from public.journal_lines where org_id not in (select id from public.organizations where is_demo))=(select v from t.n where k='jl0'),'real money records untouched');
+select t.ok(not exists(select 1 from public.journals where org_id=t.id('demo2')) and not exists(select 1 from public.audit_log where org_id=t.id('demo2')),'removed copy left nothing behind');
+select t.fails($$delete from public.audit_log where org_id = t.id('org')$$,'permanent','permanent-record guard is back on');
+select t.fails($$delete from public.journals where org_id = t.id('org')$$,'permanent','journal guard is back on');
+-- Pressing "Try with demo data" now joins the shared demo
+set role authenticated; select t.as_user(t.id('sec_u'));
+select t.ok(public.seed_demo('Me (demo admin)')=t.id('demo'),'demo button opens the shared demo');
+select t.ok(public.seed_demo('Me (demo admin)')=t.id('demo'),'pressing again makes no copy');
+reset role;
+select t.ok((select count(*) from public.members where org_id=t.id('demo') and user_id=t.id('sec_u'))=1 and (select count(*) from public.organizations where is_demo)=1,'still one demo, joined once');
+select t.ok((select full_name from public.members where org_id=t.id('demo') and user_id=t.id('sec_u')) not ilike '%demo admin%','visitor gets a real name, not "demo admin"');
+set role authenticated; select t.as_user(t.id('sec_u'));
+select t.ok((public.dashboard(t.id('demo'))->>'members_active')::int>=6,'visitor sees the demo numbers');
+select t.ok(jsonb_array_length(public.list_loans(t.id('demo')))>=1,'visitor sees the demo loans');
+select t.fails($$select public.add_member(t.id('demo'),'X',null,null,'member',null,null)$$,'Your role','visitor cannot change the demo');
+-- Fellow owners
+select t.as_user(t.id('owner_u'));
+select t.ok(jsonb_array_length(public.list_platform_admins()->'people')>=5,'owner sees everyone who signed up');
+select t.ok((select bool_and(x ? 'email' and x ? 'joined_at') from jsonb_array_elements(public.list_platform_admins()->'people') x),'each person shows email and sign-up date');
+select t.ok(public.add_platform_admin('ben@test.local','owner')->>'role'='owner','owner adds a fellow owner');
+select t.as_user(t.id('ben_u'));
+select t.ok((public.list_platform_admins()->>'me_owner')::boolean,'fellow owner has owner powers');
+select t.ok(public.add_platform_admin('cy@test.local')->>'status'='added','fellow owner can add an admin');
+select t.fails(format($$select public.remove_platform_admin(%L)$$,t.id('owner_u')),'founder cannot','nobody can remove the founder');
+select t.fails(format($$select public.set_platform_role(%L,'admin')$$,t.id('owner_u')),'founder always','nobody can demote the founder');
+select t.fails(format($$select public.set_platform_role(%L,'admin')$$,t.id('ben_u')),'another owner','cannot demote yourself');
+select t.fails(format($$select public.remove_platform_admin(%L)$$,t.id('ben_u')),'another owner','cannot remove yourself');
+select public.set_platform_role(t.id('cy_u'),'owner');
+select t.as_user(t.id('cy_u')); select t.ok(public.is_platform_owner(),'admin promoted to owner');
+select t.as_user(t.id('owner_u'));
+select public.set_platform_role(t.id('ben_u'),'admin');
+select t.as_user(t.id('ben_u'));
+select t.fails($$select public.add_platform_admin('z@test.local')$$,'Only the platform owner','demoted owner lost owner powers');
+select t.ok(public.is_platform_admin(),'demoted owner is still admin');
+select t.as_user(t.id('owner_u'));
+select public.remove_platform_admin(t.id('cy_u'));
+select t.as_user(t.id('cy_u')); select t.ok(not public.is_platform_admin(),'removed owner loses access');
+select t.as_user(t.id('owner_u'));
+select t.ok(public.add_platform_admin('futureowner@test.local','owner')->>'status'='invited','owner can invite a future owner');
+select t.fails($$select public.add_platform_admin('x@test.local','king')$$,'owner or admin','unknown role refused');
+reset role;
+insert into auth.users(id,email) values (gen_random_uuid(),'futureowner@test.local');
+select t.ok((select a.role from public.platform_admins a join auth.users u on u.id=a.user_id where u.email='futureowner@test.local')='owner','invited owner is owner on sign-up');
+set role authenticated; select t.as_user(t.id('ann_u'));
+select t.fails($$select public.list_platform_admins()$$,'Platform admins only','normal user cannot see the sign-up list');
+select t.fails(format($$select public.set_platform_role(%L,'owner')$$,t.id('ann_u')),'Only the platform owner','normal user cannot make themselves owner');
+reset role;
+select t.ok((select count(*) from public.platform_audit where action in ('MERGE_DEMOS','ADD_OWNER','MAKE_OWNER','MAKE_ADMIN','REMOVE_OWNER'))>=5,'every owner change is in the history');
