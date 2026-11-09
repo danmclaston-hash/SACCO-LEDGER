@@ -291,6 +291,11 @@ class _AuthScreenState extends State<AuthScreen> {
                     textAlign: TextAlign.center,
                     style: tt.bodySmall?.copyWith(color: SaccoLook.of(context).onBrandMuted),
                   ),
+                  TextButton(
+                    style: TextButton.styleFrom(foregroundColor: SaccoLook.of(context).onBrand),
+                    onPressed: () => showPrivacyPolicy(context),
+                    child: const Text('Privacy policy'),
+                  ),
                   // On the website, members can get the Android app straight from here.
                   if (kIsWeb && !Uri.base.path.contains('SACCO-LEDGER')) // not on the GitHub Pages copy, which has no APK
                     TextButton.icon(

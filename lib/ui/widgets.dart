@@ -572,3 +572,63 @@ Future<String?> askText(BuildContext context, {required String title, required S
 }
 
 String money(BuildContext c, int v) => Money.format(v, StateScope.of(c).currency);
+
+/// Opens the privacy policy. The words live in docs/PRIVACY.md, so the app and the website always say the same thing.
+void showPrivacyPolicy(BuildContext context) {
+  Navigator.of(context).push(MaterialPageRoute(builder: (_) => const _PrivacyPage()));
+}
+
+class _PrivacyPage extends StatelessWidget {
+  const _PrivacyPage();
+
+  static List<InlineSpan> _bold(String line, TextStyle? strong) {
+    final parts = line.split('**');
+    return [for (var i = 0; i < parts.length; i++) TextSpan(text: parts[i], style: i.isOdd ? strong : null)];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tt = Theme.of(context).textTheme;
+    final look = SaccoLook.of(context);
+    final strong = tt.bodyLarge?.copyWith(fontWeight: FontWeight.w700);
+    return Scaffold(
+      appBar: AppBar(title: const Text('Privacy policy'), backgroundColor: look.brand, foregroundColor: look.onBrand),
+      body: FutureBuilder<String>(
+        future: rootBundle.loadString('docs/PRIVACY.md'),
+        builder: (context, snap) {
+          if (snap.hasError) return const Center(child: Text('Could not open the policy. Please try again.'));
+          if (!snap.hasData) return const Center(child: CircularProgressIndicator());
+          final lines = snap.data!.split('\n').where((l) => l.trim().isNotEmpty && !l.startsWith('# ')).toList();
+          return SelectionArea(
+            child: ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 680),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (final l in lines)
+                          if (l.startsWith('## '))
+                            Padding(
+                              padding: const EdgeInsets.only(top: 20, bottom: 6),
+                              child: Semantics(header: true, child: Text(l.substring(3), style: tt.titleLarge?.copyWith(fontWeight: FontWeight.w700))),
+                            )
+                          else
+                            Padding(
+                              padding: EdgeInsets.only(bottom: 8, left: l.startsWith('- ') ? 8 : 0),
+                              child: Text.rich(TextSpan(children: _bold(l.startsWith('- ') ? '•  ${l.substring(2)}' : l, strong)), style: tt.bodyLarge),
+                            ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}

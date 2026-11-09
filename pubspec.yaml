@@ -31,6 +31,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/brands/
+    - docs/PRIVACY.md
   fonts:
     - family: PlusJakartaSans
       fonts:

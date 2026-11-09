@@ -653,3 +653,14 @@ select t.ok((select public.get_my_account()->'prefs'->>'look')='passbook','a bad
 reset role;
 select t.fails($$set role anon; select public.update_my_prefs('{"look":"emerald"}')$$,'permission denied','signed-out visitors cannot save preferences');
 reset role;
+
+-- ---------- Whole-database guards: these catch a new table or function that forgot its lock ----------
+select t.ok(not exists(select 1 from pg_class c join pg_namespace n on n.oid=c.relnamespace
+  where n.nspname='public' and c.relkind='r' and not c.relrowsecurity),'every table has row level security on');
+select t.ok(not exists(select 1 from information_schema.role_table_grants where table_schema='public'
+  and grantee in ('anon','authenticated','PUBLIC') and privilege_type in ('INSERT','UPDATE','DELETE','TRUNCATE')),'apps cannot write to any table directly');
+select t.ok(not exists(select 1 from information_schema.role_table_grants where table_schema='public' and grantee='anon'),'signed-out visitors cannot read any table');
+select t.ok((select array_agg(p.proname::text order by 1) from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+  where n.nspname='public' and has_function_privilege('anon', p.oid, 'execute'))=array['reset_password_with_code'],'signed-out visitors can call one function only');
+select t.ok(not exists(select 1 from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+  where n.nspname='public' and p.prosecdef and not coalesce(p.proconfig::text,'') like '%search_path=%'),'every privileged function pins its search path');

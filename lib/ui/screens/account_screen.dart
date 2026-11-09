@@ -724,6 +724,12 @@ class _PrivacyCard extends StatelessWidget {
                 : 'Agreed to the data notice on ${Dates.day(g['consent_at'])}${g.b('is_active') ? '' : ' • left'}',
           ),
         _Row(
+          icon: Icons.policy_outlined,
+          title: 'Privacy policy',
+          subtitle: 'What we keep, why, and your rights.',
+          onTap: () => showPrivacyPolicy(context),
+        ),
+        _Row(
           icon: Icons.download_outlined,
           title: 'Download my data',
           subtitle: 'One file with your profile, statements, payments and loans.',

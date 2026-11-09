@@ -7,7 +7,7 @@ One Flutter code base:
 - **Web app (installable PWA)**: for administrators only
 - **One database**: Supabase (PostgreSQL)
 
-Read also: [Simple plan](docs/PLAN.md) · [Licences](docs/LICENCES.md)
+Read also: [Simple plan](docs/PLAN.md) · [Licences](docs/LICENCES.md) · [Privacy policy](docs/PRIVACY.md)
 
 ## Set it up
 
