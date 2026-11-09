@@ -126,17 +126,24 @@ void main() {
     AppState asRole(String role) => AppState(Api())..org = {'id': 'g1', 'my_role': role};
     final member = asRole('member'), treasurer = asRole('treasurer');
     test('finds pages by words', () {
-      expect(searchPages('licence', member.canSee).first, AppPage.licences);
+      expect(searchPages('licence', treasurer.canSee).first, AppPage.licences);
       expect(searchPages('momo', member.canSee).first, AppPage.channels);
       expect(searchPages('x', member.canSee), isEmpty);
     });
     test('hides officer pages from members', () {
       expect(searchPages('checker', member.canSee), isEmpty);
+      expect(searchPages('licence', member.canSee), isEmpty);
+      expect(member.canSee(AppPage.ledger), isFalse);
+      expect(member.canSee(AppPage.members), isFalse);
+      expect(member.canSee(AppPage.settings), isFalse);
       expect(searchPages('checker', treasurer.canSee).first, AppPage.approvals);
     });
     test('only the platform owner sees all groups', () {
-      expect(treasurer.canSee(AppPage.platform), isFalse);
-      expect(asRole('platform_admin').canSee(AppPage.platform), isTrue);
+      expect((treasurer..onWeb = true).canSee(AppPage.platform), isFalse);
+      expect((asRole('platform_admin')..onWeb = true).canSee(AppPage.platform), isTrue);
+    });
+    test('owner tools show on the website only, never in the phone app', () {
+      expect((asRole('platform_admin')..onWeb = false).canSee(AppPage.platform), isFalse);
     });
   });
 

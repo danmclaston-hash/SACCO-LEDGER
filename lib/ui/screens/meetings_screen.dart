@@ -99,7 +99,8 @@ class MeetingsScreen extends StatelessWidget {
                 gap,
                 for (final a in attendance)
                   InkWell(
-                    onTap: st.role.canRunMeetings ? () => runAndTell(context, () => st.api.setAttendance(open.s('id'), a.s('member_id'), !a.b('present'))) : null,
+                    onTap:
+                        st.role.canRunMeetings ? () => runAndTell(context, () => st.api.setAttendance(open.s('id'), a.s('member_id'), !a.b('present'))) : null,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 6),
                       child: Row(

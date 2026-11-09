@@ -142,12 +142,12 @@ class MembersScreen extends StatelessWidget {
             : runAndClose(
                 ctx,
                 () => st.api.updateMember(m.s('id'), {
-                  'full_name': name.text,
-                  'phone': Phones.normalize(phone.text, dial: st.dial) ?? '',
-                  'national_id': nin.text,
-                  'role': role.code,
-                  'is_active': active,
-                }),
+                      'full_name': name.text,
+                      'phone': Phones.normalize(phone.text, dial: st.dial) ?? '',
+                      'national_id': nin.text,
+                      'role': role.code,
+                      'is_active': active,
+                    }),
                 done: 'Saved.'),
       ),
     );

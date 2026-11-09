@@ -133,7 +133,8 @@ void main() {
     ..org = {'id': 'g1', 'name': 'Test Group', 'currency_code': 'UGX', 'my_role': role, 'my_member_id': 'm1', 'share_price': 5000, 'edition': 'tier_1_vsla'};
 
   Future<void> openPayment(WidgetTester t, AppState st, {bool online = false}) async {
-    await t.pumpWidget(app(st, Builder(builder: (c) => Scaffold(body: TextButton(onPressed: () => showPaymentDialog(c, online: online), child: const Text('go'))))));
+    await t.pumpWidget(
+        app(st, Builder(builder: (c) => Scaffold(body: TextButton(onPressed: () => showPaymentDialog(c, online: online), child: const Text('go'))))));
     await t.tap(find.text('go'));
     await t.pumpAndSettle();
   }
@@ -172,17 +173,30 @@ void main() {
     await phone(t);
     await t.pumpWidget(app(inGroup('member'), const MobileShell()));
     await t.pumpAndSettle();
-    expect(find.byType(NavigationDestination), findsNWidgets(7));
-    expect(find.text('Channels'), findsOneWidget);
+    // Four tabs and More. A member gets Pay; officer pages are not offered.
+    expect(find.byType(NavigationDestination), findsNWidgets(5));
+    expect(find.text('Pay'), findsWidgets);
+    expect(find.text('Approvals'), findsNothing);
+    await t.tap(find.text('More'));
+    await t.pumpAndSettle();
+    expect(find.text('Statements'), findsOneWidget);
+    for (final p in [AppPage.members, AppPage.ledger, AppPage.settings, AppPage.licences, AppPage.platform]) {
+      expect(find.text(p.tab), findsNothing);
+    }
+    await t.tapAt(const Offset(10, 10));
+    await t.pumpAndSettle();
+
+    await t.pumpWidget(app(inGroup('treasurer'), const MobileShell()));
+    await t.pumpAndSettle();
+    expect(find.text('Approvals'), findsWidgets);
 
     t.view.physicalSize = const Size(1280 * 3, 900 * 3);
     final admin = inGroup('treasurer');
-    await t.pumpWidget(app(admin, const AdminShell()));
+    await t.pumpWidget(app(admin, const WideShell()));
     await t.pumpAndSettle();
     for (final p in [AppPage.approvals, AppPage.members, AppPage.settings]) {
       expect(find.text(p.title), findsWidgets);
     }
-    expect(find.text(AppPage.channels.title), findsNothing);
     expect(find.text(AppPage.platform.title), findsNothing);
   });
 

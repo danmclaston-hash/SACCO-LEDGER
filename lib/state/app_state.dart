@@ -63,6 +63,10 @@ class AppState extends ChangeNotifier {
   StreamSubscription? _authSub;
   Json account = {};
   ThemeMode themeMode = ThemeMode.system;
+  AppLook look = AppLook.emerald;
+
+  /// True in a browser. Tests set it to try both sides.
+  bool onWeb = kIsWeb;
 
   /// Phone code at sign-in (UG, KE, TZ, RW). Groups have their own country.
   String country = 'UG';
@@ -103,7 +107,8 @@ class AppState extends ChangeNotifier {
   bool canSee(AppPage p) => switch (p.audience) {
         Audience.everyone => true,
         Audience.officers => role.isOfficer,
-        Audience.platform => canSeeAllGroups,
+        // Owner and developer tools live on the website only. The database checks the owner again on every call.
+        Audience.platform => canSeeAllGroups && onWeb,
       };
 
   List<Json> get activeGoals => goals.where((g) => g.s('status') == 'active').toList();
@@ -163,17 +168,20 @@ class AppState extends ChangeNotifier {
     if (p['country'] != null) country = countryByCode(p.s('country')).code;
     if (p['show_tips'] != null) showTips = p['show_tips'] == true;
     if (p['tour_done'] != null) tourDone = p['tour_done'] == true;
+    if (p['look'] != null) look = AppLook.parse(p.s('look'));
   }
 
   Json get _look => {'theme': themeMode.name, 'text_scale': textScale, 'language': language.name};
-  Json get _prefsJson => {'country': country, 'show_tips': showTips, 'tour_done': tourDone};
+  Json get _prefsJson => {'country': country, 'show_tips': showTips, 'tour_done': tourDone, 'look': look.code};
 
   /// The group's phone code (+256...), or the person's own country before they join a group.
   String get dial => countryByCode(org?.n('country_code') ?? country).dial;
 
   /// Changes how the app looks and behaves for this person. Offline, it is kept on the phone and sent next time.
-  Future<String?> updateSettings({ThemeMode? theme, double? scale, AppLanguage? language, String? country, bool? showTips, bool? tourDone}) async {
+  Future<String?> updateSettings(
+      {ThemeMode? theme, AppLook? look, double? scale, AppLanguage? language, String? country, bool? showTips, bool? tourDone}) async {
     if (theme != null) themeMode = theme;
+    if (look != null) this.look = look;
     if (scale != null) textScale = scale;
     if (language != null) this.language = language;
     if (country != null) this.country = country;
@@ -184,7 +192,7 @@ class AppState extends ChangeNotifier {
     if (!signedIn) return null;
     try {
       if (theme != null || scale != null || language != null) await api.updateMyProfile(_look);
-      if (country != null || showTips != null || tourDone != null) await api.updateMyPrefs(_prefsJson);
+      if (country != null || showTips != null || tourDone != null || look != null) await api.updateMyPrefs(_prefsJson);
       return null;
     } on ApiError catch (e) {
       return e.isNetwork ? null : e.message;

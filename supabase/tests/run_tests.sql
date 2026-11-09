@@ -642,3 +642,14 @@ reset role;
 select t.fails($$set role authenticated; select public.hook_before_user_created('{}')$$,'permission denied','app users cannot call the gatekeeper');
 reset role;
 select t.ok((select count(*) from public.platform_audit where action in ('BLOCK_ACCOUNT','UNBLOCK_ACCOUNT'))=2,'blocking is in the history');
+
+-- ---------- Look ----------
+\i ../migrations/20261110000000_look.sql
+set role authenticated; select t.as_user(t.id('ann_u'));
+select public.update_my_prefs('{"look":"passbook"}');
+select t.ok((select public.get_my_account()->'prefs'->>'look')='passbook','a person saves the look they picked');
+select t.fails($$select public.update_my_prefs('{"look":"<script>"}')$$,'Unknown look','only known looks are saved');
+select t.ok((select public.get_my_account()->'prefs'->>'look')='passbook','a bad look leaves the saved one alone');
+reset role;
+select t.fails($$set role anon; select public.update_my_prefs('{"look":"emerald"}')$$,'permission denied','signed-out visitors cannot save preferences');
+reset role;

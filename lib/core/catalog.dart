@@ -60,8 +60,7 @@ enum Purpose {
   /// Money leaving the group: only money officers record it, and never through online payment.
   bool get isPayout => this == withdrawal || this == expense;
 
-  static List<Purpose> choices({required bool handlesMoney, required bool online}) =>
-      values.where((p) => !p.isPayout || (handlesMoney && !online)).toList();
+  static List<Purpose> choices({required bool handlesMoney, required bool online}) => values.where((p) => !p.isPayout || (handlesMoney && !online)).toList();
 }
 
 enum Channel {
@@ -103,4 +102,17 @@ enum Edition {
 
   static Edition parse(String? code) => values.firstWhere((e) => e.code == code, orElse: () => vsla);
   String get label => '$tier: $title';
+}
+
+/// The looks a person can pick in My Account. Each has a light and a dark side.
+enum AppLook {
+  emerald('emerald', 'Emerald and Gold', 'Green and gold, soft corners'),
+  passbook('passbook', 'Passbook', 'Ink blue on paper, like a bank book');
+
+  final String code;
+  final String label;
+  final String hint;
+  const AppLook(this.code, this.label, this.hint);
+
+  static AppLook parse(String? code) => values.firstWhere((l) => l.code == code, orElse: () => emerald);
 }

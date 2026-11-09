@@ -2,9 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'core/catalog.dart';
 import 'core/config.dart';
-import 'core/json.dart';
 import 'data/api.dart';
 import 'state/app_state.dart';
 import 'ui/screens/auth_screen.dart';
@@ -38,8 +36,8 @@ class SaccoApp extends StatelessWidget {
           builder: (context, _) => MaterialApp(
             title: 'SACCO Ledger',
             debugShowCheckedModeBanner: false,
-            theme: lightTheme,
-            darkTheme: darkTheme,
+            theme: themeFor(state.look, Brightness.light),
+            darkTheme: themeFor(state.look, Brightness.dark),
             themeMode: state.themeMode,
             builder: (context, child) {
               final mq = MediaQuery.of(context);
@@ -91,14 +89,10 @@ class _Root extends StatelessWidget {
     if (!st.signedIn) return const AuthScreen();
     if (st.locked) return const LockScreen();
     if (st.org == null) return const OnboardingScreen();
-    // FORCE_MOBILE lets a developer see the phone layout in Chrome. Real web builds never set it.
+    // One app for everyone. A wide browser window gets the side menu; phones and narrow windows get the phone layout.
+    // What a person can open depends on their role, never on the device. FORCE_MOBILE shows the phone layout in Chrome.
     const forceMobile = bool.fromEnvironment('FORCE_MOBILE');
-    if (kIsWeb && !forceMobile) {
-      // The web address is the admin portal. Members use the phone app.
-      final anyOfficer = st.orgs.any((o) => Role.parse(o.s('my_role')).isOfficer);
-      if (!anyOfficer) return const MembersUseAppScreen();
-      return const TourGate(child: AdminShell());
-    }
-    return const TourGate(child: MobileShell());
+    final wide = kIsWeb && !forceMobile && MediaQuery.sizeOf(context).width >= 840;
+    return TourGate(child: wide ? const WideShell() : const MobileShell());
   }
 }

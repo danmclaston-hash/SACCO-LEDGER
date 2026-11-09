@@ -120,7 +120,8 @@ class _AdminsCardState extends State<AdminsCard> {
       builder: (context, d) {
         final owner = d.b('me_owner');
         final q = filter.trim().toLowerCase();
-        final people = d.l('people').where((u) => q.isEmpty || u.s('email').toLowerCase().contains(q) || (u.n('name') ?? '').toLowerCase().contains(q)).toList();
+        final people =
+            d.l('people').where((u) => q.isEmpty || u.s('email').toLowerCase().contains(q) || (u.n('name') ?? '').toLowerCase().contains(q)).toList();
         final shown = showAll || q.isNotEmpty ? people : people.take(10).toList();
         final unproved = d.l('people').where((u) => !u.b('checked') && !u.b('blocked')).length;
         Widget roleChip(String r) => Pill(text: r == 'owner' ? 'OWNER' : 'ADMIN', color: r == 'owner' ? cs.primary : cs.secondary);
@@ -133,9 +134,7 @@ class _AdminsCardState extends State<AdminsCard> {
                 Expanded(child: Text('Platform team (${d.l('admins').length})', style: tt.titleSmall?.copyWith(fontWeight: FontWeight.bold))),
               ]),
               Text(
-                owner
-                    ? 'You are an owner: you can add people, make them owner or admin, and remove them.'
-                    : 'Only owners can change the team.',
+                owner ? 'You are an owner: you can add people, make them owner or admin, and remove them.' : 'Only owners can change the team.',
                 style: tt.bodySmall,
               ),
               const SizedBox(height: 4),

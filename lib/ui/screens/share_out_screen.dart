@@ -26,7 +26,8 @@ class _Example {
 const _examples = [
   _Example('A', 'Example A (Ann, Ben, Cy)', 40083, 5000,
       [ShareOutInput('ann', 'Ann Namubiru', 20000), ShareOutInput('ben', 'Ben Okello', 10000), ShareOutInput('cy', 'Cy Mugisha', 10000)]),
-  _Example('B', 'Example B (Pool 100 -> 34, 33, 33)', 100, 0, [ShareOutInput('a', 'Member A', 10), ShareOutInput('b', 'Member B', 10), ShareOutInput('c', 'Member C', 10)]),
+  _Example('B', 'Example B (Pool 100 -> 34, 33, 33)', 100, 0,
+      [ShareOutInput('a', 'Member A', 10), ShareOutInput('b', 'Member B', 10), ShareOutInput('c', 'Member C', 10)]),
 ];
 
 class _ShareOutScreenState extends State<ShareOutScreen> {

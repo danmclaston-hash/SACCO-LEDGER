@@ -14,7 +14,7 @@ Read also: [Simple plan](docs/PLAN.md) · [Licences](docs/LICENCES.md)
 ### Step 1: Make the database
 **Why:** every phone and browser shares this one record book.
 1. Go to [supabase.com](https://supabase.com), sign up, click **New project**. Pick the region closest to Uganda. Save the database password somewhere private. **Never share it.**
-2. Open **SQL Editor**. Paste all of `supabase/migrations/20261106000000_init.sql` and click **Run**. Then do the same with `20261107000000_accounts.sql`, then `20261107000100_hardening.sql`, then `20261107000200_owner.sql`, then `20261107000300_goals.sql`, then `20261107000400_online_payments.sql`, then `20261107000500_countries_prefs.sql`, then `20261107000600_loan_rules.sql`, then `20261107000700_owners_shared_demo.sql`. Order matters: each file needs the one before.
+2. Open **SQL Editor**. Paste all of `supabase/migrations/20261106000000_init.sql` and click **Run**. Then do the same with `20261107000000_accounts.sql`, then `20261107000100_hardening.sql`, then `20261107000200_owner.sql`, then `20261107000300_goals.sql`, then `20261107000400_online_payments.sql`, then `20261107000500_countries_prefs.sql`, then `20261107000600_loan_rules.sql`, then `20261107000700_owners_shared_demo.sql`, then `20261107000800_real_emails.sql`, then `20261110000000_look.sql`. Order matters: each file needs the one before.
 3. Open **Authentication → Providers (or Sign In) → Email** and leave **Confirm email** on, so every new email account must click a link before it can sign in (see Step 8).
 
 **Check it worked:** **Table Editor** shows `journals`, `members`, `audit_log` and others.

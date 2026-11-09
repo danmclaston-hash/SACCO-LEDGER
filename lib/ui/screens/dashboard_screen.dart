@@ -9,6 +9,7 @@ import '../shells.dart';
 import '../theme.dart';
 import '../widgets.dart';
 import 'goals_screen.dart';
+import 'home_screen.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -16,6 +17,7 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final st = StateScope.of(context);
+    if (!st.role.isOfficer && !st.canSeeAllGroups) return const MemberHome();
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final d = st.dash;
@@ -163,9 +165,12 @@ class DashboardScreen extends StatelessWidget {
               icon: const Icon(Icons.add_circle_outline, size: 16),
               label: const Text('Record Payment'),
             ),
-            for (final p in const [AppPage.meetings, AppPage.goals]) FilledButton.tonalIcon(onPressed: () => st.goTo(p), icon: Icon(pageIcon(p), size: 16), label: Text(st.t(p.title))),
+            for (final p in const [AppPage.meetings, AppPage.goals])
+              FilledButton.tonalIcon(onPressed: () => st.goTo(p), icon: Icon(pageIcon(p), size: 16), label: Text(st.t(p.title))),
             for (final p in const [AppPage.loans, AppPage.statements, AppPage.approvals, AppPage.members, AppPage.licences, AppPage.settings])
-              if (st.canSee(p)) OutlinedButton.icon(onPressed: () => st.goTo(p), icon: Icon(pageIcon(p), size: 16), label: Text(st.t(p.title))),
+              // A phone has these in the bottom bar and under More, so the home stays short.
+              if (st.canSee(p) && MediaQuery.sizeOf(context).width >= 600)
+                OutlinedButton.icon(onPressed: () => st.goTo(p), icon: Icon(pageIcon(p), size: 16), label: Text(st.t(p.title))),
             if (!st.role.isOfficer) OutlinedButton.icon(onPressed: st.signOut, icon: const Icon(Icons.logout, size: 16), label: const Text('Sign out')),
           ],
         ),

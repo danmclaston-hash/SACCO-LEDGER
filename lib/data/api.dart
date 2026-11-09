@@ -84,9 +84,8 @@ class Api {
       });
 
   /// Sends the "confirm your email" link again.
-  Future<void> resendConfirmation(String email) =>
-      _guard(() => _c.auth.resend(type: OtpType.signup, email: email, emailRedirectTo: _backHere),
-          auth: (e) => e.statusCode == '429' ? 'Please wait a minute before asking for another email.' : e.message);
+  Future<void> resendConfirmation(String email) => _guard(() => _c.auth.resend(type: OtpType.signup, email: email, emailRedirectTo: _backHere),
+      auth: (e) => e.statusCode == '429' ? 'Please wait a minute before asking for another email.' : e.message);
 
   /// [everywhere] also ends sessions on every other phone and browser.
   Future<void> signOut({bool everywhere = false}) => _c.auth.signOut(scope: everywhere ? SignOutScope.global : SignOutScope.local);
@@ -259,8 +258,7 @@ class Api {
 
   Future<Json> platformAdmins() async => asJson(await _rpc('list_platform_admins'));
   Future<List<Json>> searchUsers(String q) async => asJsonList(await _rpc('search_users', {'p_q': q}));
-  Future<Json> addPlatformAdmin(String email, {String role = 'admin'}) async =>
-      asJson(await _rpc('add_platform_admin', {'p_email': email, 'p_role': role}));
+  Future<Json> addPlatformAdmin(String email, {String role = 'admin'}) async => asJson(await _rpc('add_platform_admin', {'p_email': email, 'p_role': role}));
   Future<void> setPlatformRole(String userId, String role) => _rpc('set_platform_role', {'p_user': userId, 'p_role': role});
   Future<void> removePlatformAdmin(String userId) => _rpc('remove_platform_admin', {'p_user': userId});
 

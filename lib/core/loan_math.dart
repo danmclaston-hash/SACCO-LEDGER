@@ -48,7 +48,14 @@ class LoanTerms {
 
   /// The database names the interest columns differently on a group and on a loan, and keeps an older
   /// whole-number rate column beside the new one. Late-fee columns have the same names on both.
-  factory LoanTerms._read(Map<String, dynamic> j, {required String mode, required String rate, required String oldRate, required String calc, required String free, required String plan, required double defaultRate}) =>
+  factory LoanTerms._read(Map<String, dynamic> j,
+          {required String mode,
+          required String rate,
+          required String oldRate,
+          required String calc,
+          required String free,
+          required String plan,
+          required double defaultRate}) =>
       LoanTerms(
         interestMode: j[mode]?.toString() ?? 'yearly',
         rate: _d(j[rate] ?? j[oldRate], defaultRate),
@@ -65,11 +72,23 @@ class LoanTerms {
 
   /// The group's rules (organizations row).
   factory LoanTerms.fromGroup(Map<String, dynamic> o) => LoanTerms._read(o,
-      mode: 'loan_interest_mode', rate: 'loan_interest_rate', oldRate: 'default_interest_rate_pct', calc: 'loan_calculation', free: 'loan_free_months', plan: 'loan_repayment_plan', defaultRate: 10);
+      mode: 'loan_interest_mode',
+      rate: 'loan_interest_rate',
+      oldRate: 'default_interest_rate_pct',
+      calc: 'loan_calculation',
+      free: 'loan_free_months',
+      plan: 'loan_repayment_plan',
+      defaultRate: 10);
 
   /// One loan's own rules.
   factory LoanTerms.fromLoan(Map<String, dynamic> l) => LoanTerms._read(l,
-      mode: 'interest_mode', rate: 'interest_rate', oldRate: 'interest_rate_pct', calc: 'calculation_type', free: 'free_months', plan: 'repayment_plan', defaultRate: 0);
+      mode: 'interest_mode',
+      rate: 'interest_rate',
+      oldRate: 'interest_rate_pct',
+      calc: 'calculation_type',
+      free: 'free_months',
+      plan: 'repayment_plan',
+      defaultRate: 0);
 
   Map<String, dynamic> toJson() => {
         'interest_mode': interestMode,

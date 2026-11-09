@@ -18,13 +18,14 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final st = StateScope.of(context);
-    final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final org = st.org;
-    // Brand bar stays emerald in light and dark, with white text, like the original app.
+    final look = SaccoLook.of(context);
+    // Narrow screens keep only what is needed: the group, search and the person. The rest lives in My Account.
+    final roomy = MediaQuery.sizeOf(context).width >= 600;
     return Material(
-      color: saccoEmerald,
-      elevation: 4,
+      color: look.brand,
+      elevation: 0,
       child: SafeArea(
         bottom: false,
         child: Padding(
@@ -55,7 +56,7 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
                   ],
                   child: Row(
                     children: [
-                      Icon(Icons.account_balance, size: 20, color: cs.secondary),
+                      Icon(Icons.account_balance, size: 20, color: look.accent),
                       const SizedBox(width: 6),
                       Flexible(
                         child: Column(
@@ -68,7 +69,8 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
                               overflow: TextOverflow.ellipsis,
                               style: tt.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: Colors.white),
                             ),
-                            Text(Edition.parse(org?.s('edition')).tier, maxLines: 1, overflow: TextOverflow.ellipsis, style: tt.labelSmall?.copyWith(color: cs.secondary)),
+                            Text(Edition.parse(org?.s('edition')).tier,
+                                maxLines: 1, overflow: TextOverflow.ellipsis, style: tt.labelSmall?.copyWith(color: look.onBrandMuted)),
                           ],
                         ),
                       ),
@@ -82,27 +84,29 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
                 icon: Icon(Icons.search, color: Colors.white),
                 onPressed: () => showSearchScreen(context),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(color: cs.secondary, borderRadius: BorderRadius.circular(12)),
-                child: Text(
-                  st.currency,
-                  style: tt.labelSmall?.copyWith(fontWeight: FontWeight.bold, color: Colors.black),
+              if (roomy) ...[
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(color: look.accent, borderRadius: BorderRadius.circular(look.isPassbook ? 4 : 12)),
+                  child: Text(
+                    st.currency,
+                    style: tt.labelSmall?.copyWith(fontWeight: FontWeight.bold, color: look.onAccent),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 6),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(16)),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.badge, size: 16, color: Colors.white),
-                    const SizedBox(width: 4),
-                    Text(st.role.short, style: tt.labelMedium?.copyWith(color: Colors.white)),
-                  ],
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.14), borderRadius: BorderRadius.circular(look.isPassbook ? 4 : 16)),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.badge, size: 16, color: Colors.white),
+                      const SizedBox(width: 4),
+                      Text(st.role.short, style: tt.labelMedium?.copyWith(color: Colors.white)),
+                    ],
+                  ),
                 ),
-              ),
+              ],
               IconButton(
                 tooltip: st.t(AppPage.account.title),
                 onPressed: () => st.goTo(AppPage.account),
@@ -114,5 +118,4 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
       ),
     );
   }
-
 }

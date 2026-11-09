@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../core/app_lock.dart';
 import '../../core/json.dart';
+import '../motion.dart';
 import '../theme.dart';
 import '../widgets.dart';
 import 'account_screen.dart';
@@ -66,11 +67,11 @@ class _LockScreenState extends State<LockScreen> {
   @override
   Widget build(BuildContext context) {
     final st = StateScope.of(context);
-    final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final a = st.account;
+    final look = SaccoLook.of(context);
     return Scaffold(
-      backgroundColor: saccoEmerald,
+      backgroundColor: look.brand,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -83,9 +84,9 @@ class _LockScreenState extends State<LockScreen> {
                   const SizedBox(height: 12),
                   Text(
                     a.s('full_name').isEmpty ? 'Welcome back' : 'Hello, ${a.s('full_name').split(' ').first}',
-                    style: tt.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+                    style: tt.titleLarge?.copyWith(color: look.onBrand, fontWeight: FontWeight.bold),
                   ),
-                  Text('Enter your app PIN', style: tt.bodyMedium?.copyWith(color: saccoGoldLight)),
+                  Text('Enter your app PIN', style: tt.bodyMedium?.copyWith(color: look.onBrandMuted)),
                   const SizedBox(height: 20),
                   Semantics(
                     label: '${pin.length} numbers typed',
@@ -100,7 +101,7 @@ class _LockScreenState extends State<LockScreen> {
                             height: 14,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: i < pin.length ? saccoGold : Colors.transparent,
+                              color: i < pin.length ? look.accent : Colors.transparent,
                               border: Border.all(color: i < PinLock.minLength ? Colors.white : Colors.white54, width: 2),
                             ),
                           ),
@@ -133,7 +134,7 @@ class _LockScreenState extends State<LockScreen> {
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton(
-                      style: FilledButton.styleFrom(backgroundColor: saccoGold, foregroundColor: Colors.black, minimumSize: const Size.fromHeight(48)),
+                      style: FilledButton.styleFrom(backgroundColor: look.accent, foregroundColor: look.onAccent, minimumSize: const Size.fromHeight(52)),
                       onPressed: busy ? null : _submit,
                       child: busy ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Unlock'),
                     ),
@@ -144,7 +145,7 @@ class _LockScreenState extends State<LockScreen> {
                     onPressed: st.signOut,
                     child: const Text('Forgot PIN? Sign in with password'),
                   ),
-                  Text('The PIN lives only on this phone.', style: tt.bodySmall?.copyWith(color: cs.onPrimary.withValues(alpha: 0.7))),
+                  Text('The PIN lives only on this phone.', style: tt.bodySmall?.copyWith(color: look.onBrandMuted)),
                 ],
               ),
             ),
@@ -163,16 +164,17 @@ class _Key extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (k == 'bio' && !bio) return const SizedBox(width: 72, height: 72);
+    if (k == 'bio' && !bio) return const SizedBox(width: 84, height: 84);
+    final accent = SaccoLook.of(context).accent;
     final child = switch (k) {
-      'bio' => const Icon(Icons.fingerprint, color: Colors.white, size: 30),
+      'bio' => Icon(Icons.fingerprint, color: accent, size: 34),
       '<' => const Icon(Icons.backspace_outlined, color: Colors.white),
       _ => Text(
           k,
           style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w500),
         ),
     };
-    return Padding(
+    final key = Padding(
       padding: const EdgeInsets.all(6),
       child: Semantics(
         button: true,
@@ -193,5 +195,7 @@ class _Key extends StatelessWidget {
         ),
       ),
     );
+    if (k != 'bio') return key;
+    return SizedBox(width: 84, height: 84, child: OverflowBox(maxWidth: 108, maxHeight: 108, child: PulseRing(size: 72, color: accent, child: key)));
   }
 }

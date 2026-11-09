@@ -5,7 +5,8 @@ library;
 enum Audience { everyone, officers, platform }
 
 enum AppPage {
-  overview('Overview', 'Group money position and risk', ['dashboard', 'home', 'balance', 'cash', 'lockbox', 'par', 'risk', 'liquidity', 'health', 'score']),
+  overview('Overview', 'Group money position and risk', ['dashboard', 'home', 'balance', 'cash', 'lockbox', 'par', 'risk', 'liquidity', 'health', 'score'],
+      tab: 'Home'),
   approvals('Approvals', 'Payment records waiting for a second person', ['approve', 'confirm', 'reject', 'pending', 'review', 'queue', 'maker', 'checker'],
       audience: Audience.officers),
   goals('Goals', 'Plan a savings target, see who brings how much, track progress',
@@ -13,24 +14,30 @@ enum AppPage {
   members('Members', 'People, roles, invite codes',
       ['member', 'people', 'role', 'treasurer', 'secretary', 'invite', 'code', 'phone', 'nin', 'next of kin', 'password', 'reset'],
       audience: Audience.officers),
-  meetings('Meetings', 'Open, attendance, quorum, cash count, minutes', ['meeting', 'quorum', 'attendance', 'minutes', 'count', 'reconcile', 'fine', 'counter']),
-  loans('Loans', 'Apply, approve, pay out, repayments, arrears', ['loan', 'borrow', 'credit', 'witness', 'guarantor', 'interest', 'repay', 'arrears', 'schedule', 'disburse']),
+  meetings(
+      'Meetings', 'Open, attendance, quorum, cash count, minutes', ['meeting', 'quorum', 'attendance', 'minutes', 'count', 'reconcile', 'fine', 'counter']),
+  loans('Loans', 'Apply, approve, pay out, repayments, arrears',
+      ['loan', 'borrow', 'credit', 'witness', 'guarantor', 'interest', 'repay', 'arrears', 'schedule', 'disburse']),
   emergency('Emergency', 'Separate welfare pot and relief claims', ['emergency', 'welfare', 'relief', 'claim', 'hospital', 'funeral', 'social']),
-  ledger('Ledger & Audit', 'Journals, trial balance, tamper check', ['ledger', 'journal', 'audit', 'trial balance', 'reversal', 'reverse', 'history', 'hash', 'trail'],
-      tab: 'Ledger'),
+  ledger('Ledger & Audit', 'Journals, trial balance, tamper check',
+      ['ledger', 'journal', 'audit', 'trial balance', 'reversal', 'reverse', 'history', 'hash', 'trail'],
+      audience: Audience.officers, tab: 'Ledger'),
   statements('Statements', 'Who paid what, by cycle. PDF and CSV', ['statement', 'report', 'pdf', 'csv', 'export', 'print', 'cycle', 'circle', 'transactions']),
   shareOut('Share-Out', 'End of cycle payouts, largest remainder', ['share out', 'shareout', 'cycle', 'circle', 'payout', 'dividend', 'profit', 'close cycle']),
-  // Paying and recording happens on the phone, so the admin website leaves this page out.
   channels('Channels', 'Pay with MoMo or Airtel, then record the transaction ID',
       ['pay', 'payment', 'momo', 'mtn', 'airtel', 'ussd', '165', '185', 'mobile money', 'deposit', 'shares', 'savings', 'record', 'transaction'],
-      onWeb: false),
+      tab: 'Pay'),
   licences('Licences', 'Which licences apply, your group licence and expiry',
-      ['licence', 'license', 'umra', 'bank of uganda', 'bou', 'nita', 'pdpo', 'data protection', 'fia', 'aml', 'legal', 'compliance', 'registration']),
-  settings('Group Settings', 'Share price, loan limit, interest, quorum', ['settings', 'share price', 'interest rate', 'multiplier', 'quorum', 'merchant', 'group'],
+      ['licence', 'license', 'umra', 'bank of uganda', 'bou', 'nita', 'pdpo', 'data protection', 'fia', 'aml', 'legal', 'compliance', 'registration'],
+      audience: Audience.officers),
+  settings(
+      'Group Settings', 'Share price, loan limit, interest, quorum', ['settings', 'share price', 'interest rate', 'multiplier', 'quorum', 'merchant', 'group'],
       audience: Audience.officers),
   account('My Account', 'Profile, password, PIN lock, theme, text size, my data', [
-    'account', 'profile', 'my', 'photo', 'password', 'pin', 'lock', 'fingerprint', 'security', 'sign in', 'devices', //
-    'theme', 'dark', 'text size', 'language', 'privacy', 'download', 'delete', 'close account',
+    'account', 'profile', 'my', 'photo', 'password', 'pin', 'lock',
+    'fingerprint', 'security', 'sign in', 'devices', //
+    'theme', 'dark', 'text size', 'language', 'privacy', 'download', 'delete',
+    'close account',
   ]),
   platform('All groups', 'Every group on the platform, administrators, account closing requests', ['all groups', 'platform', 'administrator', 'owner'],
       audience: Audience.platform);
@@ -40,8 +47,7 @@ enum AppPage {
   final List<String> words;
   final Audience audience;
   final String? _tab;
-  final bool onWeb;
-  const AppPage(this.title, this.hint, this.words, {this.audience = Audience.everyone, String? tab, this.onWeb = true}) : _tab = tab;
+  const AppPage(this.title, this.hint, this.words, {this.audience = Audience.everyone, String? tab}) : _tab = tab;
 
   /// Shorter name for the phone's bottom bar.
   String get tab => _tab ?? title;

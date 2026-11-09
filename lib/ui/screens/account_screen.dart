@@ -22,7 +22,7 @@ void openAccount(BuildContext context) {
   Navigator.of(context).push(
     MaterialPageRoute(
       builder: (_) => Scaffold(
-        appBar: AppBar(title: const Text('My Account'), backgroundColor: saccoEmerald, foregroundColor: Colors.white),
+        appBar: AppBar(title: const Text('My Account'), backgroundColor: SaccoLook.of(context).brand, foregroundColor: Colors.white),
         body: const AccountScreen(),
       ),
     ),
@@ -71,7 +71,6 @@ class AccountScreen extends StatelessWidget {
   }
 }
 
-
 class Avatar extends StatelessWidget {
   final String name;
   final String? photo;
@@ -88,11 +87,11 @@ class Avatar extends StatelessWidget {
     }
     return CircleAvatar(
       radius: size / 2,
-      backgroundColor: saccoGold,
+      backgroundColor: SaccoLook.of(context).accent,
       foregroundImage: bytes == null ? null : MemoryImage(bytes),
       child: Text(
         initials(name),
-        style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: size * 0.38),
+        style: TextStyle(color: SaccoLook.of(context).onAccent, fontWeight: FontWeight.bold, fontSize: size * 0.38),
       ),
     );
   }
@@ -106,8 +105,9 @@ class _Header extends StatelessWidget {
     final a = st.account;
     final tt = Theme.of(context).textTheme;
     final groups = a.l('memberships').where((m) => m.b('is_active')).toList();
+    final look = SaccoLook.of(context);
     return SaccoCard(
-      color: saccoEmerald,
+      color: look.brand,
       child: Row(
         children: [
           Avatar(name: a.s('full_name'), photo: a.n('avatar'), size: 64),
@@ -121,15 +121,14 @@ class _Header extends StatelessWidget {
                   style: tt.titleLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 2),
-                Text('Signs in with ${Phones.signInLabel(a.s('sign_in_id'))}', style: tt.bodySmall?.copyWith(color: saccoGoldLight)),
+                Text('Signs in with ${Phones.signInLabel(a.s('sign_in_id'))}', style: tt.bodySmall?.copyWith(color: look.onBrandMuted)),
                 const SizedBox(height: 8),
                 Wrap(
                   spacing: 6,
                   runSpacing: 6,
                   children: [
-                    for (final g in groups)
-                      Pill(text: '${g.s('org_name')} • ${Role.labelOf(g.s('role'))}', color: Colors.white.withValues(alpha: 0.16)),
-                    if (a.b('is_platform_admin')) const Pill(text: 'Platform Admin', color: saccoGold, foreground: Colors.black),
+                    for (final g in groups) Pill(text: '${g.s('org_name')} • ${Role.labelOf(g.s('role'))}', color: Colors.white.withValues(alpha: 0.16)),
+                    if (a.b('is_platform_admin')) Pill(text: 'Platform Admin', color: look.accent, foreground: look.onAccent),
                   ],
                 ),
               ],
@@ -140,7 +139,6 @@ class _Header extends StatelessWidget {
     );
   }
 }
-
 
 class _Section extends StatelessWidget {
   final IconData icon;
@@ -198,7 +196,6 @@ class _Row extends StatelessWidget {
         onTap: onTap,
       );
 }
-
 
 class _ProfileCard extends StatelessWidget {
   const _ProfileCard();
@@ -375,7 +372,6 @@ class _ProfileCard extends StatelessWidget {
   }
 }
 
-
 class _SecurityCard extends StatefulWidget {
   const _SecurityCard();
   @override
@@ -529,7 +525,6 @@ class _SecurityCardState extends State<_SecurityCard> {
   }
 }
 
-
 const _textSizes = <(double, String)>[(0.9, 'Small'), (1.0, 'Normal'), (1.15, 'Large'), (1.3, 'Extra large')];
 
 class _LookCard extends StatelessWidget {
@@ -554,7 +549,16 @@ class _LookCard extends StatelessWidget {
       title: 'Look and language',
       hint: 'Saved on your account, so it follows you to any phone.',
       children: [
-        label('Theme'),
+        label('Look'),
+        Row(
+          children: [
+            for (final l in AppLook.values) ...[
+              Expanded(child: _LookSwatch(l, selected: st.look == l, onTap: () => save(st.updateSettings(look: l)))),
+              if (l != AppLook.values.last) const SizedBox(width: 10),
+            ],
+          ],
+        ),
+        label('Light or dark'),
         SizedBox(
           width: double.infinity,
           child: SegmentedButton<ThemeMode>(
@@ -621,6 +625,80 @@ class _LookCard extends StatelessWidget {
   }
 }
 
+/// A small picture of a look: its page, its top strip and its main button.
+class _LookSwatch extends StatelessWidget {
+  final AppLook look;
+  final bool selected;
+  final VoidCallback onTap;
+  const _LookSwatch(this.look, {required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final t = themeFor(look, Theme.of(context).brightness);
+    final x = t.extension<SaccoLook>()!;
+    final shape = RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(x.radius * 0.7), side: BorderSide(color: selected ? cs.primary : cs.outlineVariant, width: selected ? 2.5 : 1));
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: '${look.label}: ${look.hint}',
+      excludeSemantics: true,
+      child: Material(
+        color: t.scaffoldBackgroundColor,
+        shape: shape,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Container(height: 26, color: x.brand),
+              Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(look.label,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontFamily: t.textTheme.bodyMedium?.fontFamily, fontWeight: FontWeight.w700, color: t.colorScheme.onSurface)),
+                        ),
+                        if (selected) Icon(Icons.check_circle, size: 18, color: t.colorScheme.primary),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Container(
+                            width: 44,
+                            height: 20,
+                            decoration:
+                                BoxDecoration(color: x.isPassbook ? t.colorScheme.primary : x.accent, borderRadius: BorderRadius.circular(x.radius * 0.3))),
+                        const SizedBox(width: 6),
+                        Container(
+                          width: 44,
+                          height: 20,
+                          decoration: BoxDecoration(
+                              color: t.colorScheme.surface,
+                              border: Border.all(color: t.colorScheme.outlineVariant),
+                              borderRadius: BorderRadius.circular(x.radius * 0.3)),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
 class _PrivacyCard extends StatelessWidget {
   const _PrivacyCard();

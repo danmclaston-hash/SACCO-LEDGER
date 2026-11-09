@@ -195,19 +195,30 @@ class InfoTip extends StatelessWidget {
 class SaccoCard extends StatelessWidget {
   final Widget child;
   final Color? color;
-  final double radius;
+
+  /// Null follows the look: soft corners for Emerald, sharp for Passbook.
+  final double? radius;
   final double elevation;
   final EdgeInsets padding;
-  const SaccoCard({super.key, required this.child, this.color, this.radius = 16, this.elevation = 0, this.padding = const EdgeInsets.all(16)});
+  const SaccoCard({super.key, required this.child, this.color, this.radius, this.elevation = 0, this.padding = const EdgeInsets.all(16)});
   @override
-  Widget build(BuildContext context) => Card(
-        margin: EdgeInsets.zero,
-        color: color ?? Theme.of(context).colorScheme.surface,
-        surfaceTintColor: Colors.transparent,
-        elevation: elevation,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(radius)),
-        child: Padding(padding: padding, child: child),
-      );
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final r = SaccoLook.of(context).radius;
+    return Card(
+      margin: EdgeInsets.zero,
+      color: color ?? cs.surface,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      clipBehavior: Clip.antiAlias,
+      // A plain card sits on the page by a hairline, not a shadow. A coloured card needs neither.
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(radius == null ? r : (radius! < r ? radius! : r)),
+        side: color == null ? BorderSide(color: cs.outlineVariant) : BorderSide.none,
+      ),
+      child: Padding(padding: padding, child: child),
+    );
+  }
 }
 
 class Pill extends StatelessWidget {
@@ -438,8 +449,7 @@ class ChannelFields extends StatelessWidget {
           isExpanded: true,
           decoration: const InputDecoration(labelText: 'How the money moved'),
           items: [
-            for (final c in Channel.byHand)
-              DropdownMenuItem(value: c, child: Row(children: [BrandMark(c.code), const SizedBox(width: 10), Text(c.label)])),
+            for (final c in Channel.byHand) DropdownMenuItem(value: c, child: Row(children: [BrandMark(c.code), const SizedBox(width: 10), Text(c.label)])),
           ],
           onChanged: (v) => onChanged(v ?? value),
         ),

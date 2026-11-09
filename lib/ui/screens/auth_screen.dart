@@ -8,6 +8,7 @@ import '../../core/countries.dart';
 import '../../core/i18n.dart';
 import '../../core/money.dart';
 import '../../data/api.dart';
+import '../motion.dart';
 import '../theme.dart';
 import '../widgets.dart';
 import 'account_screen.dart';
@@ -129,7 +130,7 @@ class _AuthScreenState extends State<AuthScreen> {
     final st = StateScope.of(context);
     final country = countryByCode(st.country);
     return Scaffold(
-      backgroundColor: saccoEmerald,
+      backgroundColor: SaccoLook.of(context).brand,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -139,149 +140,148 @@ class _AuthScreenState extends State<AuthScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.account_balance, size: 56, color: cs.secondary),
-                  const SizedBox(height: 8),
-                  Text(
-                    st.t('SACCO Ledger'),
-                    style: tt.headlineSmall?.copyWith(color: cs.onPrimary, fontWeight: FontWeight.bold),
-                  ),
-                  Text(kIsWeb ? 'Administrator portal' : 'Every shilling, on the record', style: tt.bodyMedium?.copyWith(color: saccoGoldLight)),
-                  const SizedBox(height: 20),
-                  SaccoCard(
-                    child: AutofillGroup(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          if (waitingFor != null) ...[
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(color: cs.primaryContainer, borderRadius: BorderRadius.circular(12)),
-                              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                Row(children: [
-                                  Icon(Icons.mark_email_unread_outlined, color: cs.onPrimaryContainer),
-                                  const SizedBox(width: 8),
-                                  Expanded(child: Text('Check your email', style: tt.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: cs.onPrimaryContainer))),
+                  BrandHeader(title: st.t('SACCO Ledger'), line: 'Every shilling, on the record'),
+                  const SizedBox(height: 24),
+                  RiseIn(
+                    delay: const Duration(milliseconds: 200),
+                    child: SaccoCard(
+                      child: AutofillGroup(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            if (waitingFor != null) ...[
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(color: cs.primaryContainer, borderRadius: BorderRadius.circular(12)),
+                                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                  Row(children: [
+                                    Icon(Icons.mark_email_unread_outlined, color: cs.onPrimaryContainer),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                        child: Text('Check your email',
+                                            style: tt.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: cs.onPrimaryContainer))),
+                                  ]),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'We sent a link to $waitingFor. Click it to prove the email is yours, then sign in here. '
+                                    'No email after a few minutes? Check Spam, or send it again.',
+                                    style: tt.bodyMedium?.copyWith(color: cs.onPrimaryContainer),
+                                  ),
+                                  Wrap(spacing: 8, children: [
+                                    TextButton.icon(onPressed: busy ? null : resend, icon: const Icon(Icons.refresh), label: const Text('Send the link again')),
+                                    TextButton(onPressed: () => setState(() => waitingFor = null), child: const Text('Use another email')),
+                                  ]),
                                 ]),
-                                const SizedBox(height: 6),
-                                Text(
-                                  'We sent a link to $waitingFor. Click it to prove the email is yours, then sign in here. '
-                                  'No email after a few minutes? Check Spam, or send it again.',
-                                  style: tt.bodyMedium?.copyWith(color: cs.onPrimaryContainer),
-                                ),
-                                Wrap(spacing: 8, children: [
-                                  TextButton.icon(onPressed: busy ? null : resend, icon: const Icon(Icons.refresh), label: const Text('Send the link again')),
-                                  TextButton(onPressed: () => setState(() => waitingFor = null), child: const Text('Use another email')),
-                                ]),
-                              ]),
-                            ),
-                            gap,
-                          ],
-                          Text(
-                              switch (mode) {
-                                _Mode.signIn => 'Sign in',
-                                _Mode.signUp => 'Create account',
-                                _Mode.reset => 'Forgot password',
-                              },
-                              style: tt.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
-                          gap,
-                          DropdownButtonFormField<String>(
-                            initialValue: st.country,
-                            isExpanded: true,
-                            decoration: const InputDecoration(labelText: 'Country', prefixIcon: Icon(Icons.public)),
-                            items: [
-                              for (final c in countries) DropdownMenuItem(value: c.code, child: Text('${c.flag}  ${c.name}  (+${c.dial})')),
+                              ),
+                              gap,
                             ],
-                            onChanged: (v) {
-                              if (v == null) return;
-                              st.updateSettings(country: v);
-                              if (mode == _Mode.signUp) {
-                                st.updateSettings(language: countryByCode(v).language);
-                              }
-                            },
-                          ),
-                          gap,
-                          TextField(
-                            controller: id,
-                            keyboardType: TextInputType.emailAddress,
-                            textInputAction: TextInputAction.next,
-                            autofillHints: const [AutofillHints.username],
-                            decoration: InputDecoration(
-                              labelText: mode == _Mode.signUp ? 'Email' : 'Phone or email',
-                              helperText: mode == _Mode.signUp
-                                  ? 'Your real email. We send a link to prove it is yours.'
-                                  : 'Phone like ${country.example} (we add +${country.dial}), or your email',
-                              prefixIcon: const Icon(Icons.person_outline),
-                            ),
-                          ),
-                          if (mode == _Mode.signUp) ...[
+                            Text(
+                                switch (mode) {
+                                  _Mode.signIn => 'Sign in',
+                                  _Mode.signUp => 'Create account',
+                                  _Mode.reset => 'Forgot password',
+                                },
+                                style: tt.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                             gap,
-                            Text('Language', style: tt.labelLarge),
-                            const SizedBox(height: 6),
-                            Wrap(spacing: 8, children: [
-                              for (final l in AppLanguage.values)
-                                ChoiceChip(label: Text(l.label), selected: st.language == l, onSelected: (_) => st.updateSettings(language: l)),
-                            ]),
-                          ],
-                          gap,
-                          if (mode == _Mode.reset) ...[
+                            DropdownButtonFormField<String>(
+                              initialValue: st.country,
+                              isExpanded: true,
+                              decoration: const InputDecoration(labelText: 'Country', prefixIcon: Icon(Icons.public)),
+                              items: [
+                                for (final c in countries) DropdownMenuItem(value: c.code, child: Text('${c.flag}  ${c.name}  (+${c.dial})')),
+                              ],
+                              onChanged: (v) {
+                                if (v == null) return;
+                                st.updateSettings(country: v);
+                                if (mode == _Mode.signUp) {
+                                  st.updateSettings(language: countryByCode(v).language);
+                                }
+                              },
+                            ),
+                            gap,
                             TextField(
-                              controller: code,
-                              textCapitalization: TextCapitalization.characters,
-                              decoration: const InputDecoration(labelText: 'Code from your group secretary'),
-                            ),
-                            gap,
-                          ],
-                          TextField(
-                            controller: pass,
-                            obscureText: hide,
-                            textInputAction: TextInputAction.done,
-                            autofillHints: [mode == _Mode.signIn ? AutofillHints.password : AutofillHints.newPassword],
-                            decoration: InputDecoration(
-                              labelText: mode == _Mode.reset ? 'New password' : 'Password',
-                              helperText: mode == _Mode.signIn ? null : 'At least 6 characters',
-                              prefixIcon: const Icon(Icons.lock_outline),
-                              suffixIcon: IconButton(
-                                tooltip: hide ? 'Show password' : 'Hide password',
-                                icon: Icon(hide ? Icons.visibility : Icons.visibility_off),
-                                onPressed: () => setState(() => hide = !hide),
+                              controller: id,
+                              keyboardType: TextInputType.emailAddress,
+                              textInputAction: TextInputAction.next,
+                              autofillHints: const [AutofillHints.username],
+                              decoration: InputDecoration(
+                                labelText: mode == _Mode.signUp ? 'Email' : 'Phone or email',
+                                helperText: mode == _Mode.signUp
+                                    ? 'Your real email. We send a link to prove it is yours.'
+                                    : 'Phone like ${country.example} (we add +${country.dial}), or your email',
+                                prefixIcon: const Icon(Icons.person_outline),
                               ),
                             ),
-                            onSubmitted: (_) => submit(),
-                          ),
-                          gap,
-                          FilledButton(
-                            onPressed: busy ? null : submit,
-                            child: busy
-                                ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                                : Text(switch (mode) {
-                                    _Mode.signIn => 'Sign in',
-                                    _Mode.signUp => 'Create account',
-                                    _Mode.reset => 'Change password',
-                                  }),
-                          ),
-                          if (mode != _Mode.reset) ...[
-                            const SizedBox(height: 12),
-                            const Row(
-                              children: [
-                                Expanded(child: Divider()),
-                                Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Text('or')),
-                                Expanded(child: Divider()),
-                              ],
+                            if (mode == _Mode.signUp) ...[
+                              gap,
+                              Text('Language', style: tt.labelLarge),
+                              const SizedBox(height: 6),
+                              Wrap(spacing: 8, children: [
+                                for (final l in AppLanguage.values)
+                                  ChoiceChip(label: Text(l.label), selected: st.language == l, onSelected: (_) => st.updateSettings(language: l)),
+                              ]),
+                            ],
+                            gap,
+                            if (mode == _Mode.reset) ...[
+                              TextField(
+                                controller: code,
+                                textCapitalization: TextCapitalization.characters,
+                                decoration: const InputDecoration(labelText: 'Code from your group secretary'),
+                              ),
+                              gap,
+                            ],
+                            TextField(
+                              controller: pass,
+                              obscureText: hide,
+                              textInputAction: TextInputAction.done,
+                              autofillHints: [mode == _Mode.signIn ? AutofillHints.password : AutofillHints.newPassword],
+                              decoration: InputDecoration(
+                                labelText: mode == _Mode.reset ? 'New password' : 'Password',
+                                helperText: mode == _Mode.signIn ? null : 'At least 6 characters',
+                                prefixIcon: const Icon(Icons.lock_outline),
+                                suffixIcon: IconButton(
+                                  tooltip: hide ? 'Show password' : 'Hide password',
+                                  icon: Icon(hide ? Icons.visibility : Icons.visibility_off),
+                                  onPressed: () => setState(() => hide = !hide),
+                                ),
+                              ),
+                              onSubmitted: (_) => submit(),
                             ),
-                            const SizedBox(height: 12),
-                            OutlinedButton.icon(
-                              onPressed: busy ? null : google,
-                              icon: Image.asset('assets/brands/google.png', width: 20, height: 20),
-                              label: const Text('Continue with Google'),
+                            gap,
+                            FilledButton(
+                              onPressed: busy ? null : submit,
+                              child: busy
+                                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                                  : Text(switch (mode) {
+                                      _Mode.signIn => 'Sign in',
+                                      _Mode.signUp => 'Create account',
+                                      _Mode.reset => 'Change password',
+                                    }),
                             ),
+                            if (mode != _Mode.reset) ...[
+                              const SizedBox(height: 12),
+                              const Row(
+                                children: [
+                                  Expanded(child: Divider()),
+                                  Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Text('or')),
+                                  Expanded(child: Divider()),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              OutlinedButton.icon(
+                                onPressed: busy ? null : google,
+                                icon: Image.asset('assets/brands/google.png', width: 20, height: 20),
+                                label: const Text('Continue with Google'),
+                              ),
+                            ],
+                            const SizedBox(height: 8),
+                            if (mode != _Mode.signIn) TextButton(onPressed: () => setState(() => mode = _Mode.signIn), child: const Text('Back to sign in')),
+                            if (mode == _Mode.signIn) ...[
+                              TextButton(onPressed: () => setState(() => mode = _Mode.signUp), child: const Text('New here? Create account')),
+                              TextButton(onPressed: () => setState(() => mode = _Mode.reset), child: const Text('Forgot password?')),
+                            ],
                           ],
-                          const SizedBox(height: 8),
-                          if (mode != _Mode.signIn) TextButton(onPressed: () => setState(() => mode = _Mode.signIn), child: const Text('Back to sign in')),
-                          if (mode == _Mode.signIn) ...[
-                            TextButton(onPressed: () => setState(() => mode = _Mode.signUp), child: const Text('New here? Create account')),
-                            TextButton(onPressed: () => setState(() => mode = _Mode.reset), child: const Text('Forgot password?')),
-                          ],
-                        ],
+                        ),
                       ),
                     ),
                   ),
@@ -289,7 +289,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   Text(
                     'We never hold your money. We keep the records.',
                     textAlign: TextAlign.center,
-                    style: tt.bodySmall?.copyWith(color: cs.onPrimary),
+                    style: tt.bodySmall?.copyWith(color: SaccoLook.of(context).onBrandMuted),
                   ),
                   // On the website, members can get the Android app straight from here.
                   if (kIsWeb && !Uri.base.path.contains('SACCO-LEDGER')) // not on the GitHub Pages copy, which has no APK
@@ -483,7 +483,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final cs = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: saccoEmerald,
+        backgroundColor: SaccoLook.of(context).brand,
         foregroundColor: Colors.white,
         title: const Text('Welcome'),
         actions: [
@@ -551,43 +551,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         child: const Text('Create group'),
                       ),
                       const SizedBox(height: 8),
-                      OutlinedButton(onPressed: busy ? null : () => run(() => st.api.seedDemo('Me (demo admin)')), child: const Text('Look around the shared demo')),
+                      OutlinedButton(
+                          onPressed: busy ? null : () => run(() => st.api.seedDemo('Me (demo admin)')), child: const Text('Look around the shared demo')),
                     ],
                   ),
                 ),
               ],
             ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// A plain member opened the web address. The web is for administrators only.
-class MembersUseAppScreen extends StatelessWidget {
-  const MembersUseAppScreen({super.key});
-  @override
-  Widget build(BuildContext context) {
-    final st = StateScope.of(context);
-    return Scaffold(
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.phone_android, size: 56, color: Theme.of(context).colorScheme.primary),
-              gap,
-              const Text(
-                'This website is for group administrators.',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const Text('Members use the SACCO Ledger app on Android or iPhone.', textAlign: TextAlign.center),
-              gap,
-              OutlinedButton(onPressed: st.signOut, child: const Text('Sign out')),
-            ],
           ),
         ),
       ),
@@ -612,18 +582,36 @@ class NotConfiguredScreen extends StatelessWidget {
       );
 }
 
-
 /// Common slips in email addresses ("gmial.com"). Returns the fixed address, or null if it looks fine.
 String? emailTypo(String email) {
   final at = email.lastIndexOf('@');
   if (at < 1) return null;
   final domain = email.substring(at + 1);
   const fixes = {
-    'gmial.com': 'gmail.com', 'gmai.com': 'gmail.com', 'gmal.com': 'gmail.com', 'gamil.com': 'gmail.com', 'gnail.com': 'gmail.com',
-    'gmail.co': 'gmail.com', 'gmail.con': 'gmail.com', 'gmail.cm': 'gmail.com', 'gmail.om': 'gmail.com', 'gmaill.com': 'gmail.com',
-    'gmail': 'gmail.com', 'yahoo.co': 'yahoo.com', 'yaho.com': 'yahoo.com', 'yahooo.com': 'yahoo.com', 'yahoo.con': 'yahoo.com',
-    'hotmal.com': 'hotmail.com', 'hotmai.com': 'hotmail.com', 'hotmail.co': 'hotmail.com', 'hotmail.con': 'hotmail.com',
-    'outlok.com': 'outlook.com', 'outlook.co': 'outlook.com', 'outlook.con': 'outlook.com', 'iclod.com': 'icloud.com', 'icloud.co': 'icloud.com',
+    'gmial.com': 'gmail.com',
+    'gmai.com': 'gmail.com',
+    'gmal.com': 'gmail.com',
+    'gamil.com': 'gmail.com',
+    'gnail.com': 'gmail.com',
+    'gmail.co': 'gmail.com',
+    'gmail.con': 'gmail.com',
+    'gmail.cm': 'gmail.com',
+    'gmail.om': 'gmail.com',
+    'gmaill.com': 'gmail.com',
+    'gmail': 'gmail.com',
+    'yahoo.co': 'yahoo.com',
+    'yaho.com': 'yahoo.com',
+    'yahooo.com': 'yahoo.com',
+    'yahoo.con': 'yahoo.com',
+    'hotmal.com': 'hotmail.com',
+    'hotmai.com': 'hotmail.com',
+    'hotmail.co': 'hotmail.com',
+    'hotmail.con': 'hotmail.com',
+    'outlok.com': 'outlook.com',
+    'outlook.co': 'outlook.com',
+    'outlook.con': 'outlook.com',
+    'iclod.com': 'icloud.com',
+    'icloud.co': 'icloud.com',
   };
   final f = fixes[domain];
   return f == null ? null : '${email.substring(0, at)}@$f';

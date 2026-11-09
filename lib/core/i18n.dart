@@ -11,6 +11,11 @@ enum AppLanguage {
 /// Anything not listed shows in English.
 const _t = <String, Map<AppLanguage, String>>{
   'SACCO Ledger': {AppLanguage.lg: 'Ekitabo kya SACCO', AppLanguage.sw: 'Daftari la SACCO'},
+  'Home': {AppLanguage.lg: 'Awaka', AppLanguage.sw: 'Nyumbani'},
+  'Pay': {AppLanguage.lg: 'Sasula', AppLanguage.sw: 'Lipa'},
+  'More': {AppLanguage.lg: 'Ebirala', AppLanguage.sw: 'Zaidi'},
+  'My money': {AppLanguage.lg: 'Ssente zange', AppLanguage.sw: 'Pesa zangu'},
+  'Help': {AppLanguage.lg: 'Obuyambi', AppLanguage.sw: 'Msaada'},
   'Overview': {AppLanguage.lg: 'Ebikulu', AppLanguage.sw: 'Dashibodi'},
   'Meetings': {AppLanguage.lg: 'Enkiiko', AppLanguage.sw: 'Mikutano'},
   'Loans': {AppLanguage.lg: 'Ebyewolo', AppLanguage.sw: 'Mikopo'},
