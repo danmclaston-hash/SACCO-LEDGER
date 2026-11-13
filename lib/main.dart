@@ -8,6 +8,7 @@ import 'state/app_state.dart';
 import 'ui/screens/auth_screen.dart';
 import 'ui/screens/circles_screen.dart';
 import 'ui/screens/lock_screen.dart';
+import 'ui/screens/two_step.dart';
 import 'ui/shells.dart';
 import 'ui/tour.dart';
 import 'ui/theme.dart';
@@ -88,6 +89,8 @@ class _Root extends StatelessWidget {
     final st = StateScope.of(context);
     if (st.booting) return const Scaffold(body: Center(child: CircularProgressIndicator()));
     if (!st.signedIn) return const AuthScreen();
+    if (st.twoStepCodeNeeded) return const TwoStepCodeScreen();
+    if (st.recovering) return const NewPasswordScreen();
     if (st.locked) return const LockScreen();
     if (st.org == null) return const OnboardingScreen();
     // One app for everyone. A wide browser window gets the side menu; phones and narrow windows get the phone layout.

@@ -39,7 +39,7 @@ The law lets us do this because you agreed when you joined a group, and because 
 - **You** see your own records.
 - **Your group's officers** (administrator, treasurer, secretary) see the group's records, because checking them is their job.
 - **Other members** see group totals and goals. They do not see your phone, your ID, or your loans.
-- **The platform team** can see groups and accounts to give support and to stop abuse. Everything they change is written in a history.
+- **The platform team** can see groups and accounts to give support and to stop abuse, only after two-step sign-in. They cannot add anyone to your circle without your circle admin's yes. Everything they do is written in a history.
 - **Each circle is separate.** Being in two circles never shows one circle your records in the other.
 - **Nobody else.** We give data to the authorities only when the law forces us to.
 
@@ -47,7 +47,7 @@ The law lets us do this because you agreed when you joined a group, and because 
 
 Records are stored with Supabase, a cloud database company, on servers outside Uganda. The data is locked while it travels and while it rests. You agree to this when you join a group. Ask us for the country of the server if you want to know.
 
-If your group turns on online payments, the payment itself is handled by Flutterwave or Pesapal under their own privacy rules. We receive only the result: paid or not paid, the amount and the reference. We never see card numbers or mobile money PINs.
+Online payments are switched off for now. If they are turned on later, the payment itself is handled by Flutterwave or Pesapal under their own privacy rules. We receive only the result: paid or not paid, the amount and the reference. We never see card numbers or mobile money PINs.
 
 If you sign in with Google, Google tells us your name, email and photo. Nothing else.
 

@@ -16,6 +16,7 @@ import '../../state/app_state.dart';
 import '../theme.dart';
 import '../tour.dart';
 import '../widgets.dart';
+import 'two_step.dart';
 
 /// Opens My Account on top of whatever screen is showing (used where there is no side menu).
 void openAccount(BuildContext context) {
@@ -429,6 +430,7 @@ class _SecurityCardState extends State<_SecurityCard> {
             subtitle: 'The PIN still works too.',
             trailing: Switch(value: st.useBiometrics, onChanged: st.setBiometrics),
           ),
+        const TwoStepTile(),
         _Row(
           icon: Icons.devices_other,
           title: 'Sign out of all devices',

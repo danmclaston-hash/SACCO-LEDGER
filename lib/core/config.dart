@@ -7,5 +7,9 @@ class AppConfig {
 
   /// The public website. Invitation links point here, so they open on any phone or computer.
   static const siteUrl = String.fromEnvironment('SITE_URL', defaultValue: 'https://sacco-ledger.pages.dev');
+
+  /// Online payments (a gateway holding each group's keys) are off until a lawyer confirms the rules.
+  /// The database refuses them too, so switching this alone does nothing.
+  static const onlinePayments = false;
   static bool get isConfigured => supabaseUrl.isNotEmpty && supabaseKey.isNotEmpty;
 }

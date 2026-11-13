@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/countries.dart';
+import '../../core/config.dart';
 import '../../core/json.dart';
 import '../../core/money.dart';
 import '../widgets.dart';
@@ -120,7 +121,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: const Text('Save'),
           ),
         const LoanRulesCard(),
-        if (st.role.handlesMoney) const GatewaySetupCard(),
+        if (AppConfig.onlinePayments && st.role.handlesMoney) const GatewaySetupCard(),
         const Divider(),
         OutlinedButton.icon(onPressed: st.signOut, icon: const Icon(Icons.logout), label: const Text('Sign out')),
       ],

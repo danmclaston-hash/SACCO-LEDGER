@@ -55,6 +55,16 @@ class AppState extends ChangeNotifier {
   /// Circles that invited me and are waiting for my yes or no.
   List<Json> invites = [];
 
+  /// The person opened a "reset your password" email link and must now choose a new one.
+  bool recovering = false;
+
+  /// This account has two-step sign-in on and this session still needs the 6-number code.
+  bool twoStepCodeNeeded = false;
+
+  /// Platform team status: {team, role, two_step}. Platform tools need two-step sign-in.
+  Json platform = {};
+  bool get platformNeedsTwoStep => platform.b('team') && !platform.b('two_step');
+
   /// An invitation code from a link (?join=CODE). Kept until the person is signed in and has seen it.
   String? pendingJoin;
   Json _data = {};
@@ -132,6 +142,11 @@ class AppState extends ChangeNotifier {
     pendingJoin = _prefs?.getString('pending_join');
     _authSub = api.authChanges.listen((e) async {
       final id = e.session?.user.id;
+      if (e.event == AuthChangeEvent.passwordRecovery) {
+        recovering = true;
+        notifyListeners();
+      }
+      twoStepCodeNeeded = api.twoStepCodeNeeded;
       if (id == null) {
         _clear();
         notifyListeners();
@@ -140,6 +155,7 @@ class AppState extends ChangeNotifier {
         if (orgs.isEmpty && !booting) await refresh();
       }
     });
+    twoStepCodeNeeded = api.twoStepCodeNeeded;
     if (signedIn) {
       locked = hasPin;
       await refresh();
@@ -163,6 +179,9 @@ class AppState extends ChangeNotifier {
 
   void _clear() {
     invites = [];
+    platform = {};
+    recovering = false;
+    twoStepCodeNeeded = false;
     outbox = [];
     outboxFailures = [];
     orgs = [];
@@ -222,7 +241,23 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Called after the 6-number code is accepted: the session is now fully signed in.
+  Future<void> twoStepDone() async {
+    twoStepCodeNeeded = api.twoStepCodeNeeded;
+    await refresh();
+  }
+
+  Future<void> passwordChosen() async {
+    recovering = false;
+    notifyListeners();
+  }
+
   Future<void> loadAccount() async {
+    try {
+      platform = await api.platformStatus();
+    } on ApiError {
+      // Offline or older database: platform tools simply stay hidden.
+    }
     try {
       account = await api.account();
       _applySettings(account);

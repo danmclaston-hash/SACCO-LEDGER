@@ -105,6 +105,46 @@ class Api {
   Future<List<Json>> deletionRequests() async => asJsonList(await _rpc('list_deletion_requests'));
   Future<void> completeDeletion(String id, String note) => _rpc('complete_account_deletion', {'p_request': id, 'p_note': note});
 
+  /// Email accounts: a reset link goes to the person's own inbox. Nobody else can reset an email account.
+  Future<void> sendResetLink(String email) => _guard(() => _c.auth.resetPasswordForEmail(email, redirectTo: _backHere),
+      auth: (e) => e.statusCode == '429' ? 'Please wait a minute before asking for another email.' : e.message);
+
+  /// After the reset link: the person chooses a new password.
+  Future<void> setNewPassword(String password) => _guard(() => _c.auth.updateUser(UserAttributes(password: password)));
+
+  // Two-step sign-in with an authenticator app (Google Authenticator, Microsoft Authenticator, and others).
+  /// The verified authenticator, or null when two-step sign-in is off.
+  Future<Factor?> twoStepFactor() => _guard(() async => (await _c.auth.mfa.listFactors()).totp.firstOrNull);
+
+  /// True when this account has two-step sign-in on but this session has not given the code yet.
+  bool get twoStepCodeNeeded {
+    try {
+      final l = _c.auth.mfa.getAuthenticatorAssuranceLevel();
+      return l.nextLevel == AuthenticatorAssuranceLevels.aal2 && l.currentLevel != AuthenticatorAssuranceLevels.aal2;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Starts setting up: returns the factor id, the secret and the link the authenticator app reads.
+  Future<({String id, String secret, String uri})> startTwoStep() => _guard(() async {
+        // An unfinished earlier try would block a new one.
+        for (final f in (await _c.auth.mfa.listFactors()).all.where((f) => f.status == FactorStatus.unverified)) {
+          await _c.auth.mfa.unenroll(f.id);
+        }
+        final r = await _c.auth.mfa.enroll(factorType: FactorType.totp, issuer: 'SACCO Ledger', friendlyName: 'Authenticator app');
+        return (id: r.id, secret: r.totp!.secret, uri: r.totp!.uri);
+      }, auth: (e) => e.message.toLowerCase().contains('disabled') ? 'Two-step sign-in is not switched on for this project yet.' : e.message);
+
+  /// Checks a 6-number code. Used both to finish setting up and at each sign-in.
+  Future<void> checkTwoStepCode(String factorId, String code) => _guard(() => _c.auth.mfa.challengeAndVerify(factorId: factorId, code: code.trim()),
+      auth: (e) => e.message.toLowerCase().contains('invalid') ? 'That code is not right. Codes change every 30 seconds.' : e.message);
+
+  Future<void> stopTwoStep(String factorId) => _guard(() => _c.auth.mfa.unenroll(factorId));
+
+  /// Am I on the platform team, and has this session passed two-step sign-in?
+  Future<Json> platformStatus() async => asJson(await _rpc('my_platform_status'));
+
   Future<bool> resetPassword(String email, String code, String password) async =>
       await _rpc('reset_password_with_code', {'p_email': email, 'p_code': code, 'p_new_password': password}) == true;
 
@@ -157,6 +197,7 @@ class Api {
   Future<void> declineInvite(String code) => _rpc('decline_circle_invite', {'p_code': code});
   Future<List<Json>> circleInvites(String org) async => asJsonList(await _rpc('list_circle_invites', {'p_org': org}));
   Future<void> cancelInvite(String id) => _rpc('cancel_circle_invite', {'p_invite': id});
+  Future<void> decidePlatformInvite(String id, bool agree) => _rpc('decide_platform_invite', {'p_invite': id, 'p_agree': agree});
   Future<List<Json>> members(String org) async => asJsonList(await _rpc('list_members', {'p_org': org}));
 
   Future<Json> addMember(
@@ -181,7 +222,9 @@ class Api {
       );
 
   Future<void> updateMember(String member, Json patch) => _rpc('update_member', {'p_member': member, 'p': patch});
-  Future<String> newMemberCode(String member) async => (await _rpc('new_member_code', {'p_member': member})).toString();
+
+  /// A code, or null when this was only the first officer asking (a second officer must agree).
+  Future<String?> newMemberCode(String member) async => (await _rpc('new_member_code', {'p_member': member}))?.toString();
 
   Future<Json> recordPayment(Json params) async => asJson(await _rpc('record_payment', params));
   Future<void> reviewPayment(String id, bool approve, String note) => _rpc('review_payment', {'p_payment': id, 'p_approve': approve, 'p_note': note});

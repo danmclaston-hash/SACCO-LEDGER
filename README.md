@@ -14,7 +14,7 @@ Read also: [Simple plan](docs/PLAN.md) · [Licences](docs/LICENCES.md) · [Priva
 ### Step 1: Make the database
 **Why:** every phone and browser shares this one record book.
 1. Go to [supabase.com](https://supabase.com), sign up, click **New project**. Pick the region closest to Uganda. Save the database password somewhere private. **Never share it.**
-2. Open **SQL Editor**. Paste all of `supabase/migrations/20261106000000_init.sql` and click **Run**. Then do the same with `20261107000000_accounts.sql`, then `20261107000100_hardening.sql`, then `20261107000200_owner.sql`, then `20261107000300_goals.sql`, then `20261107000400_online_payments.sql`, then `20261107000500_countries_prefs.sql`, then `20261107000600_loan_rules.sql`, then `20261107000700_owners_shared_demo.sql`, then `20261107000800_real_emails.sql`, then `20261110000000_look.sql`, then `20261113000000_circle_invites.sql`. Order matters: each file needs the one before.
+2. Open **SQL Editor**. Paste all of `supabase/migrations/20261106000000_init.sql` and click **Run**. Then do the same with `20261107000000_accounts.sql`, then `20261107000100_hardening.sql`, then `20261107000200_owner.sql`, then `20261107000300_goals.sql`, then `20261107000400_online_payments.sql`, then `20261107000500_countries_prefs.sql`, then `20261107000600_loan_rules.sql`, then `20261107000700_owners_shared_demo.sql`, then `20261107000800_real_emails.sql`, then `20261110000000_look.sql`, then `20261113000000_circle_invites.sql`, then `20261113000100_integrity.sql`. Order matters: each file needs the one before.
 3. Open **Authentication → Providers (or Sign In) → Email** and leave **Confirm email** on, so every new email account must click a link before it can sign in (see Step 8).
 
 **Check it worked:** **Table Editor** shows `journals`, `members`, `audit_log` and others.
@@ -82,6 +82,9 @@ insert into public.platform_admins select id from auth.users where email = 'you@
 **Own address:** Cloudflare → your Pages project → **Custom domains → Set up a domain**. Then add it in Supabase step 5 too.
 
 ### Step 6: Switch on online payments (optional)
+
+> **Switched off for now (November 2026).** Holding a group's gateway keys and starting payments may need a Bank of Uganda licence, and those keys can also send money out. The database refuses new gateways and new online payments until a lawyer confirms the rules. To turn it back on later: change `online_payments_allowed()` in a new migration and set `AppConfig.onlinePayments` to true. The steps below stay for that day.
+
 **Why:** members pay through Flutterwave or Pesapal. The gateway confirms each payment and our server asks it again, so nobody types a transaction ID and nobody can fake one. Money goes to the **group's own** gateway account, never to you.
 
 1. Install the [Supabase CLI](https://supabase.com/docs/guides/cli). In this folder run `supabase login`, then `supabase link`.
@@ -224,7 +227,10 @@ Each rule lives in the database, so no app or browser can get around it. Tests a
 - Emergency fund is never lent.
 - Members see only their own records. Strangers see nothing.
 - Share-out pays exactly the pool, by largest remainder.
-- Online payments post only after our server asks the gateway itself. Test keys only in demo groups. Gateway keys are locked and no app can read them.
+- Online payments are switched off until a lawyer confirms the rules. When on, they post only after our server asks the gateway itself.
+- Platform tools need two-step sign-in (an authenticator app code). The platform team cannot put anyone into a circle unless that circle's admin agrees.
+- Nobody can reset another person's email account. Phone accounts need two different officers to agree, and the reset signs the account out everywhere.
+- Shared demo visitors appear only as "Demo visitor" with a number.
 - Only the owner adds or removes platform administrators. The owner cannot be removed.
 
 ## Folders

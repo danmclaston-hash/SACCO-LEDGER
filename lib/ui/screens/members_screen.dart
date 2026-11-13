@@ -5,6 +5,7 @@ import '../../core/catalog.dart';
 import '../../core/json.dart';
 import '../../core/money.dart';
 import '../../core/pages.dart';
+import '../../data/api.dart';
 import '../../state/app_state.dart';
 import '../widgets.dart';
 import 'circles_screen.dart';
@@ -92,11 +93,11 @@ class MembersScreen extends StatelessWidget {
                     ),
                     if (st.role.canManageMembers) ...[
                       TextButton(onPressed: () => _form(context, st, m: m), child: const Text('Edit')),
-                      TextButton(
-                        onPressed: () => runAndTell(context, () => st.api.newMemberCode(m.s('id')),
-                            done: 'New code made. It works for joining or for a forgotten password.'),
-                        child: const Text('New code'),
-                      ),
+                      if (m.s('id') != st.myMemberId) // nobody resets their own password here
+                        TextButton(
+                          onPressed: () => _newCode(context, st, m),
+                          child: Text(m.b('has_account') ? 'Password reset' : 'Joining code'),
+                        ),
                     ],
                   ],
                 ),
@@ -105,6 +106,25 @@ class MembersScreen extends StatelessWidget {
           ),
       ],
     );
+  }
+
+  /// Not yet in the app: a joining code. Already in the app: a password reset, which two different officers must agree to.
+  Future<void> _newCode(BuildContext context, AppState st, Json m) async {
+    try {
+      final code = await st.api.newMemberCode(m.s('id'));
+      await st.refresh();
+      if (!context.mounted) return;
+      if (code == null) {
+        showMsg(
+            context, 'Asked. A second officer (admin, secretary or treasurer) must open Members and tap "Password reset" for ${m.s('full_name')} to agree.');
+      } else if (m.b('has_account')) {
+        showMsg(context, 'Agreed. The reset code shows under ${m.s('full_name')}. Give it to them privately. It works for one day.');
+      } else {
+        showMsg(context, 'Joining code made. Give it to ${m.s('full_name')} privately.');
+      }
+    } on ApiError catch (e) {
+      if (context.mounted) showMsg(context, e.message, error: true);
+    }
   }
 
   /// The same questions for a new member and for editing one.

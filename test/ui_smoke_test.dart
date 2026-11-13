@@ -6,6 +6,7 @@ import 'package:sacco_ledger/core/pages.dart';
 import 'package:sacco_ledger/ui/screens/auth_screen.dart';
 import 'package:sacco_ledger/ui/screens/channels_screen.dart';
 import 'package:sacco_ledger/ui/screens/circles_screen.dart';
+import 'package:sacco_ledger/ui/screens/two_step.dart';
 import 'package:sacco_ledger/ui/screens/loan_calculator.dart';
 import 'package:sacco_ledger/ui/shells.dart';
 import 'package:sacco_ledger/ui/theme.dart';
@@ -269,5 +270,38 @@ void main() {
     await t.pumpAndSettle();
     expect(find.text('Please tick the data notice first.'), findsOneWidget); // nobody joins without saying yes to the notice
     expect(t.takeException(), isNull);
+  });
+
+  testWidgets('two-step sign-in screens: code, new password, QR and the platform warning, both themes', (t) async {
+    await phone(t);
+    final st = AppState(Api());
+    st.platform = {'team': true, 'role': 'owner', 'two_step': false};
+    for (final m in [ThemeMode.light, ThemeMode.dark]) {
+      await t.pumpWidget(app(st, const TwoStepCodeScreen(), mode: m));
+      await t.pumpAndSettle();
+      expect(find.text('One more step'), findsOneWidget);
+      await t.tap(find.text('Continue'));
+      await t.pumpAndSettle();
+      expect(find.textContaining('6 numbers'), findsWidgets); // asks for the code, never lets an empty one through
+
+      await t.pumpWidget(app(st, const NewPasswordScreen(), mode: m));
+      await t.enterText(find.byType(TextField).first, 'abcdef');
+      await t.enterText(find.byType(TextField).last, 'abcdeg');
+      await t.tap(find.text('Save password'));
+      await t.pumpAndSettle();
+      expect(find.text('The two passwords are different.'), findsOneWidget);
+
+      await t.pumpWidget(app(
+          st,
+          const Scaffold(
+              body: Column(children: [TwoStepNeededCard(), QrPicture('otpauth://totp/SACCO%20Ledger:x?secret=ABC&issuer=SACCO%20Ledger', size: 120)])),
+          mode: m));
+      await t.pumpAndSettle();
+      expect(find.text('Turn on two-step sign-in'), findsOneWidget);
+      expect(t.takeException(), isNull);
+    }
+    st.platform = {'team': true, 'two_step': true};
+    await t.pumpWidget(app(st, const Scaffold(body: TwoStepNeededCard())));
+    expect(find.text('Turn on two-step sign-in'), findsNothing); // gone once it is on
   });
 }

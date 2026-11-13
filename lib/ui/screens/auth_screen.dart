@@ -71,6 +71,19 @@ class _AuthScreenState extends State<AuthScreen> {
       showMsg(context, 'Did you mean $fix? Fix the email and try again.', error: true);
       return;
     }
+    // Email accounts reset only through a link sent to their own inbox. Nobody else can do it for them.
+    if (mode == _Mode.reset && typed.contains('@')) {
+      setState(() => busy = true);
+      try {
+        await st.api.sendResetLink(typed);
+        if (mounted) showMsg(context, 'If $typed has an account, a reset link is on its way. Open it on this device. Check Spam too.');
+      } on ApiError catch (e) {
+        if (mounted) showMsg(context, e.message, error: true);
+      } finally {
+        if (mounted) setState(() => busy = false);
+      }
+      return;
+    }
     if (pass.text.length < 6) {
       showMsg(context, 'Password must have at least 6 characters.', error: true);
       return;
@@ -124,6 +137,9 @@ class _AuthScreenState extends State<AuthScreen> {
       if (mounted) setState(() => busy = false);
     }
   }
+
+  /// Forgot password with an email: a link to the inbox. With a phone: a code the group's officers agree on.
+  bool get resetByEmail => id.text.contains('@');
 
   @override
   Widget build(BuildContext context) {
@@ -206,6 +222,10 @@ class _AuthScreenState extends State<AuthScreen> {
                               keyboardType: TextInputType.emailAddress,
                               textInputAction: TextInputAction.next,
                               autofillHints: const [AutofillHints.username],
+                              // Forgot password changes its form when an email is typed.
+                              onChanged: (_) {
+                                if (mode == _Mode.reset) setState(() {});
+                              },
                               decoration: InputDecoration(
                                 labelText: mode == _Mode.signUp ? 'Email' : 'Phone or email',
                                 helperText: mode == _Mode.signUp
@@ -224,31 +244,37 @@ class _AuthScreenState extends State<AuthScreen> {
                               ]),
                             ],
                             gap,
-                            if (mode == _Mode.reset) ...[
+                            if (mode == _Mode.reset && resetByEmail) const EmptyNote('We will send a reset link to this email. Only you can open it.'),
+                            if (mode == _Mode.reset && !resetByEmail) ...[
                               TextField(
                                 controller: code,
                                 textCapitalization: TextCapitalization.characters,
-                                decoration: const InputDecoration(labelText: 'Code from your group secretary'),
+                                decoration: const InputDecoration(
+                                  labelText: 'Code from your group',
+                                  helperText: 'Two of your group\'s officers must agree before a code is made.',
+                                  helperMaxLines: 2,
+                                ),
                               ),
                               gap,
                             ],
-                            TextField(
-                              controller: pass,
-                              obscureText: hide,
-                              textInputAction: TextInputAction.done,
-                              autofillHints: [mode == _Mode.signIn ? AutofillHints.password : AutofillHints.newPassword],
-                              decoration: InputDecoration(
-                                labelText: mode == _Mode.reset ? 'New password' : 'Password',
-                                helperText: mode == _Mode.signIn ? null : 'At least 6 characters',
-                                prefixIcon: const Icon(Icons.lock_outline),
-                                suffixIcon: IconButton(
-                                  tooltip: hide ? 'Show password' : 'Hide password',
-                                  icon: Icon(hide ? Icons.visibility : Icons.visibility_off),
-                                  onPressed: () => setState(() => hide = !hide),
+                            if (!(mode == _Mode.reset && resetByEmail))
+                              TextField(
+                                controller: pass,
+                                obscureText: hide,
+                                textInputAction: TextInputAction.done,
+                                autofillHints: [mode == _Mode.signIn ? AutofillHints.password : AutofillHints.newPassword],
+                                decoration: InputDecoration(
+                                  labelText: mode == _Mode.reset ? 'New password' : 'Password',
+                                  helperText: mode == _Mode.signIn ? null : 'At least 6 characters',
+                                  prefixIcon: const Icon(Icons.lock_outline),
+                                  suffixIcon: IconButton(
+                                    tooltip: hide ? 'Show password' : 'Hide password',
+                                    icon: Icon(hide ? Icons.visibility : Icons.visibility_off),
+                                    onPressed: () => setState(() => hide = !hide),
+                                  ),
                                 ),
+                                onSubmitted: (_) => submit(),
                               ),
-                              onSubmitted: (_) => submit(),
-                            ),
                             gap,
                             FilledButton(
                               onPressed: busy ? null : submit,
@@ -257,7 +283,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                   : Text(switch (mode) {
                                       _Mode.signIn => 'Sign in',
                                       _Mode.signUp => 'Create account',
-                                      _Mode.reset => 'Change password',
+                                      _Mode.reset => resetByEmail ? 'Send reset link' : 'Change password',
                                     }),
                             ),
                             if (mode != _Mode.reset) ...[

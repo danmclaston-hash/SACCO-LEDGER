@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/catalog.dart';
+import '../../core/config.dart';
 import '../../core/json.dart';
 import '../../core/money.dart';
 import '../theme.dart';
@@ -67,7 +68,7 @@ class ChannelsScreen extends StatelessWidget {
             ],
           ),
         ),
-        const OnlinePayCard(),
+        if (AppConfig.onlinePayments) const OnlinePayCard(),
         FilledButton.icon(
           onPressed: st.myMemberId == null ? null : () => showPaymentDialog(context),
           icon: const Icon(Icons.edit_note),

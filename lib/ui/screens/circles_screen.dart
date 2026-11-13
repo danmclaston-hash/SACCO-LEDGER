@@ -15,6 +15,7 @@ import '../motion.dart';
 import '../theme.dart';
 import '../widgets.dart';
 import 'auth_screen.dart';
+import 'two_step.dart';
 
 /// What a role means, in one short line a person can read at a glance.
 String roleMeaning(Role r) => switch (r) {
@@ -118,6 +119,7 @@ class CirclesScreen extends StatelessWidget {
             ),
           ]),
         ),
+        const TwoStepNeededCard(),
         if (st.invites.isNotEmpty) const InvitesPanel(),
         if (lead.isNotEmpty) _Section(title: 'I lead', icon: Icons.workspace_premium_rounded, circles: lead),
         if (help.isNotEmpty) _Section(title: 'I help run', icon: Icons.badge_rounded, circles: help),
@@ -742,7 +744,11 @@ Future<void> showInviteReady(BuildContext context, Json r) {
         content: SizedBox(
           width: 440,
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Text('Send this to ${r.s('email')}. It works for 14 days, only for that email.', textAlign: TextAlign.center),
+            Text(
+                r.s('status') == 'awaiting_circle'
+                    ? 'The circle\'s admin must agree first. Until they do, the link and code do not work. Then it works for 14 days, only for ${r.s('email')}.'
+                    : 'Send this to ${r.s('email')}. It works for 14 days, only for that email.',
+                textAlign: TextAlign.center),
             const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.symmetric(vertical: 14),
@@ -806,11 +812,40 @@ class CircleInvitesCard extends StatelessWidget {
       error: (_) => const SizedBox.shrink(),
       builder: (context, list) {
         if (list.isEmpty) return const SizedBox.shrink();
+        final waiting = list.where((x) => x.s('status') == 'awaiting_circle').toList();
         final open = list.where((x) => x.s('status') == 'pending').toList();
-        final done = list.where((x) => x.s('status') != 'pending').take(5).toList();
+        final done = list.where((x) => x.s('status') != 'pending' && x.s('status') != 'awaiting_circle').take(5).toList();
+        final admin = st.role == Role.orgAdmin;
         return SaccoCard(
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('Invitations (${open.length} open)', style: tt.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+            for (final x in waiting)
+              Container(
+                margin: const EdgeInsets.only(top: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(color: cs.secondaryContainer, borderRadius: BorderRadius.circular(SaccoLook.of(context).radius * 0.6)),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text('The platform team asks to invite ${x.s('email')} as ${withArticle(Role.parse(x.s('role')))}.',
+                      style: tt.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: cs.onSecondaryContainer)),
+                  if (x.n('message') != null) Text('"${x.s('message')}"', style: tt.bodySmall?.copyWith(color: cs.onSecondaryContainer)),
+                  Text(admin ? 'Nobody joins your circle unless you agree.' : 'Waiting for the circle admin to decide.',
+                      style: tt.bodySmall?.copyWith(color: cs.onSecondaryContainer)),
+                  if (admin) ...[
+                    const SizedBox(height: 8),
+                    Wrap(spacing: 8, children: [
+                      FilledButton(
+                        onPressed: () => runAndTell(context, () => st.api.decidePlatformInvite(x.s('id'), true), done: 'Agreed. The invitation now works.'),
+                        child: const Text('Agree'),
+                      ),
+                      OutlinedButton(
+                        onPressed: () =>
+                            runAndTell(context, () => st.api.decidePlatformInvite(x.s('id'), false), done: 'Refused. The invitation will never work.'),
+                        child: const Text('Refuse'),
+                      ),
+                    ]),
+                  ],
+                ]),
+              ),
             for (final x in [...open, ...done])
               ListTile(
                 contentPadding: EdgeInsets.zero,
@@ -854,6 +889,8 @@ class CircleInvitesCard extends StatelessWidget {
 String _statusWord(String s) => switch (s) {
       'pending' => 'waiting',
       'accepted' => 'joined',
+      'awaiting_circle' => 'waiting for the circle admin',
+      'refused' => 'refused by the circle admin',
       'declined' => 'said no',
       'cancelled' => 'cancelled',
       'expired' => 'expired',
@@ -901,8 +938,33 @@ class CircleNotices extends StatelessWidget {
     final look = SaccoLook.of(context);
     final n = st.invites.length;
     final lookOnly = st.role == Role.platformAdmin;
-    if (n == 0 && !lookOnly) return const SizedBox.shrink();
+    final twoStep = st.platformNeedsTwoStep;
+    final admin = st.role == Role.orgAdmin && !(st.org?.b('is_demo') ?? false);
+    if (n == 0 && !lookOnly && !twoStep && !admin) return const SizedBox.shrink();
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      if (twoStep) ...[const TwoStepNeededCard(), const SizedBox(height: 10)],
+      if (admin)
+        Loaded<List<Json>>(
+          load: () => st.api.circleInvites(st.orgId),
+          waiting: const SizedBox.shrink(),
+          error: (_) => const SizedBox.shrink(),
+          builder: (context, list) {
+            final w = list.where((x) => x.s('status') == 'awaiting_circle').length;
+            if (w == 0) return const SizedBox.shrink();
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: SaccoCard(
+                color: Theme.of(context).colorScheme.secondaryContainer,
+                child: Row(children: [
+                  const Icon(Icons.how_to_reg_rounded),
+                  const SizedBox(width: 10),
+                  Expanded(child: Text('The platform team asks to invite $w ${w == 1 ? 'person' : 'people'} to your circle. You decide.')),
+                  TextButton(onPressed: () => st.goTo(AppPage.members), child: const Text('See')),
+                ]),
+              ),
+            );
+          },
+        ),
       if (n > 0)
         RiseIn(
           child: Material(

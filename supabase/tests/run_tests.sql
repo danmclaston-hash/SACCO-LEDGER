@@ -723,6 +723,82 @@ reset role;
 select t.fails($$set role authenticated; select public.invite_view(null::public.circle_invites)$$,'permission denied','inner helpers stay private');
 reset role;
 
+-- ---------- Integrity fixes ----------
+\i ../migrations/20261113000100_integrity.sql
+set role authenticated;
+
+-- 1. Platform powers need two-step sign-in
+select t.as_user(t.id('owner_u'));
+select set_config('test.aal','aal1',false);
+select t.ok(not public.is_platform_admin(),'owner without two-step sign-in has no platform powers');
+select t.fails($$select public.platform_overview()$$,'','owner without two-step sign-in cannot list every circle');
+select t.ok((public.my_platform_status()->>'team')::boolean and not (public.my_platform_status()->>'two_step')::boolean,'the app can tell the owner to turn on two-step sign-in');
+select t.ok(not exists(select 1 from jsonb_array_elements(public.my_memberships()) x where x->>'my_role'='platform_admin'),'without two-step, other circles are not even visible');
+select set_config('test.aal','aal2',false);
+select t.ok(public.is_platform_admin() and (public.my_platform_status()->>'two_step')::boolean,'with two-step sign-in the owner has platform powers again');
+
+-- 2. The platform team cannot place anyone in a circle without its admin
+select t.as_user(t.id('plat_u'));
+insert into t.ci select 'p', public.invite_to_circle(t.id('org2'),'stranger@test.local','org_admin','I will help run this')->>'code';
+select t.ok((select x->>'status' from jsonb_array_elements(public.list_circle_invites(t.id('org2'))) x where x->>'email'='stranger@test.local' order by x->>'created_at' desc limit 1)='awaiting_circle','a platform invitation waits for the circle admin');
+select t.as_user(t.id('stranger_u'));
+select t.ok(not exists(select 1 from jsonb_array_elements(public.my_invites()) x where x->>'org_id'=t.id('org2')::text),'the invited person does not see it yet');
+select t.fails(format($$select public.accept_circle_invite(%L,'Stan',null,true)$$,(select code from t.ci where k='p')),'waiting for the circle','the link does not work before the circle agrees');
+select t.as_user(t.id('plat_u'));
+select t.fails(format($$select public.decide_platform_invite(%L,true)$$,(select (x->>'id')::uuid from jsonb_array_elements(public.list_circle_invites(t.id('org2'))) x where x->>'status'='awaiting_circle' limit 1)),'not an active member','the platform team cannot approve its own invitation');
+select t.as_user(t.id('admin_u'));
+select public.decide_platform_invite((select (x->>'id')::uuid from jsonb_array_elements(public.list_circle_invites(t.id('org2'))) x where x->>'status'='awaiting_circle' and x->>'email'='stranger@test.local'), false);
+select t.as_user(t.id('stranger_u'));
+select t.fails(format($$select public.invite_details(%L)$$,(select code from t.ci where k='p')),'did not agree','a refused invitation never works');
+select t.as_user(t.id('plat_u'));
+insert into t.ci select 'p2', public.invite_to_circle(t.id('org2'),'stranger@test.local','member',null)->>'code';
+select t.as_user(t.id('admin_u'));
+select public.decide_platform_invite((select (x->>'id')::uuid from jsonb_array_elements(public.list_circle_invites(t.id('org2'))) x where x->>'status'='awaiting_circle' and x->>'email'='stranger@test.local'), true);
+select t.as_user(t.id('stranger_u'));
+select t.ok(exists(select 1 from jsonb_array_elements(public.my_invites()) x where x->>'code'=(select code from t.ci where k='p2')),'after the circle admin agrees, the person sees the invitation');
+
+-- 3. No account takeover by officers
+reset role;
+insert into auth.users(id,email) values (gen_random_uuid(),'256700000088@phone.saccoledger.app');
+insert into t.v select 'phone_u', id from auth.users where email='256700000088@phone.saccoledger.app';
+set role authenticated;
+select t.as_user(t.id('admin_u'));
+select t.put('phone_m', (public.add_member(t.id('org'),'Phoebe Phone','0700000088',null,'member',null,null)->>'member_id')::uuid);
+reset role; update public.members set user_id=t.id('phone_u'), invite_code=null where id=t.id('phone_m'); set role authenticated;
+select t.as_user(t.id('sec_u'));
+select t.fails(format($$select public.new_member_code(%L)$$,t.id('ann_m')),'signs in with email','officers cannot reset an email account');
+select t.ok(public.new_member_code(t.id('phone_m')) is null,'one officer only asks for a phone account reset');
+select t.fails(format($$select public.new_member_code(%L)$$,t.id('phone_m')),'different officer','the same officer cannot agree to their own request');
+select t.as_user(t.id('treas_u'));
+select t.put('k', null); 
+create temp table rc as select public.new_member_code(t.id('phone_m')) as code;
+select t.ok((select length(code) from rc)=8,'a second officer agrees and only then a code exists');
+reset role; insert into auth.sessions(user_id) values (t.id('phone_u')); set role authenticated;
+select t.ok(public.reset_password_with_code('256700000088@phone.saccoledger.app',(select code from rc),'newpass1'),'the code resets a phone account');
+reset role;
+select t.ok(not exists(select 1 from auth.sessions where user_id=t.id('phone_u')),'a reset signs the account out everywhere');
+select t.ok((select count(*) from public.audit_log where action in ('ASK_PASSWORD_RESET','AGREE_PASSWORD_RESET','RESET_PASSWORD') and org_id=t.id('org'))>=3,'every reset step is in the audit trail');
+set role authenticated;
+select t.fails($$select public.reset_password_with_code('ann@test.local','ABCDEFGH','newpass1')$$,'link we send to your email','codes never reset an email account');
+
+-- 4. Shared demo: visitors are anonymous
+select t.as_user(t.id('ben_u'));
+select t.put('demo', public.seed_demo('Ben Real-Name'));
+select t.as_user(t.id('cy_u'));
+select public.seed_demo('Cy Real-Name');
+select t.ok(not exists(select 1 from jsonb_array_elements(public.list_members(t.id('demo'))) x where x->>'full_name' ilike '%real-name%'),'demo visitors never see each other''s real names');
+reset role;
+select t.ok(not exists(select 1 from public.members m join public.organizations o on o.id=m.org_id where o.is_demo and m.user_id is not null
+  and m.full_name not like 'Demo visitor %' and m.full_name <> 'Demo admin'),'no real person in any demo carries a real name');
+set role authenticated; select t.as_user(t.id('cy_u'));
+select t.ok(not exists(select 1 from jsonb_array_elements(public.list_audit(t.id('demo'))) x where x->>'actor_name' ilike '%real-name%' or x->>'details' ilike '%real-name%'),'the demo audit trail shows no visitor names');
+select t.ok(not exists(select 1 from jsonb_array_elements(public.global_search(t.id('demo'),'Real-Name')) x),'search finds no visitor names in the demo');
+
+-- 5. Online payments are off
+reset role;
+select t.fails(format($$insert into public.gateway_accounts(org_id, gateway, mode, key_hint, creds_enc, enabled) values (%L,'flutterwave','live','1234','x',true)$$,t.id('org2')),'switched off','no gateway can be connected');
+select t.ok(not exists(select 1 from public.gateway_accounts where enabled),'every connected gateway is switched off');
+
 -- ---------- Whole-database guards: these catch a new table or function that forgot its lock ----------
 select t.ok(not exists(select 1 from pg_class c join pg_namespace n on n.oid=c.relnamespace
   where n.nspname='public' and c.relkind='r' and not c.relrowsecurity),'every table has row level security on');

@@ -14,3 +14,7 @@ create function auth.uid() returns uuid language sql stable as $$ select nullif(
 grant usage on schema auth to anon, authenticated;
 grant usage on schema public to anon, authenticated;
 grant execute on function auth.uid() to anon, authenticated;
+-- Supabase puts the sign-in level in the token: aal1 = password only, aal2 = password plus an authenticator code.
+-- Tests run at aal2 unless a test sets test.aal to 'aal1'.
+create function auth.jwt() returns jsonb language sql stable as $$ select jsonb_build_object('aal', coalesce(nullif(current_setting('test.aal', true),''), 'aal2')) $$;
+grant execute on function auth.jwt() to anon, authenticated;
