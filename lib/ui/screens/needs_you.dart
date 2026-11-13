@@ -4,6 +4,7 @@ import '../../core/catalog.dart';
 import '../../core/json.dart';
 import '../../core/pages.dart';
 import '../theme.dart';
+import '../tour.dart';
 import '../widgets.dart';
 import 'two_step.dart';
 
@@ -58,7 +59,7 @@ class NeedsYouCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
     final look = SaccoLook.of(context);
-    return SaccoCard(
+    return TourTarget.needs.wrap(SaccoCard(
       padding: const EdgeInsets.fromLTRB(4, 12, 4, 4),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Padding(
@@ -76,7 +77,7 @@ class NeedsYouCard extends StatelessWidget {
           ),
         ...rows,
       ]),
-    );
+    ));
   }
 }
 

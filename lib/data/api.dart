@@ -198,6 +198,7 @@ class Api {
   Future<List<Json>> circleInvites(String org) async => asJsonList(await _rpc('list_circle_invites', {'p_org': org}));
   Future<void> cancelInvite(String id) => _rpc('cancel_circle_invite', {'p_invite': id});
   Future<void> decidePlatformInvite(String id, bool agree) => _rpc('decide_platform_invite', {'p_invite': id, 'p_agree': agree});
+
   /// Support window: the circle's admin lets the platform team look for up to 24 hours. Every look is logged.
   Future<void> openSupportWindow(String org, {int hours = 24}) => _rpc('open_support_window', {'p_org': org, 'p_hours': hours});
   Future<void> closeSupportWindow(String org) => _rpc('close_support_window', {'p_org': org});

@@ -6,6 +6,7 @@ import '../../core/money.dart';
 import '../../core/pages.dart';
 import '../motion.dart';
 import '../theme.dart';
+import '../tour.dart';
 import '../widgets.dart';
 import 'channels_screen.dart';
 import 'goals_screen.dart';
@@ -46,7 +47,7 @@ class DashboardScreen extends StatelessWidget {
         const RiseIn(delay: Duration(milliseconds: 40), child: NeedsYouCard()),
         RiseIn(
           delay: const Duration(milliseconds: 80),
-          child: Material(
+          child: TourTarget.money.wrap(Material(
             color: look.brand,
             borderRadius: BorderRadius.circular(look.radius),
             clipBehavior: Clip.antiAlias,
@@ -77,11 +78,11 @@ class DashboardScreen extends StatelessWidget {
                 ]),
               ),
             ),
-          ),
+          )),
         ),
         RiseIn(
           delay: const Duration(milliseconds: 120),
-          child: LayoutBuilder(builder: (context, box) {
+          child: TourTarget.actions.wrap(LayoutBuilder(builder: (context, box) {
             final w = (box.maxWidth - 20) / 3;
             return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
               BigTile(
@@ -95,7 +96,7 @@ class DashboardScreen extends StatelessWidget {
               BigTile(width: w, height: 104, icon: Icons.groups_rounded, label: st.t('Meetings'), onTap: () => st.goTo(AppPage.meetings)),
               BigTile(width: w, height: 104, icon: Icons.payments_outlined, label: st.t('Loans'), onTap: () => st.goTo(AppPage.loans)),
             ]);
-          }),
+          })),
         ),
         if (goal != null) ...[
           SectionTitle('Goal', trailing: TextButton(onPressed: () => st.goTo(AppPage.goals), child: const Text('All goals'))),

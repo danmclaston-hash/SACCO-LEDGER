@@ -42,22 +42,34 @@ void main() {
     expect(find.textContaining('+254'), findsWidgets);
   });
 
-  testWidgets('welcome tour: next, back, later', (t) async {
+  testWidgets('tour: points at parts, skips missing ones, next, back, later', (t) async {
     await phone(t);
     final st = AppState(Api());
-    await t.pumpWidget(app(st, Builder(builder: (c) => Scaffold(body: Center(child: TextButton(onPressed: () => showTour(c), child: const Text('go')))))));
+    await t.pumpWidget(app(
+        st,
+        Builder(
+            builder: (c) => Scaffold(
+                  body: Column(children: [
+                    TourTarget.money.wrap(const SizedBox(height: 120, width: 300, child: Text('money box'))),
+                    TextButton(onPressed: () => showTour(c), child: const Text('go')),
+                  ]),
+                ))));
     await t.tap(find.text('go'));
-    await t.pumpAndSettle();
-    expect(find.text('1 of 5'), findsOneWidget);
-    for (var i = 0; i < 4; i++) {
-      await t.tap(find.text('Next'));
-      await t.pumpAndSettle();
-    }
-    expect(find.text('Start'), findsOneWidget);
+    await t.pump(const Duration(milliseconds: 100));
+    await t.pump(const Duration(milliseconds: 1200));
+    // Only the welcome, the one part on screen, and the finish remain: 3 steps.
+    expect(find.text('1/3'), findsOneWidget);
+    await t.tap(find.text('Next'));
+    await t.pump(const Duration(milliseconds: 1200));
+    expect(find.text('Your money, one look'), findsOneWidget);
+    await t.tap(find.byTooltip('Back'));
+    await t.pump(const Duration(milliseconds: 1200));
+    expect(find.text('Welcome to SACCO Ledger'), findsOneWidget);
     await t.tap(find.text('Later'));
-    await t.pumpAndSettle();
+    await t.pump(const Duration(milliseconds: 100));
     expect(st.tourLater, isTrue);
     expect(st.tourDone, isFalse);
+    expect(find.text('Welcome to SACCO Ledger'), findsNothing);
   });
 
   testWidgets('info button explains a word, and hides when switched off', (t) async {

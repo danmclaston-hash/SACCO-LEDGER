@@ -20,6 +20,7 @@ import 'screens/settings_screen.dart';
 import 'screens/share_out_screen.dart';
 import 'screens/statements_screen.dart';
 import 'theme.dart';
+import 'tour.dart';
 import 'top_bar.dart';
 import 'widgets.dart';
 
@@ -109,7 +110,7 @@ class MobileShell extends StatelessWidget {
           ],
         ),
         // Labels stay on one line even with large text. Icons and page titles still grow.
-        bottomNavigationBar: DecoratedBox(
+        bottomNavigationBar: TourTarget.tabs.wrap(DecoratedBox(
           decoration: BoxDecoration(border: Border(top: BorderSide(color: Theme.of(context).colorScheme.outlineVariant))),
           child: MediaQuery.withClampedTextScaling(
             maxScaleFactor: 1.15,
@@ -123,7 +124,7 @@ class MobileShell extends StatelessWidget {
               ],
             ),
           ),
-        ),
+        )),
       ),
     );
   }
@@ -228,7 +229,7 @@ class WideShell extends StatelessWidget {
       appBar: const TopBar(),
       body: Row(
         children: [
-          Container(
+          TourTarget.tabs.wrap(Container(
             width: 232,
             decoration: BoxDecoration(border: Border(right: BorderSide(color: cs.outlineVariant))),
             child: Material(
@@ -261,7 +262,7 @@ class WideShell extends StatelessWidget {
                 ],
               ),
             ),
-          ),
+          )),
           Expanded(
             child: Column(
               children: [

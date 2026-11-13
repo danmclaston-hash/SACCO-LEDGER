@@ -41,7 +41,7 @@ class MemberHome extends StatelessWidget {
         const NeedsYouCard(),
         RiseIn(
           delay: const Duration(milliseconds: 60),
-          child: Container(
+          child: TourTarget.money.wrap(Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(color: look.brand, borderRadius: BorderRadius.circular(look.radius)),
             child: Column(
@@ -63,11 +63,11 @@ class MemberHome extends StatelessWidget {
                 ],
               ],
             ),
-          ),
+          )),
         ),
         RiseIn(
           delay: const Duration(milliseconds: 120),
-          child: LayoutBuilder(
+          child: TourTarget.actions.wrap(LayoutBuilder(
             builder: (context, box) {
               final w = (box.maxWidth - 12) / 2;
               return Wrap(
@@ -81,7 +81,7 @@ class MemberHome extends StatelessWidget {
                 ],
               );
             },
-          ),
+          )),
         ),
         if (last != null)
           RiseIn(

@@ -7,6 +7,7 @@ import 'screens/account_screen.dart';
 import 'screens/circles_screen.dart' show withArticle;
 import 'screens/search_screen.dart';
 import 'theme.dart';
+import 'tour.dart';
 import 'widgets.dart';
 
 /// Same top bar as the original app. The role pill now shows your real role:
@@ -71,7 +72,8 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
                       ]),
                     ),
                   ],
-                  child: Row(
+                  child: TourTarget.circle.wrap(Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.account_balance, size: 20, color: look.accent),
                       const SizedBox(width: 6),
@@ -93,10 +95,11 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
                       ),
                       Icon(Icons.arrow_drop_down, color: Colors.white),
                     ],
-                  ),
+                  )),
                 ),
               ),
               IconButton(
+                key: TourTarget.search.key,
                 tooltip: 'Search everything',
                 icon: Icon(Icons.search, color: Colors.white),
                 onPressed: () => showSearchScreen(context),
