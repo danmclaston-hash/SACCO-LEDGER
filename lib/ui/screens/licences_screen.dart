@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 
 import '../../core/json.dart';
 import '../../core/licences.dart';
 import '../../core/money.dart';
 import '../theme.dart';
 import '../widgets.dart';
+import '../text.dart';
 
 class LicencesScreen extends StatelessWidget {
   const LicencesScreen({super.key});
@@ -23,15 +24,15 @@ class LicencesScreen extends StatelessWidget {
         fields: (ctx, set) => [
           TextField(
             controller: type,
-            decoration: const InputDecoration(labelText: 'Type (e.g. UMRA SACCO licence)'),
+            decoration: InputDecoration(labelText: 'Type (e.g. UMRA SACCO licence)'),
           ),
           TextField(
             controller: number,
-            decoration: const InputDecoration(labelText: 'Licence number from the certificate'),
+            decoration: InputDecoration(labelText: 'Licence number from the certificate'),
           ),
           TextField(
             controller: expiry,
-            decoration: const InputDecoration(labelText: 'Expiry date (YYYY-MM-DD)'),
+            decoration: InputDecoration(labelText: 'Expiry date (YYYY-MM-DD)'),
           ),
         ],
         onConfirm: (ctx) async {

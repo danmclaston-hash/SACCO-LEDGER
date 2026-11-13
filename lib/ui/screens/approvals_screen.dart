@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 
 import '../../core/catalog.dart';
 import '../../core/json.dart';
@@ -6,6 +6,7 @@ import '../../core/money.dart';
 import '../../state/app_state.dart';
 import '../widgets.dart';
 import 'channels_screen.dart';
+import '../text.dart';
 
 /// Two people rule: someone other than the person who recorded it checks it against the MoMo or bank statement.
 class ApprovalsScreen extends StatelessWidget {
@@ -79,7 +80,7 @@ void _relabel(BuildContext context, AppState st, Json p) {
           goals: [...st.activeGoals, ...st.goals.where((g) => g.s('id') == goal && g.s('status') != 'active')],
           onChanged: (v) => set(() => goal = v),
         ),
-        TextField(controller: reason, decoration: const InputDecoration(labelText: 'Why? (kept in the audit trail)')),
+        TextField(controller: reason, decoration: InputDecoration(labelText: 'Why? (kept in the audit trail)')),
       ],
       onConfirm: (ctx) => runAndClose(ctx, () => st.api.setPaymentGoal(p.s('id'), goal, reason.text), done: 'Label changed and recorded.'),
     ),

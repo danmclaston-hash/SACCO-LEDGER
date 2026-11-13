@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 
 import '../core/pages.dart';
 import '../state/app_state.dart';
@@ -23,6 +23,7 @@ import 'theme.dart';
 import 'tour.dart';
 import 'top_bar.dart';
 import 'widgets.dart';
+import 'text.dart';
 
 IconData pageIcon(AppPage p) => switch (p) {
       AppPage.overview => Icons.home_rounded,

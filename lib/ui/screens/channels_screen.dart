@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 
 import '../../core/catalog.dart';
 import '../../core/config.dart';
@@ -7,6 +7,7 @@ import '../../core/money.dart';
 import '../theme.dart';
 import '../widgets.dart';
 import 'online_pay.dart';
+import '../text.dart';
 
 /// Money moves on MTN, Airtel, bank or cash, into the group's OWN account.
 /// This screen helps dial, then records the transaction ID. It never touches the money.
@@ -204,7 +205,7 @@ class _PaymentDialogState extends State<_PaymentDialog> {
         DropdownButtonFormField<Purpose>(
           initialValue: purpose,
           isExpanded: true,
-          decoration: const InputDecoration(labelText: 'What is it for?'),
+          decoration: InputDecoration(labelText: 'What is it for?'),
           items: [
             for (final p in Purpose.choices(handlesMoney: st.role.handlesMoney, online: online)) DropdownMenuItem(value: p, child: Text(p.label)),
           ],
@@ -219,7 +220,7 @@ class _PaymentDialogState extends State<_PaymentDialog> {
                   key: ValueKey(memberId),
                   initialValue: loanId,
                   isExpanded: true,
-                  decoration: const InputDecoration(labelText: 'Loan'),
+                  decoration: InputDecoration(labelText: 'Loan'),
                   items: [
                     for (final l in memberLoans)
                       DropdownMenuItem(value: l.s('id'), child: Text('${l.s('loan_number')} • left ${money(context, l.i('remaining'))}')),
@@ -242,7 +243,7 @@ class _PaymentDialogState extends State<_PaymentDialog> {
           const EmptyNote('Next: a secure payment page opens. Pay there with mobile money or card. Then come back here.')
         else ...[
           ChannelFields(value: channel, ref: ref, onChanged: (v) => setState(() => channel = v)),
-          if (purpose.needsReason) TextField(controller: note, decoration: const InputDecoration(labelText: 'Reason')),
+          if (purpose.needsReason) TextField(controller: note, decoration: InputDecoration(labelText: 'Reason')),
         ],
       ],
       onConfirm: (ctx) async {

@@ -1,3 +1,5 @@
+import 'i18n.dart';
+
 /// All money is a whole number in minor units. UGX, TZS, RWF have no cents. KES has 100 cents.
 class Money {
   static int decimals(String currency) => currency == 'KES' ? 2 : 0;
@@ -96,7 +98,15 @@ class Phones {
 class Dates {
   static const _months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-  static String monthShort(int month) => _months[(month - 1).clamp(0, 11)];
+  static const _monthsLg = ['Jan', 'Feb', 'Mar', 'Apr', 'Mey', 'Jun', 'Jul', 'Agu', 'Seb', 'Oki', 'Nov', 'Des'];
+  static const _monthsSw = ['Jan', 'Feb', 'Mac', 'Apr', 'Mei', 'Jun', 'Jul', 'Ago', 'Sep', 'Okt', 'Nov', 'Des'];
+
+  /// Short month names follow the chosen language.
+  static String monthShort(int month) => switch (Lang.current) {
+        AppLanguage.lg => _monthsLg,
+        AppLanguage.sw => _monthsSw,
+        AppLanguage.en => _months,
+      }[(month - 1).clamp(0, 11)];
 
   /// Today at midnight, so schedules start on a whole day.
   static DateTime today() {

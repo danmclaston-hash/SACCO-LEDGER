@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 
 import '../../core/catalog.dart';
 import '../../core/json.dart';
@@ -12,6 +12,7 @@ import 'channels_screen.dart';
 import 'goals_screen.dart';
 import 'home_screen.dart';
 import 'needs_you.dart';
+import '../text.dart';
 
 /// An officer's home. Three questions, in this order:
 /// 1. What needs me now?  2. How much money does the group have?  3. What do I do next?

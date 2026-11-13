@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 
 import '../../core/json.dart';
 import '../../core/money.dart';
 import '../widgets.dart';
+import '../text.dart';
 
 /// The platform team: owners and admins, plus everyone who has signed up.
 /// Admins can open every group (read only). Owners can also add, promote and remove team members.
@@ -150,7 +151,7 @@ class _AdminsCardState extends State<AdminsCard> {
                     if (owner && !a.b('is_founder') && !a.b('is_me'))
                       PopupMenuButton<String>(
                         enabled: !busy,
-                        tooltip: 'Change',
+                        tooltip: tr('Change'),
                         onSelected: (v) => _teamAction(a, v),
                         itemBuilder: (_) => [
                           if (a.s('role') != 'owner') const PopupMenuItem(value: 'owner', child: Text('Make owner')),
@@ -187,7 +188,7 @@ class _AdminsCardState extends State<AdminsCard> {
                   controller: email,
                   keyboardType: TextInputType.emailAddress,
                   autocorrect: false,
-                  decoration: const InputDecoration(labelText: 'Their email'),
+                  decoration: InputDecoration(labelText: 'Their email'),
                 ),
                 const SizedBox(height: 8),
                 Row(children: [
@@ -213,7 +214,7 @@ class _AdminsCardState extends State<AdminsCard> {
                   style: tt.labelSmall),
               const SizedBox(height: 6),
               TextField(
-                decoration: const InputDecoration(labelText: 'Find by name or email', prefixIcon: Icon(Icons.search)),
+                decoration: InputDecoration(labelText: 'Find by name or email', prefixIcon: Icon(Icons.search)),
                 onChanged: (v) => setState(() => filter = v),
               ),
               for (final u in shown)
@@ -244,7 +245,7 @@ class _AdminsCardState extends State<AdminsCard> {
                       : owner
                           ? PopupMenuButton<String>(
                               enabled: !busy,
-                              tooltip: 'Team or block',
+                              tooltip: tr('Team or block'),
                               icon: const Icon(Icons.more_vert),
                               onSelected: (r) => _personAction(u, r),
                               itemBuilder: (_) => [

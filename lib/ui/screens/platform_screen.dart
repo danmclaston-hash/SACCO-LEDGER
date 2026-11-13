@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 
 import '../../core/catalog.dart';
 import '../../core/json.dart';
@@ -6,6 +6,7 @@ import '../../core/money.dart';
 import '../widgets.dart';
 import 'admins_card.dart';
 import 'circles_screen.dart';
+import '../text.dart';
 
 /// For you, the platform owner: every group, its size, and licence expiry.
 class PlatformScreen extends StatelessWidget {

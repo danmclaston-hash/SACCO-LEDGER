@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 
 import '../../core/catalog.dart';
 import '../../core/json.dart';
@@ -7,6 +7,7 @@ import '../theme.dart';
 import '../tour.dart';
 import '../widgets.dart';
 import 'two_step.dart';
+import '../text.dart';
 
 /// One thing that needs the person, as one tappable line.
 class _Todo {

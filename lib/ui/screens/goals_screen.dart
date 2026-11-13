@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 
 import '../../core/catalog.dart';
 import '../../core/goal_math.dart';
@@ -8,6 +8,7 @@ import '../charts.dart';
 import '../theme.dart';
 import '../widgets.dart';
 import 'channels_screen.dart';
+import '../text.dart';
 
 /// Savings goals: plan a target, see what each person brings, track progress.
 class GoalsScreen extends StatelessWidget {
@@ -125,8 +126,7 @@ class _GoalCalculatorState extends State<GoalCalculator> {
           const SizedBox(width: 8),
           Expanded(
               flex: 2,
-              child: TextField(
-                  controller: people, keyboardType: TextInputType.number, onChanged: rebuild, decoration: const InputDecoration(labelText: 'People'))),
+              child: TextField(controller: people, keyboardType: TextInputType.number, onChanged: rebuild, decoration: InputDecoration(labelText: 'People'))),
         ]),
         gap,
         Wrap(spacing: 8, children: [
@@ -368,7 +368,7 @@ void showCreateGoal(BuildContext context, {int? target, DateTime? end, Frequency
       title: 'New group goal',
       confirm: 'Save goal',
       fields: (ctx, set) => [
-        TextField(controller: name, textCapitalization: TextCapitalization.sentences, decoration: const InputDecoration(labelText: 'Name, e.g. School fees')),
+        TextField(controller: name, textCapitalization: TextCapitalization.sentences, decoration: InputDecoration(labelText: 'Name, e.g. School fees')),
         MoneyField(controller: amount, label: 'Goal amount', currency: st.currency),
         Wrap(spacing: 8, children: [
           for (final f in Frequency.values) ChoiceChip(label: Text('Every ${f.one}'), selected: freq == f, onSelected: (_) => set(() => freq = f)),

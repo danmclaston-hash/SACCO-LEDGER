@@ -1,8 +1,10 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/config.dart';
+import 'core/i18n.dart';
 import 'data/api.dart';
 import 'state/app_state.dart';
 import 'ui/screens/auth_screen.dart';
@@ -13,6 +15,7 @@ import 'ui/shells.dart';
 import 'ui/tour.dart';
 import 'ui/theme.dart';
 import 'ui/widgets.dart';
+import 'ui/text.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,12 +44,20 @@ class SaccoApp extends StatelessWidget {
             theme: themeFor(state.look, Brightness.light),
             darkTheme: themeFor(state.look, Brightness.dark),
             themeMode: state.themeMode,
+            // Flutter's own words (date picker, copy and paste) come in Kiswahili too. Luganda is not offered by Flutter, so those stay English.
+            locale: state.language == AppLanguage.sw ? const Locale('sw') : const Locale('en'),
+            supportedLocales: const [Locale('en'), Locale('sw')],
+            localizationsDelegates: GlobalMaterialLocalizations.delegates,
             builder: (context, child) {
               final mq = MediaQuery.of(context);
               final scale = (mq.textScaler.scale(16) / 16 * state.textScale).clamp(0.85, 2.0);
-              return MediaQuery(
-                data: mq.copyWith(textScaler: TextScaler.linear(scale)),
-                child: child!,
+              // Every piece of text listens to LangScope, so changing the language changes the whole app at once.
+              return LangScope(
+                language: state.language,
+                child: MediaQuery(
+                  data: mq.copyWith(textScaler: TextScaler.linear(scale)),
+                  child: child!,
+                ),
               );
             },
             home: const _LifecycleGate(child: JoinLinkGate(child: _Root())),

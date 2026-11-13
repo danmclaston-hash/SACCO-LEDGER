@@ -1,11 +1,12 @@
 import 'dart:math' as math;
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 import 'package:flutter/services.dart';
 
 import '../core/pages.dart';
 import 'theme.dart';
 import 'widgets.dart';
+import 'text.dart';
 
 /// The parts of the app the tour can point at. Each screen tags its widget with `TourTarget.x.wrap(child)`.
 /// A step whose part is not on screen (for example a member has no "Record" row) is skipped, so one tour fits every role.
@@ -319,7 +320,7 @@ class _SpotlightState extends State<_Spotlight> with TickerProviderStateMixin, W
                                   TextButton(onPressed: () => _finish(done: false), child: const Text('Later')),
                                 ],
                                 const Spacer(),
-                                if (_i > 0) IconButton(tooltip: 'Back', onPressed: () => _go(_i - 1), icon: const Icon(Icons.arrow_back)),
+                                if (_i > 0) IconButton(tooltip: tr('Back'), onPressed: () => _go(_i - 1), icon: const Icon(Icons.arrow_back)),
                                 FilledButton(
                                   onPressed: last ? () => _finish(done: true) : () => _go(_i + 1),
                                   child: Text(last ? 'Start' : 'Next'),

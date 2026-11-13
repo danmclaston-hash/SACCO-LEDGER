@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 import 'package:flutter/services.dart';
 
 import '../../core/catalog.dart';
@@ -9,6 +9,7 @@ import '../../data/api.dart';
 import '../../state/app_state.dart';
 import '../widgets.dart';
 import 'circles_screen.dart';
+import '../text.dart';
 
 class MembersScreen extends StatelessWidget {
   const MembersScreen({super.key});
@@ -76,7 +77,7 @@ class MembersScreen extends StatelessWidget {
                       ),
                       IconButton(
                         icon: const Icon(Icons.copy, size: 16),
-                        tooltip: 'Copy code',
+                        tooltip: tr('Copy code'),
                         onPressed: () {
                           Clipboard.setData(ClipboardData(text: m.s('invite_code')));
                           showMsg(context, 'Code copied. Give it to ${m.s('full_name')} privately.');
@@ -142,19 +143,19 @@ class MembersScreen extends StatelessWidget {
         title: m == null ? 'Add Member' : 'Edit ${m.s('full_name')}',
         confirm: m == null ? 'Add' : 'Save',
         fields: (ctx, set) => [
-          TextField(controller: name, decoration: const InputDecoration(labelText: 'Full name')),
-          TextField(controller: phone, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Phone')),
+          TextField(controller: name, decoration: InputDecoration(labelText: 'Full name')),
+          TextField(controller: phone, keyboardType: TextInputType.phone, decoration: InputDecoration(labelText: 'Phone')),
           TextField(controller: nin, decoration: InputDecoration(labelText: m == null ? 'National ID (NIN), optional' : 'National ID (NIN)')),
           if (st.role.isOrgAdmin)
             DropdownButtonFormField<Role>(
               initialValue: role,
-              decoration: const InputDecoration(labelText: 'Role'),
+              decoration: InputDecoration(labelText: 'Role'),
               items: [for (final r in Role.assignable) DropdownMenuItem(value: r, child: Text(r.label))],
               onChanged: (v) => set(() => role = v ?? role),
             ),
           if (m == null) ...[
-            TextField(controller: kin, decoration: const InputDecoration(labelText: 'Next of kin, optional')),
-            TextField(controller: kinPhone, keyboardType: TextInputType.phone, decoration: const InputDecoration(labelText: 'Next of kin phone, optional')),
+            TextField(controller: kin, decoration: InputDecoration(labelText: 'Next of kin, optional')),
+            TextField(controller: kinPhone, keyboardType: TextInputType.phone, decoration: InputDecoration(labelText: 'Next of kin phone, optional')),
           ] else
             SwitchListTile(contentPadding: EdgeInsets.zero, title: const Text('Active'), value: active, onChanged: (v) => set(() => active = v)),
         ],

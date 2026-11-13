@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 
 import '../../core/catalog.dart';
 import '../../core/json.dart';
@@ -8,6 +8,7 @@ import '../theme.dart';
 import '../tour.dart';
 import '../widgets.dart';
 import 'needs_you.dart';
+import '../text.dart';
 
 /// A member's home: their money, four big picture buttons, and the state of their last payment.
 /// Built so a person who reads little can still find their way by picture and colour.

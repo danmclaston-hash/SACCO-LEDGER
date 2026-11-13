@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 
 import '../../core/json.dart';
 import '../../core/money.dart';
@@ -8,6 +8,7 @@ import '../../core/pages.dart';
 import '../../data/api.dart';
 import '../../state/app_state.dart';
 import '../widgets.dart';
+import '../text.dart';
 
 void showSearchScreen(BuildContext context) => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SearchScreen()));
 

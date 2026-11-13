@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 
 import '../../core/catalog.dart';
 import '../../core/json.dart';
@@ -10,6 +10,7 @@ import '../theme.dart';
 import '../widgets.dart';
 import 'channels_screen.dart';
 import 'loan_calculator.dart';
+import '../text.dart';
 
 class LoansScreen extends StatelessWidget {
   const LoansScreen({super.key});
@@ -125,12 +126,12 @@ class LoansScreen extends StatelessWidget {
             TextField(
               controller: term,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Term (Months)'),
+              decoration: InputDecoration(labelText: 'Term (Months)'),
               onChanged: (_) => set(() {}),
             ),
             TextField(
               controller: purpose,
-              decoration: const InputDecoration(labelText: 'What is the loan for?'),
+              decoration: InputDecoration(labelText: 'What is the loan for?'),
             ),
             LoanSummary(
               principal: Money.parse(principal.text, st.currency) ?? 0,
@@ -304,7 +305,7 @@ class _LoanCard extends StatelessWidget {
           Text('${l.s('borrower')}: ${Money.format(l.i('principal'), st.currency)}'),
           TextField(
             controller: res,
-            decoration: const InputDecoration(labelText: 'Resolution Reference'),
+            decoration: InputDecoration(labelText: 'Resolution Reference'),
           ),
           MemberPicker(label: 'Witness 1 (Non-borrower)', value: w1, members: others, onChanged: (v) => set(() => w1 = v)),
           MemberPicker(label: 'Witness 2 (Non-borrower)', value: w2, members: others, onChanged: (v) => set(() => w2 = v)),
@@ -405,7 +406,7 @@ class _LoanCard extends StatelessWidget {
         fields: (ctx, set) => [
           Text('Owed now: ${Money.format(l.i('late_fees_due'), st.currency)}. This is permanent and shown in the audit trail.'),
           MoneyField(controller: amount, label: 'Amount to forgive', currency: st.currency),
-          TextField(controller: reason, decoration: const InputDecoration(labelText: 'Why? (e.g. agreed in meeting 12)')),
+          TextField(controller: reason, decoration: InputDecoration(labelText: 'Why? (e.g. agreed in meeting 12)')),
         ],
         onConfirm: (ctx) async {
           final a = Money.parse(amount.text, st.currency);

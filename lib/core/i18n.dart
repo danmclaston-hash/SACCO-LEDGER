@@ -1,3 +1,5 @@
+import 'i18n_table.dart';
+
 enum AppLanguage {
   en('English'),
   lg('Oluganda'),
@@ -7,33 +9,72 @@ enum AppLanguage {
   const AppLanguage(this.label);
 }
 
-/// Words carried over from the original app, looked up by their English text.
-/// Anything not listed shows in English.
-const _t = <String, Map<AppLanguage, String>>{
-  'SACCO Ledger': {AppLanguage.lg: 'Ekitabo kya SACCO', AppLanguage.sw: 'Daftari la SACCO'},
-  'Home': {AppLanguage.lg: 'Awaka', AppLanguage.sw: 'Nyumbani'},
-  'Pay': {AppLanguage.lg: 'Sasula', AppLanguage.sw: 'Lipa'},
-  'More': {AppLanguage.lg: 'Ebirala', AppLanguage.sw: 'Zaidi'},
-  'My money': {AppLanguage.lg: 'Ssente zange', AppLanguage.sw: 'Pesa zangu'},
-  'Help': {AppLanguage.lg: 'Obuyambi', AppLanguage.sw: 'Msaada'},
-  'Overview': {AppLanguage.lg: 'Ebikulu', AppLanguage.sw: 'Dashibodi'},
-  'Meetings': {AppLanguage.lg: 'Enkiiko', AppLanguage.sw: 'Mikutano'},
-  'Loans': {AppLanguage.lg: 'Ebyewolo', AppLanguage.sw: 'Mikopo'},
-  'Members': {AppLanguage.lg: 'Bammemba', AppLanguage.sw: 'Wanachama'},
-  'Emergency': {AppLanguage.lg: "Ensawo Y'obuyambi", AppLanguage.sw: 'Mfuko wa Dharura'},
-  'Ledger & Audit': {AppLanguage.lg: "Ebitabo n'Okubala", AppLanguage.sw: 'Leja na Ukaguzi'},
-  'Ledger': {AppLanguage.lg: 'Ebitabo', AppLanguage.sw: 'Leja'},
-  'Share-Out': {AppLanguage.lg: 'Okugaba Ensimbi', AppLanguage.sw: 'Mugawanyo'},
-  'My Account': {AppLanguage.lg: 'Akawunti Yange', AppLanguage.sw: 'Akaunti Yangu'},
-  'Goals': {AppLanguage.lg: 'Ebigendererwa', AppLanguage.sw: 'Malengo'},
-  'Open Weekly Meeting': {AppLanguage.lg: 'Ggulawo Olukiiko', AppLanguage.sw: 'Fungua Mkutano'},
-  'Close Meeting (Reconcile Cash)': {AppLanguage.lg: 'Ggalawo Olukiiko', AppLanguage.sw: 'Funga Mkutano'},
-  'Quorum Reached': {AppLanguage.lg: 'Omuwendo Guweredde', AppLanguage.sw: 'Idadi Kamili Imefikiwa'},
-  'Cash Reconciled': {AppLanguage.lg: 'Ensimbi Zituuse Bulungi', AppLanguage.sw: 'Pesa Zimelinganishwa'},
-  'AI suggests, never acts on money': {
-    AppLanguage.lg: 'AI ewa amagezi, tegulawo wadde okukwata ensimbi',
-    AppLanguage.sw: 'AI inapendekeza tu, haigusi pesa zako',
-  },
-};
+/// The language the whole app is showing right now. Set by the app state; read by every piece of text.
+class Lang {
+  static AppLanguage current = AppLanguage.en;
+}
 
-String translate(String english, AppLanguage lang) => _t[english]?[lang] ?? english;
+final Map<AppLanguage, Map<String, String>> _cache = {AppLanguage.lg: {}, AppLanguage.sw: {}};
+List<(RegExp, String, int)>? _patterns;
+
+/// Sentences with a changing part, like "Meeting #{0} is open now". Built once, the first time they are needed.
+List<(RegExp, String, int)> _loadPatterns() {
+  final out = <(RegExp, String, int)>[];
+  for (final e in i18nTable.entries) {
+    if (!e.key.contains('{0')) continue;
+    var n = 0;
+    // {0} matches any words; {0#} matches only a number, so "{0#} members" never swallows a whole sentence.
+    final re = RegExp.escape(e.key).replaceAllMapped(RegExp(r'\\\{(\d)(#?)\\\}|\{(\d)(#?)\}'), (m) {
+      n++;
+      return (m.group(2) ?? m.group(4)) == '#' ? r'(\d[\d,.]*)' : '(.+?)';
+    });
+    out.add((RegExp('^$re\$', dotAll: true), e.key, n));
+  }
+  // Longer, more exact sentences first, so "{0} payments to check" wins over "{0}".
+  out.sort((a, b) => b.$2.length.compareTo(a.$2.length));
+  return out;
+}
+
+/// Turns English text into the chosen language. Text it does not know stays in English, so nothing ever goes blank.
+String translate(String english, [AppLanguage? lang]) {
+  final l = lang ?? Lang.current;
+  if (l == AppLanguage.en || english.trim().isEmpty) return english;
+  final cache = _cache[l]!;
+  final hit = cache[english];
+  if (hit != null) return hit;
+  final out = _lookup(english, l);
+  if (cache.length < 5000) cache[english] = out;
+  return out;
+}
+
+String _lookup(String english, AppLanguage l) {
+  final i = l == AppLanguage.lg ? 0 : 1;
+  final exact = i18nTable[english];
+  if (exact != null) return exact[i];
+  // Keep spaces and full stops around the words as they were.
+  final trimmed = english.trim();
+  if (trimmed != english) {
+    final t = i18nTable[trimmed];
+    if (t != null) return english.replaceFirst(trimmed, t[i]);
+  }
+  _patterns ??= _loadPatterns();
+  for (final (re, key, n) in _patterns!) {
+    final m = re.firstMatch(english);
+    if (m == null) continue;
+    var out = i18nTable[key]![i];
+    for (var k = 0; k < n; k++) {
+      // The changing parts may themselves be words we know, like "3 payments".
+      out = out.replaceAll('{$k}', translate(m.group(k + 1)!, l));
+    }
+    return out;
+  }
+  // Text made of lines: translate each line on its own.
+  if (english.contains('\n')) {
+    final lines = english.split('\n');
+    if (lines.length > 1) return lines.map((x) => translate(x, l)).join('\n');
+  }
+  return english;
+}
+
+/// Every English text the app shows that has no translation yet, for the coverage check.
+bool hasTranslation(String english) => i18nTable.containsKey(english);

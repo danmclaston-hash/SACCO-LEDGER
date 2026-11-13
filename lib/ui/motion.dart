@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 
 import 'theme.dart';
+import 'text.dart';
 
 bool _still(BuildContext c) => MediaQuery.disableAnimationsOf(c);
 

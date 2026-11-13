@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 import 'package:flutter/services.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -16,6 +16,7 @@ import '../theme.dart';
 import '../widgets.dart';
 import 'auth_screen.dart';
 import 'two_step.dart';
+import '../text.dart';
 
 /// What a role means, in one short line a person can read at a glance.
 String roleMeaning(Role r) => switch (r) {
@@ -468,7 +469,7 @@ Future<void> showJoinSheet(BuildContext context, Json invite) {
                 Text('Your details for this circle', style: tt.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
                 Text('Filled from your profile. Fix them if needed. This circle\'s officers will see them.', style: tt.bodySmall),
                 gap,
-                TextField(controller: name, textCapitalization: TextCapitalization.words, decoration: const InputDecoration(labelText: 'Your full name')),
+                TextField(controller: name, textCapitalization: TextCapitalization.words, decoration: InputDecoration(labelText: 'Your full name')),
                 gap,
                 TextField(
                   controller: phone,
@@ -556,7 +557,7 @@ Future<void> showJoinWithCode(BuildContext context) {
           autofocus: true,
           textCapitalization: TextCapitalization.characters,
           inputFormatters: [FilteringTextInputFormatter.allow(RegExp('[A-Za-z0-9]')), LengthLimitingTextInputFormatter(8)],
-          decoration: const InputDecoration(labelText: 'Code'),
+          decoration: InputDecoration(labelText: 'Code'),
         ),
         CheckboxListTile(
           contentPadding: EdgeInsets.zero,
@@ -641,7 +642,7 @@ Future<void> showInviteDialog(BuildContext context, {String? orgId}) async {
             DropdownButtonFormField<String>(
               initialValue: org,
               isExpanded: true,
-              decoration: const InputDecoration(labelText: 'Circle'),
+              decoration: InputDecoration(labelText: 'Circle'),
               items: [for (final o in circles) DropdownMenuItem(value: o.s('id'), child: Text(o.s('name'), overflow: TextOverflow.ellipsis))],
               onChanged: (v) => set(() => org = v ?? org),
             ),
@@ -707,7 +708,7 @@ Future<void> showInviteDialog(BuildContext context, {String? orgId}) async {
             controller: message,
             maxLength: 280,
             maxLines: 2,
-            decoration: const InputDecoration(labelText: 'A short welcome (optional)', hintText: 'We meet on Saturdays at 10.'),
+            decoration: InputDecoration(labelText: 'A short welcome (optional)', hintText: 'We meet on Saturdays at 10.'),
           ),
         ];
       },
@@ -864,7 +865,7 @@ class CircleInvitesCard extends StatelessWidget {
                 trailing: x.s('status') == 'pending'
                     ? Wrap(spacing: 4, children: [
                         IconButton(
-                          tooltip: 'Copy link',
+                          tooltip: tr('Copy link'),
                           icon: const Icon(Icons.link_rounded),
                           onPressed: () async {
                             await Clipboard.setData(ClipboardData(text: inviteLink(x.s('code'))));
@@ -872,7 +873,7 @@ class CircleInvitesCard extends StatelessWidget {
                           },
                         ),
                         IconButton(
-                          tooltip: 'Cancel invitation',
+                          tooltip: tr('Cancel invitation'),
                           icon: const Icon(Icons.close_rounded),
                           onPressed: () => runAndTell(context, () => st.api.cancelInvite(x.s('id')), done: 'Invitation cancelled. The link no longer works.'),
                         ),

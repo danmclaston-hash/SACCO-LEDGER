@@ -1,0 +1,74 @@
+{
+ "SACCO Ledger": [
+  "Ekitabo kya SACCO",
+  "Daftari la SACCO"
+ ],
+ "Home": [
+  "Awaka",
+  "Nyumbani"
+ ],
+ "Pay": [
+  "Sasula",
+  "Lipa"
+ ],
+ "More": [
+  "Ebirala",
+  "Zaidi"
+ ],
+ "My money": [
+  "Ssente zange",
+  "Pesa zangu"
+ ],
+ "Help": [
+  "Obuyambi",
+  "Msaada"
+ ],
+ "Meetings": [
+  "Enkiiko",
+  "Mikutano"
+ ],
+ "Loans": [
+  "Amabanja",
+  "Mikopo"
+ ],
+ "Members": [
+  "Bammemba",
+  "Wanachama"
+ ],
+ "Emergency": [
+  "Ensawo y'obuyambi",
+  "Mfuko wa Dharura"
+ ],
+ "Ledger & Audit": [
+  "Ebitabo n'Okubala",
+  "Leja na Ukaguzi"
+ ],
+ "Ledger": [
+  "Ekitabo",
+  "Leja"
+ ],
+ "My Account": [
+  "Akawunti Yange",
+  "Akaunti Yangu"
+ ],
+ "Goals": [
+  "Ebigendererwa",
+  "Malengo"
+ ],
+ "Open Weekly Meeting": [
+  "Ggulawo Olukiiko",
+  "Fungua Mkutano"
+ ],
+ "Close Meeting (Reconcile Cash)": [
+  "Ggalawo Olukiiko",
+  "Funga Mkutano"
+ ],
+ "Quorum Reached": [
+  "Omuwendo Guweredde",
+  "Idadi Kamili Imefikiwa"
+ ],
+ "Cash Reconciled": [
+  "Ensimbi Zituuse Bulungi",
+  "Pesa Zimelinganishwa"
+ ]
+}

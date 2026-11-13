@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 
 import '../../core/json.dart';
 import '../../core/money.dart';
 import '../theme.dart';
 import '../widgets.dart';
+import '../text.dart';
 
 /// For a circle admin: lets the platform team look inside this circle for a short time. Closed unless the admin opens it.
 /// Why: the team that runs the app should not read a group's members or money unless the group asks for help.

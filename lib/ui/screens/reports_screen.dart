@@ -1,10 +1,11 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 
 import '../../core/json.dart';
 import '../../core/risk.dart';
 import '../charts.dart';
 import '../theme.dart';
 import '../widgets.dart';
+import '../text.dart';
 
 /// How the group is doing, for officers: money held, loan health in plain words, charts and tips.
 /// Moved off the home page so the home answers only "what needs me now".

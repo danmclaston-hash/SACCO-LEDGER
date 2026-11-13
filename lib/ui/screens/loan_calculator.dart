@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 
 import '../../core/loan_math.dart';
 import '../../core/money.dart';
 import '../widgets.dart';
+import '../text.dart';
 
 /// Big, simple choices for how a loan works. Used in Group Settings, the calculator and for one loan.
 class LoanRulesEditor extends StatefulWidget {
@@ -125,7 +126,7 @@ class _LoanRulesEditorState extends State<LoanRulesEditor> {
               controller: latePct,
               enabled: on,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(labelText: 'Late fee (% of the missed payment)', suffixText: '%'),
+              decoration: InputDecoration(labelText: 'Late fee (% of the missed payment)', suffixText: '%'),
               onChanged: (v) {
                 final r = double.tryParse(v.trim());
                 if (r != null && r >= 0 && r <= 100) set(t.copyWith(latePct: r));
@@ -157,7 +158,7 @@ class _LoanRulesEditorState extends State<LoanRulesEditor> {
               controller: cap,
               enabled: on,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(labelText: 'Most late fees can reach (% of the loan)', suffixText: '%'),
+              decoration: InputDecoration(labelText: 'Most late fees can reach (% of the loan)', suffixText: '%'),
               onChanged: (v) {
                 final r = double.tryParse(v.trim());
                 if (r != null && r >= 0 && r <= 1000) set(t.copyWith(capPct: r));
@@ -356,7 +357,7 @@ class _LoanCalculatorScreenState extends State<LoanCalculatorScreen> {
               child: TextField(
                 controller: months,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Months'),
+                decoration: InputDecoration(labelText: 'Months'),
                 onChanged: (_) => setState(() {}),
               ),
             ),

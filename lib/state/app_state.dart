@@ -70,7 +70,13 @@ class AppState extends ChangeNotifier {
   Json _data = {};
   List<Json> outbox = [];
   List<String> outboxFailures = [];
-  AppLanguage language = AppLanguage.en;
+  AppLanguage _language = AppLanguage.en;
+  AppLanguage get language => _language;
+  set language(AppLanguage l) {
+    _language = l;
+    Lang.current = l;
+  }
+
   AppPage page = AppPage.overview;
   int ledgerTab = 0;
 

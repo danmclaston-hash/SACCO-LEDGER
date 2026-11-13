@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 
 import '../../core/catalog.dart';
 import '../../core/json.dart';
@@ -7,6 +7,7 @@ import '../../state/app_state.dart';
 import '../theme.dart';
 import '../widgets.dart';
 import 'channels_screen.dart';
+import '../text.dart';
 
 /// "Pay online": the group's OWN Flutterwave or Pesapal account takes the money.
 /// Nobody types a transaction ID. The gateway reports it, our server checks it again, then it posts.
@@ -271,7 +272,7 @@ class _GatewaySetupCardState extends State<GatewaySetupCard> {
             gap,
             DropdownButtonFormField<String>(
               initialValue: gateway,
-              decoration: const InputDecoration(labelText: 'Gateway'),
+              decoration: InputDecoration(labelText: 'Gateway'),
               items: const [
                 DropdownMenuItem(value: 'flutterwave', child: Text('Flutterwave (30+ African countries)')),
                 DropdownMenuItem(value: 'pesapal', child: Text('Pesapal (East and Southern Africa)')),
@@ -286,7 +287,7 @@ class _GatewaySetupCardState extends State<GatewaySetupCard> {
             DropdownButtonFormField<String>(
               key: ValueKey(isDemo),
               initialValue: mode,
-              decoration: const InputDecoration(labelText: 'Money'),
+              decoration: InputDecoration(labelText: 'Money'),
               items: [
                 const DropdownMenuItem(value: 'live', child: Text('Live: real money')),
                 if (isDemo) const DropdownMenuItem(value: 'test', child: Text('Test: pretend money (demo group only)')),

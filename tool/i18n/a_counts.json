@@ -1,0 +1,50 @@
+{
+ "{0#} payment": [
+  "okusasula {0}",
+  "malipo {0}"
+ ],
+ "{0#} payments": [
+  "okusasula {0}",
+  "malipo {0}"
+ ],
+ "{0#} loan": [
+  "ebbanja {0}",
+  "mkopo {0}"
+ ],
+ "{0#} loans": [
+  "amabanja {0}",
+  "mikopo {0}"
+ ],
+ "{0#} loan request": [
+  "okusaba ebbanja {0}",
+  "ombi la mkopo {0}"
+ ],
+ "{0#} loan requests": [
+  "okusaba amabanja {0}",
+  "maombi ya mikopo {0}"
+ ],
+ "{0#} emergency claim": [
+  "okusaba obuyambi {0}",
+  "dai la dharura {0}"
+ ],
+ "{0#} emergency claims": [
+  "okusaba obuyambi {0}",
+  "madai ya dharura {0}"
+ ],
+ "{0#} member": [
+  "mmemba {0}",
+  "mwanachama {0}"
+ ],
+ "{0#} members": [
+  "bammemba {0}",
+  "wanachama {0}"
+ ],
+ "{0#} person": [
+  "omuntu {0}",
+  "mtu {0}"
+ ],
+ "{0#} people": [
+  "abantu {0}",
+  "watu {0}"
+ ]
+}

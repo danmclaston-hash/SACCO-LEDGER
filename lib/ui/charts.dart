@@ -1,11 +1,12 @@
 import 'dart:math';
 
 import 'package:fl_chart/fl_chart.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 
 import '../core/json.dart';
 import '../core/money.dart';
 import 'widgets.dart';
+import 'text.dart';
 
 /// Chart colours. Brand teal and gold first, then four more, in a fixed order.
 /// Checked for colour-blind readers in light and dark. Never cycle: past 6 goals, fold into "Other goals".

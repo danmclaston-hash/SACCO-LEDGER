@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 
 import '../../core/catalog.dart';
 import '../../core/json.dart';
@@ -6,6 +6,7 @@ import '../../core/money.dart';
 import '../../state/app_state.dart';
 import '../widgets.dart';
 import 'channels_screen.dart';
+import '../text.dart';
 
 class EmergencyScreen extends StatelessWidget {
   const EmergencyScreen({super.key});
@@ -124,7 +125,7 @@ class EmergencyScreen extends StatelessWidget {
           TextField(
             controller: reason,
             maxLines: 2,
-            decoration: const InputDecoration(labelText: 'Emergency Justification'),
+            decoration: InputDecoration(labelText: 'Emergency Justification'),
           ),
         ],
         onConfirm: (ctx) async {

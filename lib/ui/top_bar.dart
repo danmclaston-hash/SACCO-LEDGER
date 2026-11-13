@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 
 import '../core/catalog.dart';
 import '../core/pages.dart';
@@ -9,6 +9,7 @@ import 'screens/search_screen.dart';
 import 'theme.dart';
 import 'tour.dart';
 import 'widgets.dart';
+import 'text.dart';
 
 /// Same top bar as the original app. The role pill now shows your real role:
 /// a person cannot switch themselves into treasurer any more.
@@ -41,7 +42,7 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
               Expanded(
                 child: PopupMenuButton<Json>(
-                  tooltip: 'Switch circle',
+                  tooltip: tr('Switch circle'),
                   onSelected: (o) => o.isEmpty ? st.goTo(AppPage.circles) : st.selectOrg(o),
                   itemBuilder: (_) => [
                     // My own circles first. The platform team's look-only circles follow.
@@ -100,7 +101,7 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
               ),
               IconButton(
                 key: TourTarget.search.key,
-                tooltip: 'Search everything',
+                tooltip: tr('Search everything'),
                 icon: Icon(Icons.search, color: Colors.white),
                 onPressed: () => showSearchScreen(context),
               ),

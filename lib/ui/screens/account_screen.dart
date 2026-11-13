@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 import 'package:image/image.dart' as img;
 import 'package:share_plus/share_plus.dart';
 
@@ -17,6 +17,7 @@ import '../theme.dart';
 import '../tour.dart';
 import '../widgets.dart';
 import 'two_step.dart';
+import '../text.dart';
 
 /// Opens My Account on top of whatever screen is showing (used where there is no side menu).
 void openAccount(BuildContext context) {
@@ -261,7 +262,7 @@ class _ProfileCard extends StatelessWidget {
                   controller: name,
                   textCapitalization: TextCapitalization.words,
                   autofillHints: const [AutofillHints.name],
-                  decoration: const InputDecoration(labelText: 'Full name'),
+                  decoration: InputDecoration(labelText: 'Full name'),
                   validator: (v) => (v ?? '').trim().length < 2 ? 'Write at least 2 letters.' : null,
                 ),
                 gap,
@@ -269,7 +270,7 @@ class _ProfileCard extends StatelessWidget {
                   controller: phone,
                   keyboardType: TextInputType.phone,
                   autofillHints: const [AutofillHints.telephoneNumber],
-                  decoration: const InputDecoration(labelText: 'Phone', helperText: 'Like 0772 123456'),
+                  decoration: InputDecoration(labelText: 'Phone', helperText: 'Like 0772 123456'),
                   validator: (v) {
                     final n = Phones.normalize(v, dial: st.dial);
                     return n == null || Phones.isValidNumber(n) ? null : 'Phone looks wrong.';
@@ -352,7 +353,7 @@ class _ProfileCard extends StatelessWidget {
                     controller: next,
                     obscureText: hide,
                     autofillHints: const [AutofillHints.newPassword],
-                    decoration: const InputDecoration(labelText: 'New password', helperText: 'At least 8 characters. Longer is safer.'),
+                    decoration: InputDecoration(labelText: 'New password', helperText: 'At least 8 characters. Longer is safer.'),
                     validator: (v) {
                       if ((v ?? '').length < 8) return 'Use at least 8 characters.';
                       if (v == current.text) return 'Choose a different password.';
@@ -364,7 +365,7 @@ class _ProfileCard extends StatelessWidget {
                     controller: again,
                     obscureText: hide,
                     autofillHints: const [AutofillHints.newPassword],
-                    decoration: const InputDecoration(labelText: 'New password again'),
+                    decoration: InputDecoration(labelText: 'New password again'),
                     validator: (v) => v != next.text ? 'The two new passwords are different.' : null,
                   ),
                 ],
@@ -489,14 +490,14 @@ class _SecurityCardState extends State<_SecurityCard> {
             obscureText: true,
             keyboardType: TextInputType.number,
             maxLength: 6,
-            decoration: const InputDecoration(labelText: 'PIN'),
+            decoration: InputDecoration(labelText: 'PIN'),
           ),
           TextField(
             controller: second,
             obscureText: true,
             keyboardType: TextInputType.number,
             maxLength: 6,
-            decoration: const InputDecoration(labelText: 'PIN again'),
+            decoration: InputDecoration(labelText: 'PIN again'),
           ),
         ],
         onConfirm: (ctx) async {
@@ -626,7 +627,7 @@ class _LookCard extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
           child: Text(
-            'Only some words are translated so far. The rest stay in English.',
+            'The whole app changes to the language you pick. Names, numbers and amounts stay as they are.',
             style: tt.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
           ),
         ),
@@ -802,7 +803,7 @@ class _PrivacyCard extends StatelessWidget {
           TextField(
             controller: reason,
             maxLines: 2,
-            decoration: const InputDecoration(labelText: 'Why? (optional)'),
+            decoration: InputDecoration(labelText: 'Why? (optional)'),
           ),
         ],
         onConfirm: (ctx) => runAndClose(ctx, () => st.api.requestDeletion(reason.text), done: 'Request sent. You can cancel it until it is done.'),

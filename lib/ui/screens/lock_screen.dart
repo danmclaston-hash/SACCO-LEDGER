@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 import 'package:flutter/services.dart';
 
 import '../../core/app_lock.dart';
@@ -7,6 +7,7 @@ import '../motion.dart';
 import '../theme.dart';
 import '../widgets.dart';
 import 'account_screen.dart';
+import '../text.dart';
 
 /// Shown instead of the app when the PIN lock is on and the app was away too long.
 class LockScreen extends StatefulWidget {

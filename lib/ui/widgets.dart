@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -8,6 +8,7 @@ import '../core/json.dart';
 import '../core/money.dart';
 import '../state/app_state.dart';
 import 'theme.dart';
+import 'text.dart';
 
 /// Lets any screen reach the app state.
 class StateScope extends InheritedNotifier<AppState> {
@@ -163,7 +164,7 @@ class InfoTip extends StatelessWidget {
     if (!st.showTips || t == null) return const SizedBox.shrink();
     final cs = Theme.of(context).colorScheme;
     return IconButton(
-      tooltip: 'What is ${t.title.toLowerCase()}?',
+      tooltip: tr('What is ${t.title.toLowerCase()}?'),
       visualDensity: VisualDensity.compact,
       iconSize: 18,
       icon: Icon(Icons.info_outline, color: cs.primary),
@@ -447,7 +448,7 @@ class ChannelFields extends StatelessWidget {
         DropdownButtonFormField<Channel>(
           initialValue: value,
           isExpanded: true,
-          decoration: const InputDecoration(labelText: 'How the money moved'),
+          decoration: InputDecoration(labelText: 'How the money moved'),
           items: [
             for (final c in Channel.byHand) DropdownMenuItem(value: c, child: Row(children: [BrandMark(c.code), const SizedBox(width: 10), Text(c.label)])),
           ],
@@ -458,7 +459,7 @@ class ChannelFields extends StatelessWidget {
           TextField(
             controller: ref,
             textCapitalization: TextCapitalization.characters,
-            decoration: const InputDecoration(labelText: 'Transaction ID from the SMS'),
+            decoration: InputDecoration(labelText: 'Transaction ID from the SMS'),
           ),
         ],
       ]);

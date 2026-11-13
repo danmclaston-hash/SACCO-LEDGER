@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 
 import '../../core/catalog.dart';
 import '../../core/json.dart';
@@ -7,6 +7,7 @@ import '../../state/app_state.dart';
 import '../theme.dart';
 import '../widgets.dart';
 import 'channels_screen.dart';
+import '../text.dart';
 
 class MeetingsScreen extends StatelessWidget {
   const MeetingsScreen({super.key});
@@ -203,7 +204,7 @@ class MeetingsScreen extends StatelessWidget {
           MoneyField(controller: cash, label: 'Physical cash counted', currency: st.currency),
           MemberPicker(label: 'Counter 1', value: c1, members: members, onChanged: (v) => set(() => c1 = v)),
           MemberPicker(label: 'Counter 2', value: c2, members: members, onChanged: (v) => set(() => c2 = v)),
-          if (closing != null) TextField(controller: minutes, maxLines: 3, decoration: const InputDecoration(labelText: 'Meeting Minutes / Notes')),
+          if (closing != null) TextField(controller: minutes, maxLines: 3, decoration: InputDecoration(labelText: 'Meeting Minutes / Notes')),
         ],
         onConfirm: (ctx) async {
           final v = Money.parse(cash.text, st.currency, true);

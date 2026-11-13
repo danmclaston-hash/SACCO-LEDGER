@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 
 import '../../core/catalog.dart';
 import '../../core/json.dart';
@@ -7,6 +7,7 @@ import '../../state/app_state.dart';
 import '../theme.dart';
 import '../widgets.dart';
 import 'statements_screen.dart';
+import '../text.dart';
 
 /// Officers: journals, trial balance, audit trail. Members: their own statement.
 class LedgerScreen extends StatelessWidget {
@@ -22,11 +23,11 @@ class LedgerScreen extends StatelessWidget {
       initialIndex: st.ledgerTab,
       child: Column(
         children: [
-          const TabBar(
+          TabBar(
             tabs: [
-              Tab(text: 'Journals'),
-              Tab(text: 'Trial Balance'),
-              Tab(text: 'Audit Trail'),
+              Tab(text: tr('Journals')),
+              Tab(text: tr('Trial Balance')),
+              Tab(text: tr('Audit Trail')),
             ],
           ),
           Expanded(child: TabBarView(children: [_Journals(), _TrialBalance(), _Audit()])),
@@ -59,7 +60,7 @@ class _Journals extends StatelessWidget {
           Text('#${j.i('journal_number')} ${j.s('description')}\nNothing is deleted. An opposite entry is added, with your name and reason.'),
           TextField(
             controller: reason,
-            decoration: const InputDecoration(labelText: 'Reason for Reversal'),
+            decoration: InputDecoration(labelText: 'Reason for Reversal'),
           ),
         ],
         onConfirm: (ctx) => runAndClose(ctx, () => st.api.reverseJournal(j.s('id'), reason.text), done: 'Reversed.'),

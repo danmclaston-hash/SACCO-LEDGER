@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -14,6 +14,7 @@ import '../theme.dart';
 import '../widgets.dart';
 import 'account_screen.dart';
 import 'circles_screen.dart';
+import '../text.dart';
 
 const dataNotice = 'SACCO Ledger keeps records of your group\'s transactions: your name, phone, and what you paid or borrowed. '
     'Your group officers can see them. We never hold your money. Records are kept so your group can prove what happened. '
@@ -204,7 +205,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             DropdownButtonFormField<String>(
                               initialValue: st.country,
                               isExpanded: true,
-                              decoration: const InputDecoration(labelText: 'Country', prefixIcon: Icon(Icons.public)),
+                              decoration: InputDecoration(labelText: 'Country', prefixIcon: Icon(Icons.public)),
                               items: [
                                 for (final c in countries) DropdownMenuItem(value: c.code, child: Text('${c.name}  (+${c.dial})')),
                               ],
@@ -250,7 +251,7 @@ class _AuthScreenState extends State<AuthScreen> {
                               TextField(
                                 controller: code,
                                 textCapitalization: TextCapitalization.characters,
-                                decoration: const InputDecoration(
+                                decoration: InputDecoration(
                                   labelText: 'Code from your group',
                                   helperText: 'Two of your group\'s officers must agree before a code is made.',
                                   helperMaxLines: 2,
@@ -385,8 +386,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         foregroundColor: Colors.white,
         title: const Text('Welcome'),
         actions: [
-          IconButton(icon: const Icon(Icons.account_circle), tooltip: 'My Account', onPressed: () => openAccount(context)),
-          IconButton(icon: const Icon(Icons.logout), tooltip: 'Sign out', onPressed: st.signOut),
+          IconButton(icon: const Icon(Icons.account_circle), tooltip: tr('My Account'), onPressed: () => openAccount(context)),
+          IconButton(icon: const Icon(Icons.logout), tooltip: tr('Sign out'), onPressed: st.signOut),
         ],
       ),
       body: Center(
@@ -422,7 +423,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       TextField(
                         controller: code,
                         textCapitalization: TextCapitalization.characters,
-                        decoration: const InputDecoration(labelText: 'Invite code'),
+                        decoration: InputDecoration(labelText: 'Invite code'),
                       ),
                       gap,
                       FilledButton(
@@ -496,16 +497,16 @@ void showCreateCircle(BuildContext context, {bool askConsent = false}) {
       fields: (ctx, set) => [
         TextField(
           controller: name,
-          decoration: const InputDecoration(labelText: 'Group name'),
+          decoration: InputDecoration(labelText: 'Group name'),
         ),
         TextField(
           controller: me,
-          decoration: const InputDecoration(labelText: 'Your full name'),
+          decoration: InputDecoration(labelText: 'Your full name'),
         ),
         DropdownButtonFormField<String>(
           initialValue: country.code,
           isExpanded: true,
-          decoration: const InputDecoration(labelText: 'Country'),
+          decoration: InputDecoration(labelText: 'Country'),
           items: [for (final c in countries) DropdownMenuItem(value: c.code, child: Text(c.name))],
           onChanged: (v) => set(() {
             country = countryByCode(v);
@@ -521,14 +522,14 @@ void showCreateCircle(BuildContext context, {bool askConsent = false}) {
         DropdownButtonFormField<Edition>(
           initialValue: edition,
           isExpanded: true,
-          decoration: const InputDecoration(labelText: 'Type of group'),
+          decoration: InputDecoration(labelText: 'Type of group'),
           items: [for (final e in Edition.values) DropdownMenuItem(value: e, child: Text(e.label))],
           onChanged: (v) => set(() => edition = v ?? edition),
         ),
         DropdownButtonFormField<String>(
           key: ValueKey(currency),
           initialValue: currency,
-          decoration: const InputDecoration(labelText: 'Currency', helperText: 'Cannot change after money is recorded'),
+          decoration: InputDecoration(labelText: 'Currency', helperText: 'Cannot change after money is recorded'),
           items: [
             for (final c in {for (final k in countries) k.currency}) DropdownMenuItem(value: c, child: Text(c)),
           ],
@@ -548,17 +549,17 @@ void showCreateCircle(BuildContext context, {bool askConsent = false}) {
           TextField(
             controller: interest,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'Interest rate (% per year)', helperText: 'Most groups use 10'),
+            decoration: InputDecoration(labelText: 'Interest rate (% per year)', helperText: 'Most groups use 10'),
           ),
           TextField(
             controller: multiplier,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'Biggest loan (times the member\'s savings)', helperText: 'Most groups use 3'),
+            decoration: InputDecoration(labelText: 'Biggest loan (times the member\'s savings)', helperText: 'Most groups use 3'),
           ),
           TextField(
             controller: quorum,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'Members needed for a meeting (%)', helperText: 'Most groups use 67 (two thirds)'),
+            decoration: InputDecoration(labelText: 'Members needed for a meeting (%)', helperText: 'Most groups use 67 (two thirds)'),
           ),
         ],
         const EmptyNote('You can change all of these later in Group Settings.'),

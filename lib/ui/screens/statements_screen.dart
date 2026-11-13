@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 import 'package:flutter/services.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -10,6 +10,7 @@ import '../../core/money.dart';
 import '../../core/pages.dart';
 import '../../state/app_state.dart';
 import '../widgets.dart';
+import '../text.dart';
 
 /// Who paid what, for each cycle (circle). Members see their own; officers pick anyone.
 class StatementsScreen extends StatefulWidget {
@@ -35,7 +36,7 @@ class _StatementsScreenState extends State<StatementsScreen> {
               key: ValueKey(memberId), label: 'Member', value: memberId, members: st.members, onChanged: (v) => st.goTo(AppPage.statements, memberId: v)),
         DropdownButtonFormField<int?>(
           initialValue: cycle,
-          decoration: const InputDecoration(labelText: 'Cycle'),
+          decoration: InputDecoration(labelText: 'Cycle'),
           items: [
             const DropdownMenuItem<int?>(value: null, child: Text('All cycles')),
             for (var c = cycles; c >= 1; c--) DropdownMenuItem<int?>(value: c, child: Text('Cycle $c')),

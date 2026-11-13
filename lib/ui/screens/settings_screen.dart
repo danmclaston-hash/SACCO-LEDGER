@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 
 import '../../core/countries.dart';
 import '../../core/config.dart';
@@ -9,6 +9,7 @@ import 'circles_screen.dart';
 import 'loan_calculator.dart';
 import 'online_pay.dart';
 import 'support_access.dart';
+import '../text.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -50,7 +51,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         TextField(
           controller: name,
           enabled: edit,
-          decoration: const InputDecoration(labelText: 'Group name'),
+          decoration: InputDecoration(labelText: 'Group name'),
         ),
         DropdownButtonFormField<String>(
           key: ValueKey(o.s('country_code')),
@@ -74,20 +75,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
           controller: mult,
           enabled: edit,
           keyboardType: TextInputType.number,
-          decoration: const InputDecoration(labelText: 'Loan limit (times savings)'),
+          decoration: InputDecoration(labelText: 'Loan limit (times savings)'),
         ),
         TextField(
           controller: quorum,
           enabled: edit,
           keyboardType: TextInputType.number,
-          decoration: const InputDecoration(labelText: 'Meeting quorum (%)'),
+          decoration: InputDecoration(labelText: 'Meeting quorum (%)'),
         ),
         const SectionTitle('Group Payment Accounts', info: 'merchant_code'),
         const EmptyNote('Your group\'s OWN merchant codes or numbers. Members pay here directly. The app never receives this money.'),
         TextField(
           controller: mtn,
           enabled: edit,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'MTN MoMo merchant code or number',
             prefixIcon: Padding(padding: EdgeInsets.all(12), child: BrandMark('mtn_momo')),
           ),
@@ -95,7 +96,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         TextField(
           controller: airtel,
           enabled: edit,
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             labelText: 'Airtel Money merchant code or number',
             prefixIcon: Padding(padding: EdgeInsets.all(12), child: BrandMark('airtel_money')),
           ),

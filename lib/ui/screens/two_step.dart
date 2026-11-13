@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 import 'package:flutter/services.dart';
 import 'package:qr/qr.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show Factor;
@@ -10,6 +10,7 @@ import '../../data/api.dart';
 import '../motion.dart';
 import '../theme.dart';
 import '../widgets.dart';
+import '../text.dart';
 
 /// A QR code drawn square by square, so no picture is downloaded from anywhere.
 class QrPicture extends StatelessWidget {
@@ -160,7 +161,7 @@ Future<bool> showTwoStepSetup(BuildContext context) async {
                 style: SaccoLook.of(ctx).numbers(Theme.of(ctx).textTheme.bodyMedium).copyWith(fontWeight: FontWeight.w700, letterSpacing: 1)),
           ),
           IconButton(
-            tooltip: 'Copy key',
+            tooltip: tr('Copy key'),
             icon: const Icon(Icons.copy_rounded),
             onPressed: () => Clipboard.setData(ClipboardData(text: start.secret)),
           ),
@@ -170,7 +171,7 @@ Future<bool> showTwoStepSetup(BuildContext context) async {
           controller: code,
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
-          decoration: const InputDecoration(labelText: '6-number code'),
+          decoration: InputDecoration(labelText: '6-number code'),
         ),
       ],
       onConfirm: (ctx) async {
@@ -269,7 +270,7 @@ class _TwoStepCodeScreenState extends State<TwoStepCodeScreen> {
                         autofillHints: const [AutofillHints.oneTimeCode],
                         inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
                         style: look.numbers(tt.headlineSmall).copyWith(letterSpacing: 8, fontWeight: FontWeight.w700),
-                        decoration: const InputDecoration(labelText: '6-number code'),
+                        decoration: InputDecoration(labelText: '6-number code'),
                         onSubmitted: (_) => _check(),
                       ),
                       if (error != null)
@@ -414,7 +415,7 @@ class _NewPasswordScreenState extends State<NewPasswordScreen> {
                       TextField(
                         controller: b,
                         obscureText: hide,
-                        decoration: const InputDecoration(labelText: 'Same password again'),
+                        decoration: InputDecoration(labelText: 'Same password again'),
                         onSubmitted: (_) => _save(),
                       ),
                       if (error != null)

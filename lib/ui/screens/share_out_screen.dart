@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Text, InputDecoration;
 
 import '../../core/json.dart';
 import '../../core/money.dart';
@@ -6,6 +6,7 @@ import '../../core/share_out.dart';
 import '../../state/app_state.dart';
 import '../theme.dart';
 import '../widgets.dart';
+import '../text.dart';
 
 class ShareOutScreen extends StatelessWidget {
   const ShareOutScreen({super.key});
