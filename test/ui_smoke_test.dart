@@ -10,6 +10,7 @@ import 'package:sacco_ledger/ui/screens/two_step.dart';
 import 'package:sacco_ledger/ui/screens/loan_calculator.dart';
 import 'package:sacco_ledger/ui/shells.dart';
 import 'package:sacco_ledger/ui/theme.dart';
+import 'package:sacco_ledger/core/i18n.dart';
 import 'package:sacco_ledger/ui/tour.dart';
 import 'package:sacco_ledger/ui/widgets.dart';
 
@@ -20,6 +21,8 @@ Widget app(AppState st, Widget child, {ThemeMode mode = ThemeMode.light}) => Sta
     );
 
 void main() {
+  // The language is app-wide; each test starts in English.
+  setUp(() => Lang.current = AppLanguage.en);
   Future<void> phone(WidgetTester t) async {
     t.view.physicalSize = const Size(360 * 3, 740 * 3);
     t.view.devicePixelRatio = 3;
