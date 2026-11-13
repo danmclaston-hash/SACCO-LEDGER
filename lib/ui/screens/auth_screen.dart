@@ -6,12 +6,14 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../core/catalog.dart';
 import '../../core/countries.dart';
 import '../../core/i18n.dart';
+import '../../core/json.dart';
 import '../../core/money.dart';
 import '../../data/api.dart';
 import '../motion.dart';
 import '../theme.dart';
 import '../widgets.dart';
 import 'account_screen.dart';
+import 'circles_screen.dart';
 
 const dataNotice = 'SACCO Ledger keeps records of your group\'s transactions: your name, phone, and what you paid or borrowed. '
     'Your group officers can see them. We never hold your money. Records are kept so your group can prove what happened. '
@@ -346,142 +348,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     }
   }
 
-  void createGroup() {
-    final st = StateScope.of(context);
-    final name = TextEditingController();
-    final me = TextEditingController();
-    final phone = TextEditingController();
-    var country = countryByCode(st.country);
-    var currency = country.currency;
-    final share = TextEditingController(text: Money.plain(suggestedSharePrice(currency), currency));
-    var edition = Edition.vsla;
-    var more = false;
-    final interest = TextEditingController(text: '10');
-    final multiplier = TextEditingController(text: '3');
-    final quorum = TextEditingController(text: '67');
-    showDialog(
-      context: context,
-      builder: (_) => FormDialog(
-        title: 'Create your group',
-        confirm: 'Create',
-        fields: (ctx, set) => [
-          TextField(
-            controller: name,
-            decoration: const InputDecoration(labelText: 'Group name'),
-          ),
-          TextField(
-            controller: me,
-            decoration: const InputDecoration(labelText: 'Your full name'),
-          ),
-          DropdownButtonFormField<String>(
-            initialValue: country.code,
-            isExpanded: true,
-            decoration: const InputDecoration(labelText: 'Country'),
-            items: [for (final c in countries) DropdownMenuItem(value: c.code, child: Text('${c.flag}  ${c.name}'))],
-            onChanged: (v) => set(() {
-              country = countryByCode(v);
-              currency = country.currency;
-              share.text = Money.plain(suggestedSharePrice(currency), currency);
-            }),
-          ),
-          TextField(
-            controller: phone,
-            keyboardType: TextInputType.phone,
-            decoration: InputDecoration(labelText: 'Your phone', helperText: 'Like ${country.example}'),
-          ),
-          DropdownButtonFormField<Edition>(
-            initialValue: edition,
-            isExpanded: true,
-            decoration: const InputDecoration(labelText: 'Type of group'),
-            items: [for (final e in Edition.values) DropdownMenuItem(value: e, child: Text(e.label))],
-            onChanged: (v) => set(() => edition = v ?? edition),
-          ),
-          DropdownButtonFormField<String>(
-            key: ValueKey(currency),
-            initialValue: currency,
-            decoration: const InputDecoration(labelText: 'Currency', helperText: 'Cannot change after money is recorded'),
-            items: [
-              for (final c in {for (final k in countries) k.currency}) DropdownMenuItem(value: c, child: Text(c)),
-            ],
-            onChanged: (v) => set(() => currency = v ?? currency),
-          ),
-          TextField(
-            controller: share,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(labelText: 'Price of one share ($currency)'),
-          ),
-          TextButton.icon(
-            onPressed: () => set(() => more = !more),
-            icon: Icon(more ? Icons.expand_less : Icons.expand_more),
-            label: Text(more ? 'Fewer settings' : 'More settings (loans, meetings)'),
-          ),
-          if (more) ...[
-            TextField(
-              controller: interest,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Interest rate (% per year)', helperText: 'Most groups use 10'),
-            ),
-            TextField(
-              controller: multiplier,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Biggest loan (times the member\'s savings)', helperText: 'Most groups use 3'),
-            ),
-            TextField(
-              controller: quorum,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(labelText: 'Members needed for a meeting (%)', helperText: 'Most groups use 67 (two thirds)'),
-            ),
-          ],
-          const EmptyNote('You can change all of these later in Group Settings.'),
-        ],
-        onConfirm: (ctx) async {
-          final nav = Navigator.of(ctx);
-          final price = Money.parse(share.text, currency);
-          final rate = int.tryParse(interest.text.trim());
-          final times = int.tryParse(multiplier.text.trim());
-          final q = int.tryParse(quorum.text.trim());
-          if (name.text.trim().length < 2 || me.text.trim().length < 2 || price == null) {
-            showMsg(ctx, 'Fill in group name, your name and share price.', error: true);
-            return;
-          }
-          if (rate == null || rate < 0 || rate > 100 || times == null || times < 1 || times > 20 || q == null || q < 1 || q > 100) {
-            showMsg(ctx, 'Check the extra settings: interest 0-100, loan times 1-20, meeting 1-100%.', error: true);
-            return;
-          }
-          final String id;
-          try {
-            id = await st.api.createOrganization(
-              name: name.text.trim(),
-              edition: edition.code,
-              currency: currency,
-              sharePrice: price,
-              multiplier: times,
-              interest: rate,
-              quorum: q,
-              myName: me.text.trim(),
-              myPhone: Phones.normalize(phone.text, dial: country.dial) ?? '',
-            );
-          } on ApiError catch (e) {
-            if (ctx.mounted) showMsg(ctx, e.message, error: true);
-            return;
-          }
-          // The group now exists, so the dialog closes whatever happens next: pressing Create again would make a second group.
-          // The database's create_organization takes neither the country nor the new loan rules yet.
-          String? err;
-          try {
-            await st.api.setOrgCountry(id, country.code);
-            await st.api.setLoanRules(id, {'interest_mode': 'yearly', 'interest_rate': rate});
-          } on ApiError catch (e) {
-            err = e.message;
-          }
-          await st.refresh(select: id);
-          nav.pop();
-          if (err != null && mounted) showMsg(context, 'Group made, but its country or interest was not saved: $err Set them in Group Settings.', error: true);
-        },
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final st = StateScope.of(context);
@@ -504,6 +370,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
+                if (st.invites.isNotEmpty) ...[
+                  const InvitesPanel(),
+                  const SizedBox(height: 4),
+                ],
                 SaccoCard(
                   color: cs.secondaryContainer,
                   child: CheckboxListTile(
@@ -520,7 +390,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text('Join my group', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                      const Text('Your secretary gives you an 8-letter code.'),
+                      const Text('Use the 8-letter code from your invitation or from your secretary.'),
                       gap,
                       TextField(
                         controller: code,
@@ -531,10 +401,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       FilledButton(
                         onPressed: busy
                             ? null
-                            : () => run(() async {
+                            : () async {
+                                // An invitation code opens the invitation; an old member code links you straight away.
+                                if (code.text.trim().length == 8 && await openInviteCode(context, code.text.trim().toUpperCase())) return;
+                                await run(() async {
                                   await st.api.claimInvite(code.text);
                                   return null;
-                                }),
+                                });
+                              },
                         child: const Text('Join'),
                       ),
                     ],
@@ -551,7 +425,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         onPressed: busy
                             ? null
                             : () {
-                                if (_agreed()) createGroup();
+                                if (_agreed()) showCreateCircle(context);
                               },
                         child: const Text('Create group'),
                       ),
@@ -568,6 +442,160 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       ),
     );
   }
+}
+
+/// Start a new circle. The person who starts it becomes its admin.
+/// [askConsent] adds the data notice to the form, for people who did not tick it on the welcome screen.
+void showCreateCircle(BuildContext context, {bool askConsent = false}) {
+  final st = StateScope.of(context);
+  var agreed = !askConsent;
+  final name = TextEditingController();
+  // Filled from the person's profile, so they do not type themselves twice.
+  final me = TextEditingController(text: st.account.s('full_name'));
+  final phone = TextEditingController(text: Phones.local(st.account.s('phone'), dial: countryByCode(st.country).dial));
+  var country = countryByCode(st.country);
+  var currency = country.currency;
+  final share = TextEditingController(text: Money.plain(suggestedSharePrice(currency), currency));
+  var edition = Edition.vsla;
+  var more = false;
+  final interest = TextEditingController(text: '10');
+  final multiplier = TextEditingController(text: '3');
+  final quorum = TextEditingController(text: '67');
+  showDialog(
+    context: context,
+    builder: (_) => FormDialog(
+      title: 'Create your group',
+      confirm: 'Create',
+      fields: (ctx, set) => [
+        TextField(
+          controller: name,
+          decoration: const InputDecoration(labelText: 'Group name'),
+        ),
+        TextField(
+          controller: me,
+          decoration: const InputDecoration(labelText: 'Your full name'),
+        ),
+        DropdownButtonFormField<String>(
+          initialValue: country.code,
+          isExpanded: true,
+          decoration: const InputDecoration(labelText: 'Country'),
+          items: [for (final c in countries) DropdownMenuItem(value: c.code, child: Text('${c.flag}  ${c.name}'))],
+          onChanged: (v) => set(() {
+            country = countryByCode(v);
+            currency = country.currency;
+            share.text = Money.plain(suggestedSharePrice(currency), currency);
+          }),
+        ),
+        TextField(
+          controller: phone,
+          keyboardType: TextInputType.phone,
+          decoration: InputDecoration(labelText: 'Your phone', helperText: 'Like ${country.example}'),
+        ),
+        DropdownButtonFormField<Edition>(
+          initialValue: edition,
+          isExpanded: true,
+          decoration: const InputDecoration(labelText: 'Type of group'),
+          items: [for (final e in Edition.values) DropdownMenuItem(value: e, child: Text(e.label))],
+          onChanged: (v) => set(() => edition = v ?? edition),
+        ),
+        DropdownButtonFormField<String>(
+          key: ValueKey(currency),
+          initialValue: currency,
+          decoration: const InputDecoration(labelText: 'Currency', helperText: 'Cannot change after money is recorded'),
+          items: [
+            for (final c in {for (final k in countries) k.currency}) DropdownMenuItem(value: c, child: Text(c)),
+          ],
+          onChanged: (v) => set(() => currency = v ?? currency),
+        ),
+        TextField(
+          controller: share,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: InputDecoration(labelText: 'Price of one share ($currency)'),
+        ),
+        TextButton.icon(
+          onPressed: () => set(() => more = !more),
+          icon: Icon(more ? Icons.expand_less : Icons.expand_more),
+          label: Text(more ? 'Fewer settings' : 'More settings (loans, meetings)'),
+        ),
+        if (more) ...[
+          TextField(
+            controller: interest,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(labelText: 'Interest rate (% per year)', helperText: 'Most groups use 10'),
+          ),
+          TextField(
+            controller: multiplier,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(labelText: 'Biggest loan (times the member\'s savings)', helperText: 'Most groups use 3'),
+          ),
+          TextField(
+            controller: quorum,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(labelText: 'Members needed for a meeting (%)', helperText: 'Most groups use 67 (two thirds)'),
+          ),
+        ],
+        const EmptyNote('You can change all of these later in Group Settings.'),
+        if (askConsent)
+          CheckboxListTile(
+            contentPadding: EdgeInsets.zero,
+            value: agreed,
+            onChanged: (v) => set(() => agreed = v ?? false),
+            title: const Text('Data notice', style: TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: const Text(dataNotice),
+          ),
+      ],
+      onConfirm: (ctx) async {
+        final nav = Navigator.of(ctx);
+        final price = Money.parse(share.text, currency);
+        final rate = int.tryParse(interest.text.trim());
+        final times = int.tryParse(multiplier.text.trim());
+        final q = int.tryParse(quorum.text.trim());
+        if (!agreed) {
+          showMsg(ctx, 'Please tick the data notice first.', error: true);
+          return;
+        }
+        if (name.text.trim().length < 2 || me.text.trim().length < 2 || price == null) {
+          showMsg(ctx, 'Fill in group name, your name and share price.', error: true);
+          return;
+        }
+        if (rate == null || rate < 0 || rate > 100 || times == null || times < 1 || times > 20 || q == null || q < 1 || q > 100) {
+          showMsg(ctx, 'Check the extra settings: interest 0-100, loan times 1-20, meeting 1-100%.', error: true);
+          return;
+        }
+        final String id;
+        try {
+          id = await st.api.createOrganization(
+            name: name.text.trim(),
+            edition: edition.code,
+            currency: currency,
+            sharePrice: price,
+            multiplier: times,
+            interest: rate,
+            quorum: q,
+            myName: me.text.trim(),
+            myPhone: Phones.normalize(phone.text, dial: country.dial) ?? '',
+          );
+        } on ApiError catch (e) {
+          if (ctx.mounted) showMsg(ctx, e.message, error: true);
+          return;
+        }
+        // The group now exists, so the dialog closes whatever happens next: pressing Create again would make a second group.
+        // The database's create_organization takes neither the country nor the new loan rules yet.
+        String? err;
+        try {
+          await st.api.setOrgCountry(id, country.code);
+          await st.api.setLoanRules(id, {'interest_mode': 'yearly', 'interest_rate': rate});
+        } on ApiError catch (e) {
+          err = e.message;
+        }
+        await st.refresh(select: id);
+        nav.pop();
+        if (err != null && context.mounted) {
+          showMsg(context, 'Group made, but its country or interest was not saved: $err Set them in Group Settings.', error: true);
+        }
+      },
+    ),
+  );
 }
 
 /// The app was built without its keys. Explains what to do instead of crashing.

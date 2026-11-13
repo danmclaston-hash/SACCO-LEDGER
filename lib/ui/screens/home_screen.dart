@@ -7,6 +7,7 @@ import '../motion.dart';
 import '../theme.dart';
 import '../tour.dart';
 import '../widgets.dart';
+import 'circles_screen.dart';
 
 /// A member's home: their money, four big picture buttons, and the state of their last payment.
 /// Built so a person who reads little can still find their way by picture and colour.
@@ -28,6 +29,7 @@ class MemberHome extends StatelessWidget {
 
     return AppPageView(
       children: [
+        if (st.invites.isNotEmpty) const CircleNotices(),
         RiseIn(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

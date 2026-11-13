@@ -5,6 +5,7 @@ import '../state/app_state.dart';
 import 'screens/account_screen.dart';
 import 'screens/approvals_screen.dart';
 import 'screens/channels_screen.dart';
+import 'screens/circles_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/emergency_screen.dart';
 import 'screens/goals_screen.dart';
@@ -35,12 +36,14 @@ IconData pageIcon(AppPage p) => switch (p) {
       AppPage.channels => Icons.arrow_circle_up_rounded,
       AppPage.licences => Icons.verified,
       AppPage.settings => Icons.settings,
+      AppPage.circles => Icons.diversity_3_rounded,
       AppPage.account => Icons.account_circle,
       AppPage.platform => Icons.domain,
     };
 
 Widget pageBody(AppPage p) => switch (p) {
       AppPage.account => const AccountScreen(),
+      AppPage.circles => const CirclesScreen(),
       AppPage.goals => const GoalsScreen(),
       AppPage.overview => const DashboardScreen(),
       AppPage.approvals => const ApprovalsScreen(),

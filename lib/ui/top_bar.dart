@@ -39,20 +39,36 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
               Expanded(
                 child: PopupMenuButton<Json>(
-                  tooltip: 'Switch group',
-                  onSelected: st.selectOrg,
+                  tooltip: 'Switch circle',
+                  onSelected: (o) => o.isEmpty ? st.goTo(AppPage.circles) : st.selectOrg(o),
                   itemBuilder: (_) => [
-                    for (final o in st.orgs)
+                    // My own circles first. The platform team's look-only circles follow.
+                    for (final o in [...st.myCircles, ...st.lookOnlyCircles])
                       PopupMenuItem(
                         value: o,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(o.s('name'), style: const TextStyle(fontWeight: FontWeight.bold)),
-                            Text('${Edition.parse(o.s('edition')).label} • ${o.s('currency_code')}', style: tt.bodySmall),
+                            Text(
+                                '${switch (Role.parse(o.s('my_role'))) {
+                                  Role.orgAdmin => 'Admin',
+                                  Role.platformAdmin => 'Look only',
+                                  final r => r.short
+                                }} • ${o.s('currency_code')}',
+                                style: tt.bodySmall),
                           ],
                         ),
                       ),
+                    const PopupMenuDivider(),
+                    PopupMenuItem<Json>(
+                      value: const {},
+                      child: Row(children: [
+                        const Icon(Icons.diversity_3_rounded, size: 20),
+                        const SizedBox(width: 8),
+                        Text(st.invites.isEmpty ? 'My circles' : 'My circles (${st.invites.length} new)', style: const TextStyle(fontWeight: FontWeight.w600)),
+                      ]),
+                    ),
                   ],
                   child: Row(
                     children: [

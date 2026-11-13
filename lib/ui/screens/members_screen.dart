@@ -7,6 +7,7 @@ import '../../core/money.dart';
 import '../../core/pages.dart';
 import '../../state/app_state.dart';
 import '../widgets.dart';
+import 'circles_screen.dart';
 
 class MembersScreen extends StatelessWidget {
   const MembersScreen({super.key});
@@ -21,9 +22,18 @@ class MembersScreen extends StatelessWidget {
         SectionTitle(
           '${st.t(AppPage.members.title)} (${st.members.length})',
           trailing: st.role.canManageMembers
-              ? FilledButton.icon(onPressed: () => _form(context, st), icon: const Icon(Icons.person_add, size: 16), label: const Text('Add'))
+              ? Wrap(spacing: 8, children: [
+                  if (!st.org!.b('is_demo'))
+                    OutlinedButton.icon(
+                      onPressed: () => showInviteDialog(context, orgId: st.orgId),
+                      icon: const Icon(Icons.mail_outline_rounded, size: 16),
+                      label: const Text('Invite by email'),
+                    ),
+                  FilledButton.icon(onPressed: () => _form(context, st), icon: const Icon(Icons.person_add, size: 16), label: const Text('Add')),
+                ])
               : null,
         ),
+        if (st.role.canManageMembers && !st.org!.b('is_demo')) const CircleInvitesCard(),
         if (st.members.isEmpty) const EmptyNote('No members yet.'),
         for (final m in st.members)
           SaccoCard(

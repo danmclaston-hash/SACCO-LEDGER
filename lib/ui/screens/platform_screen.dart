@@ -5,6 +5,7 @@ import '../../core/json.dart';
 import '../../core/money.dart';
 import '../widgets.dart';
 import 'admins_card.dart';
+import 'circles_screen.dart';
 
 /// For you, the platform owner: every group, its size, and licence expiry.
 class PlatformScreen extends StatelessWidget {
@@ -20,6 +21,20 @@ class PlatformScreen extends StatelessWidget {
       builder: (context, groups) {
         return AppPageView(
           children: [
+            SaccoCard(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                Text('Invite someone to a circle', style: tt.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                const Text('Find a person by email, pick the circle and their role. They get a link and decide themselves. '
+                    'You can invite yourself too, to run a circle you are not in.'),
+                gap,
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: FilledButton.icon(
+                      onPressed: () => showInviteDialog(context), icon: const Icon(Icons.mail_outline_rounded), label: const Text('Invite someone')),
+                ),
+              ]),
+            ),
             const AdminsCard(),
             const _DeletionRequests(),
             SectionTitle('All Groups (${groups.length})'),
@@ -51,13 +66,16 @@ class PlatformScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                    TextButton(
-                      onPressed: () {
-                        final match = st.orgs.where((x) => x.s('id') == o.s('id'));
-                        if (match.isNotEmpty) st.selectOrg(match.first);
-                      },
-                      child: const Text('Open'),
-                    ),
+                    Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                      TextButton(
+                        onPressed: () {
+                          final match = st.orgs.where((x) => x.s('id') == o.s('id'));
+                          if (match.isNotEmpty) st.selectOrg(match.first);
+                        },
+                        child: const Text('Open'),
+                      ),
+                      if (!o.b('is_demo')) TextButton(onPressed: () => showInviteDialog(context, orgId: o.s('id')), child: const Text('Invite')),
+                    ]),
                   ],
                 ),
               ),

@@ -19,6 +19,7 @@ SACCO Ledger is run by [YOUR COMPANY NAME], [YOUR ADDRESS], Uganda. Data protect
 - **For your group, only if the group asks:** your national ID number and the name and phone of your next of kin.
 - **Money records:** payments you reported, the transaction ID, the channel (MTN, Airtel, bank or cash), your loans, repayments, fines, emergency claims and share-out amounts.
 - **Group life:** meeting attendance and the role you hold.
+- **Invitations:** the email a circle invited, the role offered, who sent it, and whether you said yes or no. When you say yes, the circle gets the name and phone you confirm on the invitation screen. Nobody is added to a circle without saying yes.
 - **Sign-ins:** the last 50 times you signed in, with the kind of device, so you can spot a stranger.
 - **Your choices:** language, look, text size and country.
 
@@ -39,6 +40,7 @@ The law lets us do this because you agreed when you joined a group, and because 
 - **Your group's officers** (administrator, treasurer, secretary) see the group's records, because checking them is their job.
 - **Other members** see group totals and goals. They do not see your phone, your ID, or your loans.
 - **The platform team** can see groups and accounts to give support and to stop abuse. Everything they change is written in a history.
+- **Each circle is separate.** Being in two circles never shows one circle your records in the other.
 - **Nobody else.** We give data to the authorities only when the law forces us to.
 
 ## Where it is stored

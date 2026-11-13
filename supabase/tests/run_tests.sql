@@ -654,6 +654,75 @@ reset role;
 select t.fails($$set role anon; select public.update_my_prefs('{"look":"emerald"}')$$,'permission denied','signed-out visitors cannot save preferences');
 reset role;
 
+-- ---------- My circles and circle invitations ----------
+\i ../migrations/20261113000000_circle_invites.sql
+reset role;
+insert into auth.users(id,email) select gen_random_uuid(), x||'@test.local' from unnest(array['dora','zed']) x;
+insert into t.v select split_part(email,'@',1)||'_u', id from auth.users where email in ('dora@test.local','zed@test.local');
+create table t.ci(k text primary key, code text); grant all on t.ci to authenticated;
+set role authenticated;
+select t.as_user(t.id('ann_u'));
+select t.fails(format($$select public.invite_to_circle(%L,'stranger@test.local','member',null)$$,t.id('org')),'admin or secretary','a member cannot invite');
+select t.fails(format($$select public.list_circle_invites(%L)$$,t.id('org')),'admin or secretary','a member cannot see the invitation list');
+select t.as_user(t.id('sec_u'));
+select t.fails(format($$select public.invite_to_circle(%L,'stranger@test.local','treasurer',null)$$,t.id('org')),'Only the circle admin','secretary cannot invite an officer');
+select t.fails(format($$select public.invite_to_circle(%L,'ann@test.local','member',null)$$,t.id('org')),'already in this circle','cannot invite someone already in');
+select t.fails(format($$select public.invite_to_circle(%L,'not-an-email','member',null)$$,t.id('org')),'valid email','bad email refused');
+insert into t.ci select 'old', public.invite_to_circle(t.id('org'),'Stranger@Test.local','member',null)->>'code';
+insert into t.ci select 'a', public.invite_to_circle(t.id('org'),'stranger@test.local','member','Welcome to our circle!')->>'code';
+select t.ok((select count(*) from jsonb_array_elements(public.list_circle_invites(t.id('org'))) x where x->>'status'='cancelled')=1,'a new invitation replaces the older one');
+select t.as_user(t.id('ben_u'));
+select t.fails(format($$select public.invite_details(%L)$$,(select code from t.ci where k='a')),'st•••@test.local','someone else cannot open the invitation');
+select t.fails(format($$select public.accept_circle_invite(%L,'Ben',null,true)$$,(select code from t.ci where k='a')),'Sign in with that account','someone else cannot use the invitation');
+select t.ok(public.invite_details('NOSUCHCD') is null,'unknown code gives nothing');
+select t.as_user(t.id('stranger_u'));
+select t.ok(jsonb_array_length(public.my_invites())=1,'invited person sees the invitation');
+select t.ok((public.my_invites()->0->>'org_name')='Test Group' and (public.my_invites()->0->>'invited_by')='Sam Secretary'
+  and (public.my_invites()->0->>'admin_name')='Admin One','invitation shows the circle, who asked and who runs it');
+select t.fails(format($$select public.invite_details(%L)$$,(select code from t.ci where k='old')),'cancelled','the replaced link no longer works');
+select t.fails(format($$select public.accept_circle_invite(%L,'Stan',null,false)$$,(select code from t.ci where k='a')),'data notice','must accept the data notice');
+select t.fails(format($$select public.accept_circle_invite(%L,'',null,true)$$,(select code from t.ci where k='a')),'Write your name','needs a name');
+select t.fails(format($$select public.accept_circle_invite(%L,'Stan','0700000013',true)$$,(select code from t.ci where k='a')),'already uses this phone','cannot take another member''s phone');
+select t.ok(public.accept_circle_invite((select code from t.ci where k='a'),'Stan Stranger','0700000099',true)=t.id('org'),'saying yes returns the circle');
+select t.ok(exists(select 1 from jsonb_array_elements(public.my_memberships()) x where x->>'id'=t.id('org')::text and x->>'my_role'='member' and (x->>'people')::int>=2),
+  'the new member sees the circle in My circles, as a member');
+select t.fails(format($$select public.accept_circle_invite(%L,'Stan',null,true)$$,(select code from t.ci where k='a')),'already used','an invitation works once');
+select t.ok(jsonb_array_length(public.my_invites())=0,'a used invitation leaves the list');
+
+-- The circle wrote Dora down by phone before she had an account: saying yes links that record, with her history.
+select t.as_user(t.id('admin_u'));
+select t.put('dora_m', (public.add_member(t.id('org'),'Dora Paper','0700000077',null,'member',null,null)->>'member_id')::uuid);
+insert into t.ci select 'd', public.invite_to_circle(t.id('org'),'dora@test.local','treasurer',null)->>'code';
+select t.as_user(t.id('dora_u'));
+select public.accept_circle_invite((select code from t.ci where k='d'),'Dora P','0700000077',true);
+reset role;
+select t.ok((select user_id=t.id('dora_u') and role='treasurer' from public.members where id=t.id('dora_m')),'invited person takes over the record already written for her phone');
+select t.ok((select count(*) from public.members m where m.org_id=t.id('org') and m.phone=(select phone from public.members where id=t.id('dora_m')))=1,'no second record for the same person');
+set role authenticated;
+
+-- Saying no, cancelling, and the platform team
+select t.as_user(t.id('admin_u'));
+insert into t.ci select 'b', public.invite_to_circle(t.id('org2'),'ben@test.local','member',null)->>'code';
+select t.as_user(t.id('ben_u'));
+select public.decline_circle_invite((select code from t.ci where k='b'));
+select t.ok(jsonb_array_length(public.my_invites())=0,'a turned-down invitation leaves the list');
+select t.fails(format($$select public.accept_circle_invite(%L,'Ben',null,true)$$,(select code from t.ci where k='b')),'turned down','a turned-down invitation cannot be used');
+select t.as_user(t.id('admin_u'));
+select t.ok((public.invite_to_circle(t.id('org'),'zed@test.local','member',null)->>'has_account')::boolean,'tells the inviter whether the person has an account');
+select public.cancel_circle_invite((select (x->>'id')::uuid from jsonb_array_elements(public.list_circle_invites(t.id('org'))) x where x->>'email'='zed@test.local' and x->>'status'='pending'));
+select t.as_user(t.id('zed_u'));
+select t.ok(jsonb_array_length(public.my_invites())=0,'a cancelled invitation disappears');
+select t.as_user(t.id('plat_u'));
+select t.ok(public.invite_to_circle(t.id('org2'),'cy@test.local','auditor',null)->>'role'='auditor','the platform team can invite anyone to any circle');
+select t.ok(exists(select 1 from jsonb_array_elements(public.list_circle_invites(t.id('org2'))) x where x->>'via'='platform'),'the circle can see the platform team sent it');
+reset role;
+select t.ok((select count(*) from public.audit_log where action in ('INVITE_TO_CIRCLE','JOIN_BY_INVITE','DECLINE_INVITE','CANCEL_INVITE'))>=8,'every invitation step is in the circle''s audit trail');
+select t.ok((select details from public.audit_log where action='INVITE_TO_CIRCLE' and org_id=t.id('org2') order by seq desc limit 1) like '%platform team%','the audit trail says when the platform team invited');
+select t.fails($$set role authenticated; select * from public.circle_invites$$,'permission denied','apps cannot read invitations directly');
+reset role;
+select t.fails($$set role authenticated; select public.invite_view(null::public.circle_invites)$$,'permission denied','inner helpers stay private');
+reset role;
+
 -- ---------- Whole-database guards: these catch a new table or function that forgot its lock ----------
 select t.ok(not exists(select 1 from pg_class c join pg_namespace n on n.oid=c.relnamespace
   where n.nspname='public' and c.relkind='r' and not c.relrowsecurity),'every table has row level security on');

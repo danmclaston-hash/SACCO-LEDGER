@@ -240,4 +240,13 @@ void main() {
       expect(st.left, 0);
     });
   });
+
+  test('phones show the way people write them', () {
+    expect(Phones.local('256772123456'), '0772123456');
+    expect(Phones.local('+256 772 123456'), '0772123456');
+    expect(Phones.local('254712345678'), '254712345678'); // another country's number stays whole
+    expect(Phones.local('254712345678', dial: '254'), '0712345678');
+    expect(Phones.local(null), '');
+    expect(Phones.normalize(Phones.local('256772123456')), '256772123456'); // and back again
+  });
 }

@@ -8,6 +8,7 @@ import '../charts.dart';
 import '../shells.dart';
 import '../theme.dart';
 import '../widgets.dart';
+import 'circles_screen.dart';
 import 'goals_screen.dart';
 import 'home_screen.dart';
 
@@ -31,6 +32,7 @@ class DashboardScreen extends StatelessWidget {
 
     return AppPageView(
       children: [
+        const CircleNotices(),
         SaccoCard(
           color: cs.primaryContainer,
           child: Column(

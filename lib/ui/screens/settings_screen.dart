@@ -4,6 +4,7 @@ import '../../core/countries.dart';
 import '../../core/json.dart';
 import '../../core/money.dart';
 import '../widgets.dart';
+import 'circles_screen.dart';
 import 'loan_calculator.dart';
 import 'online_pay.dart';
 
@@ -43,6 +44,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return AppPageView(
       children: [
         const SectionTitle('Group Settings'),
+        if (!edit) const LookOnlyNote(what: 'the settings'),
         TextField(
           controller: name,
           enabled: edit,

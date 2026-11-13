@@ -5,6 +5,7 @@ import 'package:sacco_ledger/state/app_state.dart';
 import 'package:sacco_ledger/core/pages.dart';
 import 'package:sacco_ledger/ui/screens/auth_screen.dart';
 import 'package:sacco_ledger/ui/screens/channels_screen.dart';
+import 'package:sacco_ledger/ui/screens/circles_screen.dart';
 import 'package:sacco_ledger/ui/screens/loan_calculator.dart';
 import 'package:sacco_ledger/ui/shells.dart';
 import 'package:sacco_ledger/ui/theme.dart';
@@ -213,5 +214,60 @@ void main() {
     await t.pumpAndSettle();
     expect(calls, 2);
     expect(find.text('load 2'), findsOneWidget);
+  });
+
+  testWidgets('My circles: grouped by role, invitation opens with my details filled in, both themes', (t) async {
+    // A phone's width, tall enough to see the whole page at once.
+    t.view.physicalSize = const Size(360 * 3, 2200 * 3);
+    t.view.devicePixelRatio = 3;
+    addTearDown(t.view.reset);
+    final st = AppState(Api());
+    Map<String, dynamic> circle(String id, String name, String role) =>
+        {'id': id, 'name': name, 'my_role': role, 'people': 12, 'currency_code': 'UGX', 'edition': 'tier_1_vsla', 'is_demo': false};
+    st.orgs = [
+      circle('a', 'Twekembe Women Savers', 'member'),
+      circle('b', 'Kampala Boda Riders Circle', 'org_admin'),
+      circle('c', 'Church Welfare Group', 'treasurer'),
+      circle('d', 'Someone Else Circle', 'platform_admin'),
+    ];
+    st.org = st.orgs[1];
+    st.account = {'full_name': 'Okecho Laston', 'phone': '256700000001'};
+    st.invites = [
+      {
+        'code': 'ABCD2345',
+        'org_id': 'e',
+        'org_name': 'Mbale Farmers Circle',
+        'role': 'secretary',
+        'invited_by': 'Ann Namubiru',
+        'message': 'We meet on Saturdays at 10.',
+        'people': 18,
+        'currency_code': 'UGX',
+        'edition': 'tier_2_sacco',
+        'country_code': 'UG',
+        'admin_name': 'Ann Namubiru',
+        'expires_at': '2026-11-27T10:00:00Z',
+      },
+    ];
+    for (final m in [ThemeMode.light, ThemeMode.dark]) {
+      await t.pumpWidget(app(st, const Scaffold(body: CirclesScreen()), mode: m));
+      await t.pumpAndSettle();
+      expect(find.text('I lead (1)'), findsOneWidget);
+      expect(find.text('I help run (1)'), findsOneWidget);
+      expect(find.text('I am a member (1)'), findsOneWidget);
+      expect(find.text('Someone Else Circle'), findsNothing); // look-only circles are not "mine"
+      expect(find.text('OPEN NOW'), findsOneWidget);
+      expect(find.text('YOU ARE INVITED'), findsOneWidget);
+      expect(t.takeException(), isNull);
+    }
+    await t.tap(find.text('See and join'));
+    await t.pumpAndSettle();
+    expect(find.text('Mbale Farmers Circle'), findsWidgets);
+    expect(find.textContaining('another circle inside SACCO Ledger'), findsOneWidget);
+    expect(find.widgetWithText(TextField, 'Okecho Laston'), findsOneWidget);
+    await t.scrollUntilVisible(find.text('Join Mbale Farmers Circle'), 200, scrollable: find.byType(Scrollable).last);
+    await t.tap(find.text('Join Mbale Farmers Circle'));
+    await t.pumpAndSettle();
+    expect(find.text('Please tick the data notice first.'), findsOneWidget); // nobody joins without saying yes to the notice
+    expect(t.takeException(), isNull);
   });
 }

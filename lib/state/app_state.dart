@@ -51,6 +51,12 @@ class AppState extends ChangeNotifier {
   bool get signedIn => api.user != null;
   List<Json> orgs = [];
   Json? org;
+
+  /// Circles that invited me and are waiting for my yes or no.
+  List<Json> invites = [];
+
+  /// An invitation code from a link (?join=CODE). Kept until the person is signed in and has seen it.
+  String? pendingJoin;
   Json _data = {};
   List<Json> outbox = [];
   List<String> outboxFailures = [];
@@ -120,6 +126,10 @@ class AppState extends ChangeNotifier {
   Future<void> boot() async {
     _prefs = await SharedPreferences.getInstance();
     _applySettings(asJson(jsonDecode(_prefs?.getString('look') ?? '{}')));
+    // A link like https://site/?join=ABCD2345. Kept on the phone, so it survives signing in and Google's round trip.
+    final link = kIsWeb ? Uri.base.queryParameters['join'] : null;
+    if (link != null && link.trim().isNotEmpty) await _prefs?.setString('pending_join', link.trim().toUpperCase());
+    pendingJoin = _prefs?.getString('pending_join');
     _authSub = api.authChanges.listen((e) async {
       final id = e.session?.user.id;
       if (id == null) {
@@ -144,7 +154,15 @@ class AppState extends ChangeNotifier {
     super.dispose();
   }
 
+  /// The link's invitation was shown (joined, declined or closed). Forget it so it does not open again.
+  Future<void> clearPendingJoin() async {
+    pendingJoin = null;
+    await _prefs?.remove('pending_join');
+    notifyListeners();
+  }
+
   void _clear() {
+    invites = [];
     outbox = [];
     outboxFailures = [];
     orgs = [];
@@ -324,6 +342,7 @@ class AppState extends ChangeNotifier {
       await flushOutbox();
       orgs = await api.myMemberships();
       await _prefs?.setString('orgs', jsonEncode(orgs));
+      invites = await _loadInvites();
       await _pickOrg(select);
       if (org != null) {
         final id = orgId;
@@ -352,9 +371,33 @@ class AppState extends ChangeNotifier {
     }
   }
 
+  /// Invitations never stop the rest of the app from loading.
+  Future<List<Json>> _loadInvites() async {
+    try {
+      return await api.myInvites();
+    } on ApiError catch (e) {
+      if (e.isNetwork) rethrow;
+      return invites;
+    }
+  }
+
+  /// My circles where I am an active member, best role first. The platform's look-only view of other circles is left out.
+  List<Json> get myCircles {
+    final mine = orgs.where((o) => o.s('my_role') != Role.platformAdmin.code).toList();
+    mine.sort((a, b) {
+      final r = Role.parse(a.s('my_role')).index.compareTo(Role.parse(b.s('my_role')).index);
+      return r != 0 ? r : a.s('name').toLowerCase().compareTo(b.s('name').toLowerCase());
+    });
+    return mine;
+  }
+
+  /// Circles the platform team can look at but is not a member of.
+  List<Json> get lookOnlyCircles => orgs.where((o) => o.s('my_role') == Role.platformAdmin.code).toList();
+
   Future<void> _pickOrg(String? select) async {
     final want = select ?? org?.s('id') ?? _prefs?.getString('org');
-    org = orgs.where((o) => o.s('id') == want).firstOrNull ?? orgs.firstOrNull;
+    // With nothing chosen yet, open one of my own circles, never a circle the platform team can only look at.
+    org = orgs.where((o) => o.s('id') == want).firstOrNull ?? myCircles.firstOrNull ?? orgs.firstOrNull;
     if (org != null) await _prefs?.setString('org', orgId);
   }
 

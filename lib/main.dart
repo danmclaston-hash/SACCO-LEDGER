@@ -6,6 +6,7 @@ import 'core/config.dart';
 import 'data/api.dart';
 import 'state/app_state.dart';
 import 'ui/screens/auth_screen.dart';
+import 'ui/screens/circles_screen.dart';
 import 'ui/screens/lock_screen.dart';
 import 'ui/shells.dart';
 import 'ui/tour.dart';
@@ -47,7 +48,7 @@ class SaccoApp extends StatelessWidget {
                 child: child!,
               );
             },
-            home: const _LifecycleGate(child: _Root()),
+            home: const _LifecycleGate(child: JoinLinkGate(child: _Root())),
           ),
         ),
       );

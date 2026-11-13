@@ -140,6 +140,23 @@ class Api {
   Future<void> updateMyPrefs(Json prefs) => _rpc('update_my_prefs', {'p': prefs});
   Future<String> seedDemo(String myName) async => (await _rpc('seed_demo', {'p_my_name': myName})).toString();
   Future<void> claimInvite(String code) => _rpc('claim_invite', {'p_code': code, 'p_consent': true});
+
+  // Circle invitations: invite by email, see my invitations, open one from a link, say yes or no.
+  Future<Json> inviteToCircle(String org, {required String email, required String role, String? message}) async =>
+      asJson(await _rpc('invite_to_circle', {'p_org': org, 'p_email': email, 'p_role': role, 'p_message': message}));
+  Future<List<Json>> myInvites() async => asJsonList(await _rpc('my_invites'));
+
+  /// Null when no invitation has this code (it may be an ordinary join code).
+  Future<Json?> inviteDetails(String code) async {
+    final r = await _rpc('invite_details', {'p_code': code});
+    return r == null ? null : asJson(r);
+  }
+
+  Future<String> acceptInvite(String code, {required String name, String? phone}) async =>
+      (await _rpc('accept_circle_invite', {'p_code': code, 'p_name': name, 'p_phone': phone, 'p_consent': true})).toString();
+  Future<void> declineInvite(String code) => _rpc('decline_circle_invite', {'p_code': code});
+  Future<List<Json>> circleInvites(String org) async => asJsonList(await _rpc('list_circle_invites', {'p_org': org}));
+  Future<void> cancelInvite(String id) => _rpc('cancel_circle_invite', {'p_invite': id});
   Future<List<Json>> members(String org) async => asJsonList(await _rpc('list_members', {'p_org': org}));
 
   Future<Json> addMember(

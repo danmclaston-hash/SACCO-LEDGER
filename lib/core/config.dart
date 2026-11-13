@@ -4,5 +4,8 @@
 class AppConfig {
   static const supabaseUrl = String.fromEnvironment('SUPABASE_URL', defaultValue: 'https://otisdtjijwdxkzjsmzvx.supabase.co');
   static const supabaseKey = String.fromEnvironment('SUPABASE_KEY', defaultValue: 'sb_publishable_EPslRjGgWM7KYMs1JzstuQ_Rywfl0ui');
+
+  /// The public website. Invitation links point here, so they open on any phone or computer.
+  static const siteUrl = String.fromEnvironment('SITE_URL', defaultValue: 'https://sacco-ledger.pages.dev');
   static bool get isConfigured => supabaseUrl.isNotEmpty && supabaseKey.isNotEmpty;
 }

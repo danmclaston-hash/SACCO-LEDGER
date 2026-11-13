@@ -70,6 +70,12 @@ class Phones {
   /// A normalized number of a sensible length. The database checks the same 11 to 13 digits.
   static bool isValidNumber(String? normalized) => normalized != null && normalized.length >= 11 && normalized.length <= 13;
 
+  /// 256772123456 -> 0772123456, the way people write their own number. Other countries' numbers stay as they are.
+  static String local(String? p, {String dial = '256'}) {
+    final d = (p ?? '').replaceAll(RegExp(r'[^0-9]'), '');
+    return d.startsWith(dial) && d.length == dial.length + 9 ? '0${d.substring(dial.length)}' : d;
+  }
+
   static String loginEmail(String input, {String dial = '256'}) {
     final t = input.trim().toLowerCase();
     if (t.contains('@')) return t;

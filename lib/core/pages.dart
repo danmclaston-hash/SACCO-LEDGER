@@ -33,6 +33,8 @@ enum AppPage {
   settings(
       'Group Settings', 'Share price, loan limit, interest, quorum', ['settings', 'share price', 'interest rate', 'multiplier', 'quorum', 'merchant', 'group'],
       audience: Audience.officers),
+  circles('My circles', 'Every circle I am in and my role there, invitations, start or join a circle',
+      ['circle', 'circles', 'group', 'groups', 'my groups', 'switch', 'invite', 'invitation', 'join', 'role', 'admin', 'treasurer', 'new group', 'create']),
   account('My Account', 'Profile, password, PIN lock, theme, text size, my data', [
     'account', 'profile', 'my', 'photo', 'password', 'pin', 'lock',
     'fingerprint', 'security', 'sign in', 'devices', //
