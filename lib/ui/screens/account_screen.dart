@@ -7,9 +7,9 @@ import 'package:image/image.dart' as img;
 import 'package:share_plus/share_plus.dart';
 
 import '../../core/app_lock.dart';
-import '../../core/catalog.dart';
 import '../../core/i18n.dart';
 import '../../core/names.dart';
+import '../../core/pages.dart';
 import '../../core/json.dart';
 import '../../core/money.dart';
 import '../../state/app_state.dart';
@@ -125,11 +125,19 @@ class _Header extends StatelessWidget {
                 Text('Signs in with ${Phones.signInLabel(a.s('sign_in_id'))}', style: tt.bodySmall?.copyWith(color: look.onBrandMuted)),
                 const SizedBox(height: 8),
                 Wrap(
-                  spacing: 6,
+                  spacing: 8,
                   runSpacing: 6,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    for (final g in groups) Pill(text: '${g.s('org_name')} • ${Role.labelOf(g.s('role'))}', color: Colors.white.withValues(alpha: 0.16)),
-                    if (a.b('is_platform_admin')) Pill(text: 'Platform Admin', color: look.accent, foreground: look.onAccent),
+                    InkWell(
+                      onTap: () => st.goTo(AppPage.circles),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Text('In ${groups.length} ${groups.length == 1 ? 'circle' : 'circles'} • See my circles ›',
+                            style: tt.bodyMedium?.copyWith(color: look.onBrand, fontWeight: FontWeight.w600)),
+                      ),
+                    ),
+                    if (st.platform.b('team')) Pill(text: 'Platform team', color: look.accent, foreground: look.onAccent),
                   ],
                 ),
               ],

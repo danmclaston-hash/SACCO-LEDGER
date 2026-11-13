@@ -192,7 +192,8 @@ void main() {
     await t.pumpAndSettle();
     expect(find.text('Approvals'), findsWidgets);
 
-    t.view.physicalSize = const Size(1280 * 3, 900 * 3);
+    // A tall desktop window, so the whole grouped side menu is on screen.
+    t.view.physicalSize = const Size(1280 * 3, 1400 * 3);
     final admin = inGroup('treasurer');
     await t.pumpWidget(app(admin, const WideShell()));
     await t.pumpAndSettle();

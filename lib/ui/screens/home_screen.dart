@@ -7,7 +7,7 @@ import '../motion.dart';
 import '../theme.dart';
 import '../tour.dart';
 import '../widgets.dart';
-import 'circles_screen.dart';
+import 'needs_you.dart';
 
 /// A member's home: their money, four big picture buttons, and the state of their last payment.
 /// Built so a person who reads little can still find their way by picture and colour.
@@ -29,16 +29,16 @@ class MemberHome extends StatelessWidget {
 
     return AppPageView(
       children: [
-        if (st.invites.isNotEmpty) const CircleNotices(),
         RiseIn(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(first.isEmpty ? st.t('Home') : 'Hello, $first', style: tt.headlineSmall?.copyWith(fontWeight: FontWeight.w700)),
-              if (st.org!.b('is_demo')) Padding(padding: const EdgeInsets.only(top: 6), child: Pill(text: 'DEMO DATA: not real money', color: look.warn)),
+              if (st.org!.b('is_demo')) Padding(padding: const EdgeInsets.only(top: 6), child: Pill(text: 'DEMO: not real money', color: look.warn)),
             ],
           ),
         ),
+        const NeedsYouCard(),
         RiseIn(
           delay: const Duration(milliseconds: 60),
           child: Container(
@@ -74,10 +74,10 @@ class MemberHome extends StatelessWidget {
                 spacing: 12,
                 runSpacing: 12,
                 children: [
-                  _BigTile(width: w, icon: Icons.arrow_circle_up_rounded, label: st.t('Pay'), main: true, onTap: () => st.goTo(AppPage.channels)),
-                  _BigTile(width: w, icon: Icons.account_balance_wallet_outlined, label: st.t('My money'), onTap: () => st.goTo(AppPage.statements)),
-                  _BigTile(width: w, icon: Icons.payments_outlined, label: st.t('Loans'), onTap: () => st.goTo(AppPage.loans)),
-                  _BigTile(width: w, icon: Icons.help_outline_rounded, label: st.t('Help'), onTap: () => showHelp(context)),
+                  BigTile(width: w, icon: Icons.arrow_circle_up_rounded, label: st.t('Pay'), main: true, onTap: () => st.goTo(AppPage.channels)),
+                  BigTile(width: w, icon: Icons.account_balance_wallet_outlined, label: st.t('My money'), onTap: () => st.goTo(AppPage.statements)),
+                  BigTile(width: w, icon: Icons.payments_outlined, label: st.t('Loans'), onTap: () => st.goTo(AppPage.loans)),
+                  BigTile(width: w, icon: Icons.help_outline_rounded, label: st.t('Help'), onTap: () => showHelp(context)),
                 ],
               );
             },
@@ -131,13 +131,15 @@ class _GoalStrip extends StatelessWidget {
   }
 }
 
-class _BigTile extends StatelessWidget {
+/// A big picture button: easy to find without reading.
+class BigTile extends StatelessWidget {
   final double width;
+  final double height;
   final IconData icon;
   final String label;
   final bool main;
   final VoidCallback onTap;
-  const _BigTile({required this.width, required this.icon, required this.label, required this.onTap, this.main = false});
+  const BigTile({super.key, required this.width, required this.icon, required this.label, required this.onTap, this.main = false, this.height = 124});
 
   @override
   Widget build(BuildContext context) {
@@ -151,7 +153,7 @@ class _BigTile extends StatelessWidget {
     );
     return SizedBox(
       width: width,
-      height: 124,
+      height: height,
       child: Material(
         color: bg,
         shape: shape,
@@ -164,11 +166,11 @@ class _BigTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Icon(icon, size: 40, color: fg),
+                Icon(icon, size: height < 110 ? 32 : 40, color: fg),
                 Text(label,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(color: fg, fontWeight: FontWeight.w700, fontSize: 18)),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(color: fg, fontWeight: FontWeight.w700, fontSize: height < 110 ? 16 : 18)),
               ],
             ),
           ),

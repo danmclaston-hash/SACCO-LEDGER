@@ -290,10 +290,13 @@ class LoanSummary extends StatelessWidget {
               child: Row(children: [
                 SizedBox(width: 28, child: Text('${i.n}', style: tt.labelMedium)),
                 Expanded(child: Text(Dates.day(i.due), style: tt.bodySmall)),
-                Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                  Text(m(i.total), style: tt.bodySmall?.copyWith(fontWeight: FontWeight.bold)),
-                  if (i.interest > 0) Text('incl. ${m(i.interest)} interest', style: tt.labelSmall),
-                ]),
+                Flexible(
+                  flex: 2,
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                    Text(m(i.total), style: tt.bodySmall?.copyWith(fontWeight: FontWeight.bold)),
+                    if (i.interest > 0) Text('incl. ${m(i.interest)} interest', textAlign: TextAlign.end, style: tt.labelSmall),
+                  ]),
+                ),
               ]),
             ),
         ],

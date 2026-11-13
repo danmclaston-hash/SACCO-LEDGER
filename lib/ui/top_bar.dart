@@ -4,6 +4,7 @@ import '../core/catalog.dart';
 import '../core/pages.dart';
 import '../core/json.dart';
 import 'screens/account_screen.dart';
+import 'screens/circles_screen.dart' show withArticle;
 import 'screens/search_screen.dart';
 import 'theme.dart';
 import 'widgets.dart';
@@ -85,7 +86,7 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
                               overflow: TextOverflow.ellipsis,
                               style: tt.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: Colors.white),
                             ),
-                            Text(Edition.parse(org?.s('edition')).tier,
+                            Text(org == null ? '' : 'You are ${st.role == Role.platformAdmin ? 'looking only' : withArticle(st.role)}',
                                 maxLines: 1, overflow: TextOverflow.ellipsis, style: tt.labelSmall?.copyWith(color: look.onBrandMuted)),
                           ],
                         ),

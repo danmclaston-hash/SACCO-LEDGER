@@ -206,7 +206,7 @@ class _AuthScreenState extends State<AuthScreen> {
                               isExpanded: true,
                               decoration: const InputDecoration(labelText: 'Country', prefixIcon: Icon(Icons.public)),
                               items: [
-                                for (final c in countries) DropdownMenuItem(value: c.code, child: Text('${c.flag}  ${c.name}  (+${c.dial})')),
+                                for (final c in countries) DropdownMenuItem(value: c.code, child: Text('${c.name}  (+${c.dial})')),
                               ],
                               onChanged: (v) {
                                 if (v == null) return;
@@ -231,6 +231,7 @@ class _AuthScreenState extends State<AuthScreen> {
                                 helperText: mode == _Mode.signUp
                                     ? 'Your real email. We send a link to prove it is yours.'
                                     : 'Phone like ${country.example} (we add +${country.dial}), or your email',
+                                helperMaxLines: 2,
                                 prefixIcon: const Icon(Icons.person_outline),
                               ),
                             ),
@@ -505,7 +506,7 @@ void showCreateCircle(BuildContext context, {bool askConsent = false}) {
           initialValue: country.code,
           isExpanded: true,
           decoration: const InputDecoration(labelText: 'Country'),
-          items: [for (final c in countries) DropdownMenuItem(value: c.code, child: Text('${c.flag}  ${c.name}'))],
+          items: [for (final c in countries) DropdownMenuItem(value: c.code, child: Text(c.name))],
           onChanged: (v) => set(() {
             country = countryByCode(v);
             currency = country.currency;

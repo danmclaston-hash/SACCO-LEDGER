@@ -15,6 +15,7 @@ import 'screens/loans_screen.dart';
 import 'screens/meetings_screen.dart';
 import 'screens/members_screen.dart';
 import 'screens/platform_screen.dart';
+import 'screens/reports_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/share_out_screen.dart';
 import 'screens/statements_screen.dart';
@@ -34,6 +35,7 @@ IconData pageIcon(AppPage p) => switch (p) {
       AppPage.statements => Icons.receipt_long,
       AppPage.shareOut => Icons.calculate,
       AppPage.channels => Icons.arrow_circle_up_rounded,
+      AppPage.reports => Icons.insights_rounded,
       AppPage.licences => Icons.verified,
       AppPage.settings => Icons.settings,
       AppPage.circles => Icons.diversity_3_rounded,
@@ -55,6 +57,7 @@ Widget pageBody(AppPage p) => switch (p) {
       AppPage.shareOut => const ShareOutScreen(),
       AppPage.channels => const ChannelsScreen(),
       AppPage.statements => const StatementsScreen(),
+      AppPage.reports => const ReportsScreen(),
       AppPage.licences => const LicencesScreen(),
       AppPage.settings => const SettingsScreen(),
       AppPage.platform => const PlatformScreen(),
@@ -126,7 +129,18 @@ class MobileShell extends StatelessWidget {
   }
 }
 
-/// Every other page this person may open, as picture tiles.
+/// Which heading a page sits under in "More" and in the side menu.
+String pageGroup(AppPage p) => switch (p) {
+      AppPage.overview || AppPage.approvals || AppPage.meetings || AppPage.loans || AppPage.channels || AppPage.goals => 'Everyday',
+      AppPage.statements || AppPage.ledger || AppPage.emergency || AppPage.shareOut || AppPage.reports => 'Money records',
+      AppPage.members || AppPage.circles => 'People',
+      AppPage.settings || AppPage.licences || AppPage.platform => 'Circle settings',
+      AppPage.account => 'You',
+    };
+
+const pageGroups = ['Everyday', 'Money records', 'People', 'Circle settings', 'You'];
+
+/// Every other page this person may open, as picture tiles under a few plain headings.
 Future<void> showMorePages(BuildContext context) {
   final st = StateScope.of(context);
   final tabs = MobileShell.tabsFor(st);
@@ -134,50 +148,62 @@ Future<void> showMorePages(BuildContext context) {
   return showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
+    showDragHandle: true,
     builder: (ctx) {
       final cs = Theme.of(ctx).colorScheme;
+      final tt = Theme.of(ctx).textTheme;
       final look = SaccoLook.of(ctx);
-      return SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
-          child: GridView.count(
-            crossAxisCount: 3,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 10,
-            crossAxisSpacing: 10,
-            childAspectRatio: 1.05,
-            children: [
-              for (final p in rest)
-                Material(
-                  color: p == st.page ? cs.primaryContainer : cs.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(look.radius * 0.8),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(look.radius * 0.8),
-                    onTap: () {
-                      Navigator.of(ctx).pop();
-                      st.goTo(p);
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(pageIcon(p), size: 30, color: cs.primary),
-                          const SizedBox(height: 8),
-                          Text(
-                            st.t(p.tab),
-                            maxLines: 2,
-                            textAlign: TextAlign.center,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(ctx).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600, color: cs.onSurface),
-                          ),
-                        ],
-                      ),
+      Widget tile(AppPage p) => Material(
+            color: p == st.page ? cs.primaryContainer : cs.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(look.radius * 0.8),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(look.radius * 0.8),
+              onTap: () {
+                Navigator.of(ctx).pop();
+                st.goTo(p);
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(pageIcon(p), size: 28, color: cs.primary),
+                    const SizedBox(height: 6),
+                    Text(
+                      st.t(p.tab),
+                      maxLines: 2,
+                      textAlign: TextAlign.center,
+                      overflow: TextOverflow.ellipsis,
+                      style: tt.labelLarge?.copyWith(fontWeight: FontWeight.w600, color: cs.onSurface),
                     ),
-                  ),
+                  ],
                 ),
-            ],
+              ),
+            ),
+          );
+      return SafeArea(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxHeight: MediaQuery.sizeOf(ctx).height * 0.85),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              for (final g in pageGroups)
+                if (rest.any((p) => pageGroup(p) == g)) ...[
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(4, 8, 4, 8),
+                    child: Text(st.t(g), style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w700, color: cs.onSurfaceVariant)),
+                  ),
+                  GridView.count(
+                    crossAxisCount: 3,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                    childAspectRatio: 1.0,
+                    children: [for (final p in rest.where((p) => pageGroup(p) == g)) tile(p)],
+                  ),
+                ],
+            ]),
           ),
         ),
       );
@@ -210,20 +236,28 @@ class WideShell extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                 children: [
-                  for (final p in items)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 2),
-                      child: ListTile(
-                        dense: true,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(SaccoLook.of(context).radius * 0.6)),
-                        selected: p == st.page,
-                        selectedColor: cs.onPrimaryContainer,
-                        selectedTileColor: cs.primaryContainer,
-                        leading: icon(p),
-                        title: Text(st.t(p.title), style: TextStyle(fontWeight: p == st.page ? FontWeight.w700 : FontWeight.w500)),
-                        onTap: () => st.goTo(p),
+                  for (final g in pageGroups)
+                    for (final (i, p) in items.where((p) => pageGroup(p) == g).indexed) ...[
+                      if (i == 0)
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(12, 14, 12, 6),
+                          child:
+                              Text(st.t(g), style: Theme.of(context).textTheme.labelLarge?.copyWith(color: cs.onSurfaceVariant, fontWeight: FontWeight.w700)),
+                        ),
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 2),
+                        child: ListTile(
+                          dense: true,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(SaccoLook.of(context).radius * 0.6)),
+                          selected: p == st.page,
+                          selectedColor: cs.onPrimaryContainer,
+                          selectedTileColor: cs.primaryContainer,
+                          leading: icon(p),
+                          title: Text(st.t(p.tab), style: TextStyle(fontWeight: p == st.page ? FontWeight.w700 : FontWeight.w500)),
+                          onTap: () => st.goTo(p),
+                        ),
                       ),
-                    ),
+                    ],
                 ],
               ),
             ),

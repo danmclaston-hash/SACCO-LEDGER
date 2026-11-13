@@ -40,58 +40,10 @@ class _Journals extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final st = StateScope.of(context);
-    final cs = Theme.of(context).colorScheme;
-    final tt = Theme.of(context).textTheme;
     return AppPageView(
       children: [
         if (st.journals.isEmpty) const EmptyNote('No journal postings found.'),
-        for (final j in st.journals)
-          SaccoCard(
-            radius: 12,
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        '#${j.i('journal_number')} • ${j.s('type').toUpperCase()} • Cycle ${j.i('cycle_number')}',
-                        style: tt.labelMedium?.copyWith(fontWeight: FontWeight.bold, color: cs.primary),
-                      ),
-                    ),
-                    if (j.b('is_reversed')) Pill(text: 'REVERSED', color: cs.error, foreground: cs.onError),
-                    if (st.role.handlesMoney && !j.b('is_reversed') && j.s('type') != 'reversal' && j.s('type') != 'share_out')
-                      TextButton(
-                        onPressed: () => _reverse(context, st, j),
-                        child: Text('Reverse', style: TextStyle(color: cs.error)),
-                      ),
-                  ],
-                ),
-                Text(j.s('description'), style: tt.bodySmall),
-                Text(
-                  'By ${j.s('actor_name')} • ${Dates.dayTime(j['created_at'])}${j.n('external_ref') != null ? ' • ID ${j.s('external_ref')}' : ''}${j.n('channel') != null ? ' • ${Channel.labelOf(j.s('channel'))}' : ''}',
-                  style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
-                ),
-                const Divider(height: 12),
-                for (final line in j.l('lines'))
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          '${line.s('account_code')} - ${line.s('account_name')}${line.n('member_name') != null ? ' (${line.s('member_name')})' : ''}',
-                          style: tt.labelSmall,
-                        ),
-                      ),
-                      Text(
-                        line.i('debit') > 0 ? 'Dr ${money(context, line.i('debit'))}' : 'Cr ${money(context, line.i('credit'))}',
-                        style: tt.labelSmall?.copyWith(fontWeight: FontWeight.w600),
-                      ),
-                    ],
-                  ),
-              ],
-            ),
-          ),
+        for (final j in st.journals) _JournalTile(j, onReverse: () => _reverse(context, st, j)),
       ],
     );
   }
@@ -251,6 +203,84 @@ class _AuditState extends State<_Audit> {
           ],
         );
       },
+    );
+  }
+}
+
+/// One record in plain words: what happened, how much, when and by whom.
+/// Tap to see the account lines (debit and credit) and, for the treasurer, Reverse.
+class _JournalTile extends StatelessWidget {
+  final Json j;
+  final VoidCallback onReverse;
+  const _JournalTile(this.j, {required this.onReverse});
+
+  @override
+  Widget build(BuildContext context) {
+    final st = StateScope.of(context);
+    final cs = Theme.of(context).colorScheme;
+    final tt = Theme.of(context).textTheme;
+    final look = SaccoLook.of(context);
+    final reversed = j.b('is_reversed');
+    final canReverse = st.role.handlesMoney && !reversed && j.s('type') != 'reversal' && j.s('type') != 'share_out';
+    return SaccoCard(
+      padding: EdgeInsets.zero,
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          shape: const RoundedRectangleBorder(side: BorderSide.none),
+          title: Text(j.s('description'), maxLines: 2, overflow: TextOverflow.ellipsis, style: tt.bodyLarge?.copyWith(fontWeight: FontWeight.w600)),
+          subtitle: Text(
+            '#${j.i('journal_number')} • ${Dates.dayTime(j['created_at'])}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+          ),
+          trailing: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.end, children: [
+            Text(money(context, j.i('total')),
+                style: look.numbers(tt.titleSmall).copyWith(fontWeight: FontWeight.w700, decoration: reversed ? TextDecoration.lineThrough : null)),
+            if (reversed) Text('Reversed', style: tt.labelSmall?.copyWith(color: cs.error, fontWeight: FontWeight.w700)),
+          ]),
+          children: [
+            Align(alignment: Alignment.centerLeft, child: Text('Recorded by ${j.s('actor_name')} • Cycle ${j.i('cycle_number')}', style: tt.bodySmall)),
+            if (j.n('external_ref') != null || j.n('channel') != null)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  [if (j.n('channel') != null) Channel.labelOf(j.s('channel')), if (j.n('external_ref') != null) 'ID ${j.s('external_ref')}'].join(' • '),
+                  style: tt.bodySmall,
+                ),
+              ),
+            const SizedBox(height: 6),
+            for (final line in j.l('lines'))
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 2),
+                child: Row(children: [
+                  Expanded(
+                    child: Text(
+                      '${line.s('account_name')}${line.n('member_name') != null ? ' (${line.s('member_name')})' : ''}',
+                      style: tt.bodySmall,
+                    ),
+                  ),
+                  Text(
+                    line.i('debit') > 0 ? 'Debit ${money(context, line.i('debit'))}' : 'Credit ${money(context, line.i('credit'))}',
+                    style: look.numbers(tt.bodySmall).copyWith(fontWeight: FontWeight.w600),
+                  ),
+                ]),
+              ),
+            if (canReverse)
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: onReverse,
+                  icon: Icon(Icons.undo_rounded, color: cs.error, size: 18),
+                  label: Text('Reverse this record', style: TextStyle(color: cs.error)),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 }

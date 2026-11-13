@@ -130,14 +130,14 @@ FlTitlesData _titles(BuildContext context, {required Widget Function(double, Tit
     leftTitles: AxisTitles(
       sideTitles: SideTitles(
         showTitles: true,
-        reservedSize: 40,
+        reservedSize: 48,
         interval: interval,
         getTitlesWidget: (v, meta) => v == meta.max && v != 0 && meta.max % interval != 0
             ? const SizedBox.shrink()
-            : SideTitleWidget(meta: meta, child: Text(compactMoney(v.round()), style: st)),
+            : SideTitleWidget(meta: meta, child: Text(compactMoney(v.round()), maxLines: 1, softWrap: false, style: st)),
       ),
     ),
-    bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 26, interval: bottomInterval ?? 1, getTitlesWidget: bottom)),
+    bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: true, reservedSize: 30, interval: bottomInterval ?? 1, getTitlesWidget: bottom)),
   );
 }
 

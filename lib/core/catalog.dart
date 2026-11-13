@@ -3,7 +3,7 @@
 library;
 
 enum Role {
-  orgAdmin('org_admin', 'Organization Admin', 'Org Admin'),
+  orgAdmin('org_admin', 'Circle Admin', 'Admin'),
   treasurer('treasurer', 'Treasurer', 'Treasurer'),
   secretary('secretary', 'Secretary', 'Secretary'),
   loanOfficer('loan_officer', 'Loan Officer', 'Loan Officer'),

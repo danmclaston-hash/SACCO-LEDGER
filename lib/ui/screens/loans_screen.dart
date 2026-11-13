@@ -36,16 +36,16 @@ class LoansScreen extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Active Portfolio', style: tt.labelSmall),
+                      Text('Still owed on loans', style: tt.bodySmall),
                       Text(money(context, active.fold<int>(0, (a, l) => a + l.i('remaining'))), style: tt.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                     ],
                   ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text('Policy Limit', style: tt.labelSmall),
+                      Text('Most a member can borrow', style: tt.bodySmall),
                       Text(
-                        '${org.i('max_loan_multiplier')}x Savings',
+                        '${org.i('max_loan_multiplier')}× their savings',
                         style: tt.titleSmall?.copyWith(fontWeight: FontWeight.bold),
                       ),
                     ],
@@ -76,23 +76,24 @@ class LoansScreen extends StatelessWidget {
             ],
           ),
         ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SectionTitle('Arrears Aging Classification', info: 'arrears'),
-            const SizedBox(height: 8),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _Band('Current', band('Current'), okGreen),
-                _Band('Watch (1-30d)', band('Watch'), saccoGold),
-                _Band('Substandard (31-60d)', band('Substandard'), warnOrange),
-                _Band('Doubtful / Loss (61d+)', band('Doubtful') + band('Loss'), cs.error),
-              ],
-            ),
-          ],
-        ),
-        const SectionTitle('Loan Directory'),
+        if (active.any((l) => l.i('arrears_days') > 0))
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SectionTitle('Late loans', info: 'arrears'),
+              const SizedBox(height: 8),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _Band('On time', band('Current'), okGreen),
+                  _Band('1-30 days late', band('Watch'), saccoGold),
+                  _Band('31-60 days late', band('Substandard'), warnOrange),
+                  _Band('Over 60 days', band('Doubtful') + band('Loss'), cs.error),
+                ],
+              ),
+            ],
+          ),
+        SectionTitle('All loans (${st.loans.length})'),
         if (st.loans.isEmpty) const EmptyNote('No loans recorded yet.'),
         for (final l in st.loans) _LoanCard(l),
       ],
@@ -110,8 +111,8 @@ class LoansScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (_) => FormDialog(
-        title: 'Request Loan Application',
-        confirm: 'Submit Application',
+        title: 'Ask for a loan',
+        confirm: 'Send request',
         fields: (ctx, set) {
           final m = st.members.where((x) => x.s('id') == member);
           final savings = m.isEmpty ? 0 : m.first.i('savings');

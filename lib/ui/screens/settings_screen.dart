@@ -56,7 +56,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           initialValue: countryByCode(o.n('country_code')).code,
           isExpanded: true,
           decoration: InputDecoration(labelText: 'Country', helperText: 'Sets the phone code. Money stays in ${st.currency}.'),
-          items: [for (final c in countries) DropdownMenuItem(value: c.code, child: Text('${c.flag}  ${c.name}  (+${c.dial})'))],
+          items: [for (final c in countries) DropdownMenuItem(value: c.code, child: Text('${c.name}  (+${c.dial})'))],
           onChanged: !edit
               ? null
               : (v) {

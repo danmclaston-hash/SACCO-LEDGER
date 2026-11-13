@@ -2,16 +2,19 @@ import 'package:flutter/material.dart';
 
 import '../../core/catalog.dart';
 import '../../core/json.dart';
+import '../../core/money.dart';
 import '../../core/pages.dart';
-import '../../core/risk.dart';
-import '../charts.dart';
-import '../shells.dart';
+import '../motion.dart';
 import '../theme.dart';
 import '../widgets.dart';
-import 'circles_screen.dart';
+import 'channels_screen.dart';
 import 'goals_screen.dart';
 import 'home_screen.dart';
+import 'needs_you.dart';
 
+/// An officer's home. Three questions, in this order:
+/// 1. What needs me now?  2. How much money does the group have?  3. What do I do next?
+/// Charts, health scores and tips live on the Reports page, so this page stays short.
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
@@ -21,310 +24,124 @@ class DashboardScreen extends StatelessWidget {
     if (!st.role.isOfficer && !st.canSeeAllGroups) return const MemberHome();
     final cs = Theme.of(context).colorScheme;
     final tt = Theme.of(context).textTheme;
+    final look = SaccoLook.of(context);
     final d = st.dash;
     final org = st.org!;
-    final metrics = RiskEngine.metrics(d);
-    final flags = RiskEngine.flags(d, metrics);
-    final pending = d.i('pending_payments') + d.i('pending_loans') + d.i('pending_emergency');
-    final recent = st.journals.take(4).toList();
-    final me = st.me;
-    final edition = Edition.parse(org.s('edition'));
+    final first = (st.me?.s('full_name') ?? st.account.s('full_name')).trim().split(' ').first;
+    final held = d.i('cash_box') + d.i('momo_bank');
+    final recent = st.journals.take(3).toList();
+    final goal = st.activeGoals.firstOrNull;
 
     return AppPageView(
       children: [
-        const CircleNotices(),
-        SaccoCard(
-          color: cs.primaryContainer,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          org.s('name'),
-                          style: tt.titleLarge?.copyWith(fontWeight: FontWeight.bold, color: cs.onPrimaryContainer),
-                        ),
-                        Text(
-                          'Cycle ${org.i('cycle_number')} • ${edition.label}',
-                          style: tt.bodyMedium?.copyWith(color: cs.onPrimaryContainer.withValues(alpha: 0.8)),
-                        ),
-                      ],
-                    ),
-                  ),
-                  CircleAvatar(
-                    backgroundColor: cs.primary,
-                    child: Icon(Icons.shield, color: cs.secondary),
-                  ),
-                ],
-              ),
-              gap,
-              Text(edition.hint, style: tt.bodySmall?.copyWith(color: cs.onPrimaryContainer.withValues(alpha: 0.9))),
-            ],
-          ),
+        RiseIn(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(first.isEmpty ? org.s('name') : 'Hello, $first', style: tt.headlineSmall?.copyWith(fontWeight: FontWeight.w700)),
+            const SizedBox(height: 2),
+            Text('${st.role == Role.orgAdmin ? 'Admin' : st.role.label} • Cycle ${org.i('cycle_number')}',
+                style: tt.bodyMedium?.copyWith(color: cs.onSurfaceVariant)),
+            if (org.b('is_demo')) Padding(padding: const EdgeInsets.only(top: 8), child: Pill(text: 'DEMO: not real money', color: look.warn)),
+          ]),
         ),
-        if (org.b('is_demo'))
-          const Align(
-            alignment: Alignment.centerLeft,
-            child: Pill(text: 'DEMO DATA: not real money', color: warnOrange),
-          ),
-        if (me != null && !st.role.isOfficer)
-          SaccoCard(
-            color: cs.secondaryContainer,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(children: [
-                  Text('My savings', style: tt.labelMedium?.copyWith(fontWeight: FontWeight.w600)),
-                  const InfoTip('savings'),
+        const RiseIn(delay: Duration(milliseconds: 40), child: NeedsYouCard()),
+        RiseIn(
+          delay: const Duration(milliseconds: 80),
+          child: Material(
+            color: look.brand,
+            borderRadius: BorderRadius.circular(look.radius),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: st.canSee(AppPage.reports) ? () => st.goTo(AppPage.reports) : null,
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Row(children: [
+                    Expanded(child: Text('The group holds', style: tt.bodyMedium?.copyWith(color: look.onBrandMuted))),
+                    if (st.canSee(AppPage.reports)) Text('Reports ›', style: tt.labelLarge?.copyWith(color: look.onBrand, fontWeight: FontWeight.w700)),
+                  ]),
+                  const SizedBox(height: 4),
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(money(context, held),
+                        style: look.numbers(tt.displaySmall).copyWith(color: look.onBrand, fontWeight: FontWeight.w800, fontSize: 34)),
+                  ),
+                  Text('Cash box ${Money.format(d.i('cash_box'), st.currency)} • Mobile money and bank ${Money.format(d.i('momo_bank'), st.currency)}',
+                      style: tt.bodySmall?.copyWith(color: look.onBrandMuted)),
+                  const SizedBox(height: 16),
+                  Row(children: [
+                    _Figure('Savings', money(context, d.i('member_savings'))),
+                    _Figure('Out as loans', money(context, d.i('loan_portfolio'))),
+                    _Figure('Emergency', money(context, d.i('emergency_fund'))),
+                  ]),
                 ]),
-                Text(money(context, me.i('savings')), style: tt.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
-                Text('${org.i('share_price') > 0 ? me.i('savings') ~/ org.i('share_price') : 0} shares', style: tt.labelSmall),
-              ],
+              ),
             ),
           ),
-        if (st.role.isOfficer && pending > 0)
+        ),
+        RiseIn(
+          delay: const Duration(milliseconds: 120),
+          child: LayoutBuilder(builder: (context, box) {
+            final w = (box.maxWidth - 20) / 3;
+            return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              BigTile(
+                width: w,
+                height: 104,
+                icon: Icons.edit_note_rounded,
+                label: 'Record',
+                main: true,
+                onTap: st.role.canRunMeetings ? () => showPaymentDialog(context) : () => st.goTo(AppPage.channels),
+              ),
+              BigTile(width: w, height: 104, icon: Icons.groups_rounded, label: st.t('Meetings'), onTap: () => st.goTo(AppPage.meetings)),
+              BigTile(width: w, height: 104, icon: Icons.payments_outlined, label: st.t('Loans'), onTap: () => st.goTo(AppPage.loans)),
+            ]);
+          }),
+        ),
+        if (goal != null) ...[
+          SectionTitle('Goal', trailing: TextButton(onPressed: () => st.goTo(AppPage.goals), child: const Text('All goals'))),
+          GoalCard(goal),
+        ],
+        if (recent.isNotEmpty) ...[
+          SectionTitle('Latest records', trailing: TextButton(onPressed: () => st.goTo(AppPage.ledger), child: const Text('See all'))),
           SaccoCard(
-            color: cs.errorContainer,
-            child: Row(
-              children: [
-                Icon(Icons.pending_actions, color: cs.onErrorContainer),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    '$pending record(s) wait for review',
-                    style: TextStyle(fontWeight: FontWeight.bold, color: cs.onErrorContainer),
-                  ),
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Column(children: [
+              for (final (i, j) in recent.indexed) ...[
+                if (i > 0) const Divider(height: 1, indent: 16, endIndent: 16),
+                ListTile(
+                  minTileHeight: 56,
+                  title: Text(j.s('description'), maxLines: 2, overflow: TextOverflow.ellipsis),
+                  subtitle: Text(Dates.dayTime(j['created_at'])),
+                  trailing: Text(money(context, j.i('total')), style: look.numbers(tt.titleSmall).copyWith(fontWeight: FontWeight.w700)),
                 ),
-                TextButton(onPressed: () => st.goTo(AppPage.approvals), child: const Text('Review')),
               ],
-            ),
+            ]),
           ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SectionTitle('Financial Position (Double-Entry Balanced)', info: 'double_entry'),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: BalanceStatCard(
-                    title: 'Cash in Lockbox',
-                    amount: money(context, d.i('cash_box')),
-                    subtitle: 'MoMo/Bank: ${money(context, d.i('momo_bank'))}',
-                    icon: Icons.savings,
-                    color: cs.surfaceContainerHighest,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: BalanceStatCard(
-                    title: 'Member Savings',
-                    amount: money(context, d.i('member_savings')),
-                    subtitle: '${d.i('members_active')} Members Active',
-                    icon: Icons.account_balance_wallet,
-                    color: cs.surfaceContainerHighest,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: BalanceStatCard(
-                    title: 'Loan Portfolio',
-                    amount: money(context, d.i('loan_portfolio')),
-                    subtitle: '${d.i('loans_total')} Total Loans',
-                    icon: Icons.request_quote,
-                    color: cs.surfaceContainerHighest,
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: BalanceStatCard(
-                    title: 'Emergency Fund',
-                    amount: money(context, d.i('emergency_fund')),
-                    subtitle: 'Isolated Welfare Pot',
-                    icon: Icons.health_and_safety,
-                    color: cs.secondaryContainer,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            FilledButton.icon(
-              onPressed: st.myMemberId == null ? null : () => st.goTo(AppPage.channels),
-              icon: const Icon(Icons.add_circle_outline, size: 16),
-              label: const Text('Record Payment'),
-            ),
-            for (final p in const [AppPage.meetings, AppPage.goals])
-              FilledButton.tonalIcon(onPressed: () => st.goTo(p), icon: Icon(pageIcon(p), size: 16), label: Text(st.t(p.title))),
-            for (final p in const [AppPage.loans, AppPage.statements, AppPage.approvals, AppPage.members, AppPage.licences, AppPage.settings])
-              // A phone has these in the bottom bar and under More, so the home stays short.
-              if (st.canSee(p) && MediaQuery.sizeOf(context).width >= 600)
-                OutlinedButton.icon(onPressed: () => st.goTo(p), icon: Icon(pageIcon(p), size: 16), label: Text(st.t(p.title))),
-            if (!st.role.isOfficer) OutlinedButton.icon(onPressed: st.signOut, icon: const Icon(Icons.logout, size: 16), label: const Text('Sign out')),
-          ],
-        ),
-        if (st.activeGoals.isNotEmpty) ...[
-          SectionTitle('Our goals', trailing: TextButton(onPressed: () => st.goTo(AppPage.goals), child: const Text('All goals'))),
-          for (final g in st.activeGoals.take(3)) GoalCard(g),
         ],
-        if (st.flows.any((f) => f.i('paid_in') > 0 || f.i('paid_out') > 0 || f.i('savings') > 0)) ...[
-          SectionTitle(st.role.isOfficer ? 'How the group is doing' : 'How I am doing'),
-          MoneyFlowChart(flows: st.flows, currency: st.currency, mine: !st.role.isOfficer),
-          SavingsGrowthChart(flows: st.flows, currency: st.currency, mine: !st.role.isOfficer),
-        ],
-        SaccoCard(
-          elevation: 2,
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Icon(Icons.analytics, color: cs.primary),
-                        const SizedBox(width: 8),
-                        Flexible(
-                          child: Text('Portfolio Risk & Health', style: tt.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Pill(text: 'Score: ${metrics.score}/100', color: metrics.score >= 80 ? okGreen : (metrics.score >= 60 ? warnOrange : cs.error)),
-                ],
-              ),
-              gap,
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _Metric('PAR 30', metrics.par30, metrics.par30Alert),
-                  _Metric('PAR 90', metrics.par90, metrics.par90Alert),
-                  _Metric('Liquidity', metrics.liquidity, metrics.liquidityAlert),
-                  _Metric('Collection', metrics.collection, metrics.collectionAlert),
-                ],
-              ),
-            ],
-          ),
-        ),
-        SaccoCard(
-          color: cs.surfaceContainerHighest.withValues(alpha: 0.7),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.lightbulb, color: cs.secondary),
-                  const SizedBox(width: 8),
-                  Text('Advice (Heuristic Rules)', style: tt.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
-                ],
-              ),
-              Text(st.t('AI suggests, never acts on money'), style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant.withValues(alpha: 0.7))),
-              const SizedBox(height: 8),
-              for (final f in flags)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        margin: const EdgeInsets.only(top: 6),
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: switch (f.severity) {
-                            RiskSeverity.high => cs.error,
-                            RiskSeverity.medium => warnOrange,
-                            RiskSeverity.low => okGreen,
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(f.title, style: tt.bodySmall?.copyWith(fontWeight: FontWeight.w600)),
-                            Text(f.recommendation, style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
-          ),
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SectionTitle(
-              st.role.isOfficer ? 'Recent Journal Postings' : 'My Recent Records',
-              trailing: TextButton(onPressed: () => st.goTo(AppPage.ledger), child: const Text('View Full Ledger')),
-            ),
-            if (recent.isEmpty) const EmptyNote('No journal entries recorded yet.'),
-            for (final j in recent)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: SaccoCard(
-                  radius: 12,
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '#${j.i('journal_number')} • ${j.s('type').toUpperCase()}',
-                              style: tt.labelMedium?.copyWith(fontWeight: FontWeight.bold, color: cs.primary),
-                            ),
-                            Text(j.s('description'), style: tt.bodySmall),
-                          ],
-                        ),
-                      ),
-                      Text(money(context, j.i('total')), style: tt.titleSmall?.copyWith(fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                ),
-              ),
-          ],
-        ),
       ],
     );
   }
 }
 
-class _Metric extends StatelessWidget {
-  final String title;
-  final double value;
-  final bool alert;
-  const _Metric(this.title, this.value, this.alert);
+/// One small labelled number on the money card.
+class _Figure extends StatelessWidget {
+  final String label;
+  final String value;
+  const _Figure(this.label, this.value);
+
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final look = SaccoLook.of(context);
     final tt = Theme.of(context).textTheme;
-    return Column(
-      children: [
-        Text(title, style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant)),
-        Text(
-          '${value.toStringAsFixed(1)}%',
-          style: tt.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: alert ? cs.error : cs.onSurface),
+    return Expanded(
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(label, style: tt.bodySmall?.copyWith(color: look.onBrandMuted)),
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          alignment: Alignment.centerLeft,
+          child: Text(value, style: look.numbers(tt.titleSmall).copyWith(color: look.onBrand, fontWeight: FontWeight.w700)),
         ),
-      ],
+      ]),
     );
   }
 }

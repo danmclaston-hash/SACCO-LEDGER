@@ -196,7 +196,15 @@ ThemeData themeFor(AppLook look, Brightness b) {
         );
   final r = BorderRadius.circular(passbook ? 6 : 14);
   final base = ThemeData(useMaterial3: true, colorScheme: c, fontFamily: passbook ? 'IBMPlexSans' : 'PlusJakartaSans');
+  // Bigger small text: the smallest words in the app stay readable for older eyes and on cheap screens.
+  final t = base.textTheme;
   return base.copyWith(
+    textTheme: t.copyWith(
+      bodyMedium: t.bodyMedium?.copyWith(fontSize: 15, height: 1.45),
+      bodySmall: t.bodySmall?.copyWith(fontSize: 13.5, height: 1.4),
+      labelMedium: t.labelMedium?.copyWith(fontSize: 13.5),
+      labelSmall: t.labelSmall?.copyWith(fontSize: 12.5),
+    ),
     extensions: [ext],
     scaffoldBackgroundColor: background,
     navigationBarTheme: NavigationBarThemeData(
