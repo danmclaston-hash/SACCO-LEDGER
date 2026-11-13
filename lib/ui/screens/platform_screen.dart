@@ -38,6 +38,8 @@ class PlatformScreen extends StatelessWidget {
             const AdminsCard(),
             const _DeletionRequests(),
             SectionTitle('All Groups (${groups.length})'),
+            Text('You see totals only. To look inside a circle, its admin must open a 24-hour window. Every look is written in that circle\'s record.',
+                style: tt.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
             for (final o in groups)
               SaccoCard(
                 radius: 12,
@@ -54,8 +56,12 @@ class PlatformScreen extends StatelessWidget {
                             style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
                           ),
                           Text(
-                            '${o.i('members')} members • ${o.i('journals')} journals • ${o.i('pending')} pending',
+                            '${o.i('members')} members • ${o.i('journals')} records • ${o.i('pending')} waiting',
                             style: tt.labelSmall?.copyWith(color: cs.onSurfaceVariant),
+                          ),
+                          Text(
+                            o.n('support_until') == null ? 'Locked: totals only' : 'Open for you until ${Dates.dayTime(o['support_until'])}',
+                            style: tt.labelSmall?.copyWith(fontWeight: FontWeight.w700, color: o.n('support_until') == null ? cs.onSurfaceVariant : cs.primary),
                           ),
                           Text(
                             o.n('licence_number') == null
@@ -67,13 +73,14 @@ class PlatformScreen extends StatelessWidget {
                       ),
                     ),
                     Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                      TextButton(
-                        onPressed: () {
-                          final match = st.orgs.where((x) => x.s('id') == o.s('id'));
-                          if (match.isNotEmpty) st.selectOrg(match.first);
-                        },
-                        child: const Text('Open'),
-                      ),
+                      if (o.n('support_until') != null)
+                        TextButton(
+                          onPressed: () {
+                            final match = st.orgs.where((x) => x.s('id') == o.s('id'));
+                            if (match.isNotEmpty) st.selectOrg(match.first);
+                          },
+                          child: const Text('Look'),
+                        ),
                       if (!o.b('is_demo')) TextButton(onPressed: () => showInviteDialog(context, orgId: o.s('id')), child: const Text('Invite')),
                     ]),
                   ],

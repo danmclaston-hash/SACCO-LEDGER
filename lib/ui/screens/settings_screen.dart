@@ -8,6 +8,7 @@ import '../widgets.dart';
 import 'circles_screen.dart';
 import 'loan_calculator.dart';
 import 'online_pay.dart';
+import 'support_access.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -121,6 +122,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: const Text('Save'),
           ),
         const LoanRulesCard(),
+        if (edit && !(st.org?.b('is_demo') ?? false)) const SupportAccessCard(),
         if (AppConfig.onlinePayments && st.role.handlesMoney) const GatewaySetupCard(),
         const Divider(),
         OutlinedButton.icon(onPressed: st.signOut, icon: const Icon(Icons.logout), label: const Text('Sign out')),

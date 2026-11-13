@@ -39,7 +39,8 @@ The law lets us do this because you agreed when you joined a group, and because 
 - **You** see your own records.
 - **Your group's officers** (administrator, treasurer, secretary) see the group's records, because checking them is their job.
 - **Other members** see group totals and goals. They do not see your phone, your ID, or your loans.
-- **The platform team** can see groups and accounts to give support and to stop abuse, only after two-step sign-in. They cannot add anyone to your circle without your circle admin's yes. Everything they do is written in a history.
+- **The platform team** sees only totals about your circle, such as how many members it has. It cannot see your members' names, phone numbers, ID numbers or money unless your circle admin opens a support window of up to 24 hours. They can only look, never change. Each look is written in your circle's own record, and your admin can close the window at any time. They need two-step sign-in. They cannot add anyone to your circle without your circle admin's yes.
+- **Other circles** cannot see your circle at all, including their admins.
 - **Each circle is separate.** Being in two circles never shows one circle your records in the other.
 - **Nobody else.** We give data to the authorities only when the law forces us to.
 

@@ -361,6 +361,18 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  final Set<String> _looked = {};
+
+  /// When the platform team opens a circle that let it in, the look is written into that circle's audit trail.
+  Future<void> _noteLook() async {
+    if (org == null || role != Role.platformAdmin || !_looked.add(orgId)) return;
+    try {
+      await api.noteSupportLook(orgId);
+    } on ApiError {
+      _looked.remove(orgId);
+    }
+  }
+
   Future<void> selectOrg(Json o) async {
     page = AppPage.overview;
     statementMemberId = null;
@@ -379,6 +391,7 @@ class AppState extends ChangeNotifier {
       await _prefs?.setString('orgs', jsonEncode(orgs));
       invites = await _loadInvites();
       await _pickOrg(select);
+      await _noteLook();
       if (org != null) {
         final id = orgId;
         final loaded = await Future.wait([for (final load in _groupData.values) load(api, id)]);

@@ -799,6 +799,92 @@ reset role;
 select t.fails(format($$insert into public.gateway_accounts(org_id, gateway, mode, key_hint, creds_enc, enabled) values (%L,'flutterwave','live','1234','x',true)$$,t.id('org2')),'switched off','no gateway can be connected');
 select t.ok(not exists(select 1 from public.gateway_accounts where enabled),'every connected gateway is switched off');
 
+-- ---------- Lock the platform view ----------
+reset role;
+\i ../migrations/20261113000200_support_lock.sql
+insert into auth.users(id,email) values (gen_random_uuid(),'wall@test.local');
+insert into t.v select 'wall_u', id from auth.users where email='wall@test.local';
+set role authenticated;
+select t.as_user(t.id('wall_u'));
+select t.put('wall', public.create_organization('Wall Circle','tier_1_vsla','UGX',5000,3,10,50,'Wall Admin','0700000099',true));
+
+-- 1. A wall between circles: an admin of one circle sees nothing of another
+select t.as_user(t.id('admin_u'));
+select t.fails(format($$select public.dashboard(%L)$$,t.id('wall')),'not a member','an admin of one circle cannot read another circle''s money');
+select t.fails(format($$select public.list_members(%L)$$,t.id('wall')),'','an admin of one circle cannot read another circle''s members');
+select t.fails(format($$select public.list_audit(%L)$$,t.id('wall')),'','an admin of one circle cannot read another circle''s audit trail');
+select t.fails($$select public.platform_overview()$$,'Platform admins','an admin of a circle cannot list all circles');
+select t.ok(not exists(select 1 from public.members where org_id=t.id('wall')),'row security hides another circle''s members too');
+select t.ok(not exists(select 1 from public.organizations where id=t.id('wall')),'row security hides another circle''s details too');
+
+-- 2. The platform team sees totals only
+select t.as_user(t.id('plat_u'));
+select t.ok((select (x->>'members')::int from jsonb_array_elements(public.platform_overview()) x where x->>'id'=t.id('wall')::text)=1,'platform team sees how many members a circle has');
+select t.ok(not exists(select 1 from jsonb_array_elements(public.platform_overview()) x where x::text ilike '%Wall Admin%' or x::text ilike '%0700000099%'),'the overview carries no names or phone numbers');
+select t.fails(format($$select public.dashboard(%L)$$,t.id('wall')),'not a member','platform team cannot read a circle''s money by default');
+select t.fails(format($$select public.list_members(%L)$$,t.id('wall')),'','platform team cannot read a circle''s members by default');
+select t.fails(format($$select public.list_audit(%L)$$,t.id('wall')),'','platform team cannot read a circle''s audit trail by default');
+select t.fails(format($$select public.global_search(%L,'Wall')$$,t.id('wall')),'not a member','platform team cannot search inside a circle by default');
+select t.ok(not exists(select 1 from public.members where org_id=t.id('wall')),'row security hides members from the platform team by default');
+select t.ok(not exists(select 1 from jsonb_array_elements(public.my_memberships()) x where x->>'my_role'='platform_admin'),'platform team is not offered other circles by default');
+select t.fails(format($$select public.note_support_look(%L)$$,t.id('wall')),'not opened','a look cannot be logged without a window');
+
+-- 3. Only the circle's own admin can open the window
+select t.as_user(t.id('ann_u'));
+select t.fails(format($$select public.open_support_window(%L)$$,t.id('org')),'cannot do this','a normal member cannot open a support window');
+select t.as_user(t.id('admin_u'));
+select t.fails(format($$select public.open_support_window(%L)$$,t.id('wall')),'not an active member','another circle''s admin cannot open it either');
+select t.as_user(t.id('plat_u'));
+select t.fails(format($$select public.open_support_window(%L)$$,t.id('wall')),'not an active member','the platform team cannot open its own window');
+
+-- 4. The window opens, is limited to 24 hours, and is on the record
+select t.as_user(t.id('wall_u'));
+select t.ok(not (public.support_window_status(t.id('wall'))->>'open')::boolean,'the admin sees the window is closed');
+select t.ok(public.open_support_window(t.id('wall'), 500) < now() + interval '24 hours 1 minute','a window never lasts more than 24 hours');
+select t.ok((public.support_window_status(t.id('wall'))->>'open')::boolean,'the admin sees the window is open');
+select t.as_user(t.id('plat_u'));
+select t.ok((public.dashboard(t.id('wall'))->>'members_active')::int=1,'with the window open the platform team can look');
+select t.ok(exists(select 1 from jsonb_array_elements(public.my_memberships()) x where x->>'my_role'='platform_admin' and x->>'id'=t.id('wall')::text),'the circle shows up for the platform team while open');
+select t.ok(exists(select 1 from jsonb_array_elements(public.platform_overview()) x where x->>'id'=t.id('wall')::text and x->>'support_until' is not null),'the overview shows the window is open');
+select public.note_support_look(t.id('wall'));
+select public.note_support_look(t.id('wall'));
+select t.fails(format($$select public.add_member(%L,'X',null,null,'member',null,null)$$,t.id('wall')),'not an active member','even with the window open the platform team cannot change anything');
+select t.fails(format($$select public.open_support_window(%L)$$,t.id('wall')),'not an active member','the platform team cannot extend a window');
+select t.as_user(t.id('wall_u'));
+select t.ok((select count(*) from jsonb_array_elements(public.list_audit(t.id('wall'))) x where x->>'action'='PLATFORM_LOOK')=1,'each platform look is in the circle''s own audit trail, once per 10 minutes');
+select t.ok((select x->>'actor_name' from jsonb_array_elements(public.list_audit(t.id('wall'))) x where x->>'action'='PLATFORM_LOOK' limit 1) like '%platform team%','the audit trail says it was the platform team');
+select t.ok((public.verify_audit_chain(t.id('wall'))->>'ok')::boolean,'the audit trail is still unbroken');
+
+-- 5. It ends when the admin says, and by itself
+select public.close_support_window(t.id('wall'));
+select t.as_user(t.id('plat_u'));
+select t.fails(format($$select public.dashboard(%L)$$,t.id('wall')),'not a member','closing the window shuts the platform team out at once');
+select t.as_user(t.id('wall_u'));
+select public.open_support_window(t.id('wall'), 1);
+reset role;
+update public.support_access set expires_at = now() - interval '1 minute' where org_id = t.id('wall') and ended_at is null;
+set role authenticated;
+select t.as_user(t.id('plat_u'));
+select t.fails(format($$select public.dashboard(%L)$$,t.id('wall')),'not a member','an old window stops working by itself');
+select t.as_user(t.id('wall_u'));
+select t.ok((select count(*) from jsonb_array_elements(public.list_audit(t.id('wall'))) x where x->>'action' in ('SUPPORT_WINDOW_OPENED','SUPPORT_WINDOW_CLOSED'))=3,'opening and closing are in the audit trail');
+
+-- 6. Two-step still needed, and invitations still work without a window
+select t.as_user(t.id('wall_u'));
+select public.open_support_window(t.id('wall'));
+select t.as_user(t.id('plat_u'));
+select set_config('test.aal','aal1',false);
+select t.fails(format($$select public.dashboard(%L)$$,t.id('wall')),'not a member','an open window is not enough without two-step sign-in');
+select set_config('test.aal','aal2',false);
+select t.as_user(t.id('wall_u'));
+select public.close_support_window(t.id('wall'));
+select t.as_user(t.id('plat_u'));
+select t.ok(public.invite_to_circle(t.id('wall'),'ann@test.local','member',null)->>'status'='awaiting_circle','the platform team can still invite without a window, and the admin still decides');
+select t.ok(jsonb_array_length(public.list_circle_invites(t.id('wall')))=1,'the platform team sees only the invitations it sent');
+select t.as_user(t.id('wall_u'));
+select t.ok(jsonb_array_length(public.list_circle_invites(t.id('wall')))=1,'the circle admin sees them too');
+reset role;
+
 -- ---------- Whole-database guards: these catch a new table or function that forgot its lock ----------
 select t.ok(not exists(select 1 from pg_class c join pg_namespace n on n.oid=c.relnamespace
   where n.nspname='public' and c.relkind='r' and not c.relrowsecurity),'every table has row level security on');
