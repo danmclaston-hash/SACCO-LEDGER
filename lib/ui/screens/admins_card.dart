@@ -236,7 +236,7 @@ class _AdminsCardState extends State<AdminsCard> {
                     '${u.n('name') != null ? '${Phones.signInLabel(u.s('email'))}\n' : ''}'
                     '${u.b('blocked') ? 'BLOCKED • ' : (u.b('checked') ? '' : 'Not proved • ')}'
                     'Joined ${Dates.day(u['joined_at'])} • '
-                    '${u.i('groups')} group${u.i('groups') == 1 ? '' : 's'}'
+                    '${u.i('groups')} ${u.i('groups') == 1 ? 'group' : 'groups'}'
                     '${u.n('last_sign_in') != null ? ' • last in ${Dates.day(u['last_sign_in'])}' : ''}',
                   ),
                   isThreeLine: u.n('name') != null,

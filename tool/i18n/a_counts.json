@@ -54,5 +54,17 @@
  " after {0#} grace days": [
   " oluvannyuma lw'ennaku {0} ez'okulindirira",
   " baada ya siku {0} za neema"
+ ],
+ "group": [
+  "ekibiina",
+  "kikundi"
+ ],
+ "groups": [
+  "ebibiina",
+  "vikundi"
+ ],
+ "The whole app changes to the language you pick. Names, numbers and amounts stay as they are.": [
+  "App yonna ekyukira mu lulimi lw'olonze. Amannya, ennamba ne ssente tebikyuka.",
+  "Programu yote inabadilika kuwa lugha uliyochagua. Majina, namba na kiasi cha pesa vinabaki vilevile."
  ]
 }

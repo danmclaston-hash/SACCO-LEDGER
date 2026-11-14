@@ -1,0 +1,386 @@
+{
+ "#{0} {1}\nNothing is deleted. An opposite entry is added, with your name and reason.": [
+  "#{0} {1}\nTewali kisangulwa. Wongerwako ekiwandiiko ekikikyusa, n'erinnya lyo n'ensonga.",
+  "#{0} {1}\nHakuna kinachofutwa. Rekodi ya kinyume inaongezwa, pamoja na jina lako na sababu."
+ ],
+ "Added by the group. Member M{0}{1}": [
+  "Yayongerwako ekibiina. Mmemba M{0}{1}",
+  "Ameongezwa na kikundi. Mwanachama M{0}{1}"
+ ],
+ "Agreed to the data notice on {0}{1}": [
+  "Yakkiriza ekirango ky'ebimukwatako nga {0}{1}",
+  "Alikubali taarifa ya data tarehe {0}{1}"
+ ],
+ "Agreed. The reset code shows under {0}. Give it to them privately. It works for one day.": [
+  "Kikkiriziddwa. Koodi y'okuddamu eri wansi wa {0}. Gimuwe mu kyama. Ekola olunaku lumu.",
+  "Imekubaliwa. Msimbo wa kuweka upya uko chini ya {0}. Mpe faraghani. Unafanya kazi kwa siku moja."
+ ],
+ "Approved by {0} ({1}). Witnesses: {2}, {3}": [
+  "Kyakkirizibwa {0} ({1}). Abajulizi: {2}, {3}",
+  "Imeidhinishwa na {0} ({1}). Mashahidi: {2}, {3}"
+ ],
+ "Asked on {0}. Changed your mind?": [
+  "Wasaba nga {0}. Okyusizza endowooza?",
+  "Uliomba tarehe {0}. Umebadili nia?"
+ ],
+ "Asked {0} • {1} group(s){2}": [
+  "Yasaba {0} • ebibiina {1}{2}",
+  "Aliomba {0} • vikundi {1}{2}"
+ ],
+ "Asked. A second officer (admin, secretary or treasurer) must open Members and tap \"Password reset\" for {0} to agree.": [
+  "Kisabiddwa. Omukungu owookubiri (omukulembeze, omuwandiisi oba omuwanika) alina okuggulawo Bammemba n'anyiga \"Okuddamu ekigambo ky'ekyama\" ku {0} okukkiriza.",
+  "Imeombwa. Kiongozi wa pili (msimamizi, katibu au mweka hazina) lazima afungue Wanachama na aguse \"Weka upya nenosiri\" kwa {0} ili kukubali."
+ ],
+ "Becomes {0} when they sign up • invited {1}": [
+  "Afuuka {0} bw'aneewandiisa • yayitibwa {1}",
+  "Atakuwa {0} akijisajili • alialikwa {1}"
+ ],
+ "Call {0} ({1})": [
+  "Kubira {0} essimu ({1})",
+  "Mpigie {0} simu ({1})"
+ ],
+ "Cash box {0} • Mobile money and bank {1}": [
+  "Akasanduuko k'ensimbi {0} • Mobile money ne bbanka {1}",
+  "Sanduku la pesa {0} • Pesa za simu na benki {1}"
+ ],
+ "Checked by {0}{1}": [
+  "Kyakeberebwa {0}{1}",
+  "Imekaguliwa na {0}{1}"
+ ],
+ "Code copied. Give it to {0} privately.": [
+  "Koodi ekoppeddwa. Giwe {0} mu kyama.",
+  "Msimbo umenakiliwa. Mpe {0} faraghani."
+ ],
+ "Connected: {0} • {1} • key ending {2}\nBy {3} on {4}": [
+  "Kiyungiddwa: {0} • {1} • ekisumuluzo ekikoma ku {2}\nKyakolebwa {3} nga {4}",
+  "Imeunganishwa: {0} • {1} • ufunguo unaoishia {2}\nNa {3} tarehe {4}"
+ ],
+ "Counted from {0} checked record(s).": [
+  "Kibaliddwa okuva mu biwandiiko {0} ebikebereddwa.",
+  "Imehesabiwa kutoka rekodi {0} zilizokaguliwa."
+ ],
+ "Credit {0}": [
+  "Kuleediti {0}",
+  "Krediti {0}"
+ ],
+ "Cycle {0} share-out": [
+  "Okugabana ssente okw'ekiseera {0}",
+  "Mgawanyo wa mzunguko {0}"
+ ],
+ "Cycle {0} share-out: {1} (saved {2})": [
+  "Okugabana ssente okw'ekiseera {0}: {1} (yatereka {2})",
+  "Mgawanyo wa mzunguko {0}: {1} (aliweka akiba {2})"
+ ],
+ "Decided by {0}{1}": [
+  "Kyasalibwawo {0}{1}",
+  "Imeamuliwa na {0}{1}"
+ ],
+ "Done. You said no to {0}.": [
+  "Kiwedde. Ogaanye {0}.",
+  "Imekamilika. Umemkatalia {0}."
+ ],
+ "Email proved ({0})": [
+  "Email ekakasiddwa ({0})",
+  "Barua pepe imethibitishwa ({0})"
+ ],
+ "Ends {0}{1}": [
+  "Kiggwaako {0}{1}",
+  "Inaisha {0}{1}"
+ ],
+ "FAILED at row {0}. Records may have been changed. Tell your auditor.": [
+  "KIGAANYE ku lunyiriri {0}. Ebiwandiiko biyinza okuba nga byakyusibwa. Buulira omukebezi wammwe.",
+  "IMESHINDWA kwenye mstari {0}. Huenda rekodi zimebadilishwa. Mwambie mkaguzi wenu."
+ ],
+ "Forgiven {0} by {1}: {2}": [
+  "{0} zaasonyiyibwa {1}: {2}",
+  "Imesamehewa {0} na {1}: {2}"
+ ],
+ "Goal chart. Collected {0} of {1}.": [
+  "Ekifaananyi ky'ekigendererwa. Zikuŋŋaanyiziddwa {0} ku {1}.",
+  "Chati ya lengo. Zimekusanywa {0} kati ya {1}."
+ ],
+ "In {0} {1} • See my circles ›": [
+  "Mu {0} {1} • Laba ebibiina byange ›",
+  "Katika {0} {1} • Ona vikundi vyangu ›"
+ ],
+ "Joining code made. Give it to {0} privately.": [
+  "Koodi y'okwegatta ekoleddwa. Giwe {0} mu kyama.",
+  "Msimbo wa kujiunga umetengenezwa. Mpe {0} faraghani."
+ ],
+ "Late fees owed now: {0} (included above)": [
+  "Engassi z'okulwawo ezibanjibwa kati: {0} (zibaliddwa waggulu)",
+  "Faini za kuchelewa zinazodaiwa sasa: {0} (zimo hapo juu)"
+ ],
+ "Ledger says the lockbox holds {0}. Two people count it now.": [
+  "Ekitabo kigamba akasanduuko k'ensimbi kalimu {0}. Abantu babiri bazibala kati.",
+  "Leja inasema sanduku la pesa lina {0}. Watu wawili wanazihesabu sasa."
+ ],
+ "Loan {0} is a big part of the portfolio. Check witnesses and collateral.": [
+  "Ebbanja {0} kitundu kinene ku mabanja gonna. Kebera abajulizi n'omusingo.",
+  "Mkopo {0} ni sehemu kubwa ya mikopo yote. Kagua mashahidi na dhamana."
+ ],
+ "Meeting #{0} is Open": [
+  "Olukiiko #{0} Luggule",
+  "Mkutano #{0} Uko Wazi"
+ ],
+ "Meeting #{0} is open now": [
+  "Olukiiko #{0} luggule kati",
+  "Mkutano #{0} uko wazi sasa"
+ ],
+ "Meeting #{0} • {1}": [
+  "Olukiiko #{0} • {1}",
+  "Mkutano #{0} • {1}"
+ ],
+ "Member statement: {0} (M{1})": [
+  "Sitatimenti ya mmemba: {0} (M{1})",
+  "Taarifa ya mwanachama: {0} (M{1})"
+ ],
+ "Newest first. ✓ = email proved (Google, or clicked our link). ? = not proved yet{0}. Owners can block a fake account; nothing is deleted.": [
+  "Ebipya bye bisooka. ✓ = email ekakasiddwa (Google, oba yanyiga linki yaffe). ? = tennakakasibwa{0}. Bannannyini basobola okuziyiza akawunti ey'obulimba; tewali kisangulwa.",
+  "Mpya kwanza. ✓ = barua pepe imethibitishwa (Google, au alibofya kiungo chetu). ? = bado haijathibitishwa{0}. Wamiliki wanaweza kuzuia akaunti bandia; hakuna kinachofutwa."
+ ],
+ "Next: {0} by {1}": [
+  "Ekiddako: {0} obutasukka {1}",
+  "Inayofuata: {0} kabla ya {1}"
+ ],
+ "Only this circle's admin can change {0}. You are {1}, so you can look.": [
+  "Omukulembeze w'ekibiina kino yekka y'asobola okukyusa {0}. Oli {1}, n'olwekyo osobola kulaba bulabi.",
+  "Ni msimamizi wa kikundi hiki tu anayeweza kubadilisha {0}. Wewe ni {1}, kwa hiyo unaweza kuangalia tu."
+ ],
+ "Opening cash {0} counted by 2 people. Ledger said {1}.": [
+  "Ssente ezitandika {0} zabalibwa abantu 2. Ekitabo kyagamba {1}.",
+  "Pesa za mwanzo {0} zimehesabiwa na watu 2. Leja ilisema {1}."
+ ],
+ "Owed now: {0}. This is permanent and shown in the audit trail.": [
+  "Ezibanjibwa kati: {0}. Kino kya lubeerera era kirabika mu biwandiiko by'okukebera.",
+  "Inadaiwa sasa: {0}. Hii ni ya kudumu na inaonekana kwenye kumbukumbu za ukaguzi."
+ ],
+ "Paid: {0} • Forgiven: {1}": [
+  "Ezisasuddwa: {0} • Ezisonyiyiddwa: {1}",
+  "Imelipwa: {0} • Imesamehewa: {1}"
+ ],
+ "Passed. {0} rows are intact.": [
+  "Kiyise. Ennyiriri {0} teziriiko kikyuse.",
+  "Imepita. Mistari {0} iko salama."
+ ],
+ "Pay with {0} into your group's own account. No transaction ID to type: the gateway confirms it and it joins the ledger by itself.": [
+  "Sasula ne {0} ku akawunti y'ekibiina kyo yennyini. Tewali ID ya kusasula gy'owandiika: omukutu gw'okusasula gukikakasa ne kyeyingiza mu kitabo kyokka.",
+  "Lipa kwa {0} kwenye akaunti ya kikundi chako chenyewe. Hakuna ID ya muamala ya kuandika: mfumo wa malipo unathibitisha na inaingia kwenye leja yenyewe."
+ ],
+ "Pay {0} to {1} from the group's own money, then record it here.": [
+  "Sasula {0} eri {1} okuva mu ssente z'ekibiina, olwo okiwandiike wano.",
+  "Lipa {0} kwa {1} kutoka pesa za kikundi, kisha irekodi hapa."
+ ],
+ "Payment {0} ({1}) due {2}: {3} days late{4} → {5}": [
+  "Okusasula {0} ({1}) kwa {2}: ennaku {3} ezaalwawo{4} → {5}",
+  "Malipo {0} ({1}) ya {2}: siku {3} imechelewa{4} → {5}"
+ ],
+ "People who signed up ({0})": [
+  "Abantu abeewandiisa ({0})",
+  "Watu waliojisajili ({0})"
+ ],
+ "Plan: each brings {0} every {1}": [
+  "Enteekateeka: buli omu aleeta {0} buli {1}",
+  "Mpango: kila mmoja analeta {0} kila {1}"
+ ],
+ "Platform team ({0})": [
+  "Ttiimu ya pulatifomu ({0})",
+  "Timu ya jukwaa ({0})"
+ ],
+ "Present: {0}/{1}": [
+  "Abaliwo: {0}/{1}",
+  "Waliopo: {0}/{1}"
+ ],
+ "Principal: {0} @ {1}% a year • {2} mo • {3}": [
+  "Ssente ezeewolebwa: {0} @ {1}% buli mwaka • emyezi {2} • {3}",
+  "Kiasi cha mkopo: {0} @ {1}% kwa mwaka • miezi {2} • {3}"
+ ],
+ "Principal: {0} • {1} mo • {2}\n{3} {4}": [
+  "Ssente ezeewolebwa: {0} • emyezi {1} • {2}\n{3} {4}",
+  "Kiasi cha mkopo: {0} • miezi {1} • {2}\n{3} {4}"
+ ],
+ "Recorded by {0} • Cycle {1}": [
+  "Kyawandiikibwa {0} • Ekiseera {1}",
+  "Imerekodiwa na {0} • Mzunguko {1}"
+ ],
+ "Recorded by {0} • {1}": [
+  "Kyawandiikibwa {0} • {1}",
+  "Imerekodiwa na {0} • {1}"
+ ],
+ "Recorded by {0}{1}{2}": [
+  "Kyawandiikibwa {0}{1}{2}",
+  "Imerekodiwa na {0}{1}{2}"
+ ],
+ "Savings at the end of each month. Now {0}{1}.": [
+  "Okutereka ku nkomerero ya buli mwezi. Kati {0}{1}.",
+  "Akiba mwishoni mwa kila mwezi. Sasa {0}{1}."
+ ],
+ "Savings {0}   Loan left {1}   Emergency {2}   Fines {3}": [
+  "Okutereka {0}   Ebbanja erisigadde {1}   Obuyambi {2}   Engassi {3}",
+  "Akiba {0}   Mkopo uliobaki {1}   Dharura {2}   Faini {3}"
+ ],
+ "Savings {0}. Limit {1}, less current loans.": [
+  "Okutereka {0}. Ekkomo {1}, ng'oggyeeko amabanja agaliwo.",
+  "Akiba {0}. Kikomo {1}, ukitoa mikopo iliyopo."
+ ],
+ "Say no to {0}?": [
+  "Ogaana {0}?",
+  "Umkatalie {0}?"
+ ],
+ "Send this to {0}. It works for 14 days, only for that email.": [
+  "Kino kiweereze {0}. Kikola ennaku 14, ku email eyo yokka.",
+  "Tuma hii kwa {0}. Inafanya kazi kwa siku 14, kwa barua pepe hiyo tu."
+ ],
+ "The circle's admin must agree first. Until they do, the link and code do not work. Then it works for 14 days, only for {0}.": [
+  "Omukulembeze w'ekibiina alina okusooka okukkiriza. Nga tannakkiriza, linki ne koodi tebikola. Oluvannyuma bikola ennaku 14, ku {0} yekka.",
+  "Msimamizi wa kikundi lazima akubali kwanza. Kabla ya hapo, kiungo na msimbo havifanyi kazi. Kisha vinafanya kazi kwa siku 14, kwa {0} tu."
+ ],
+ "The emergency fund ({0}) stays for next cycle.": [
+  "Ensawo y'obuyambi ({0}) esigalawo ku kiseera ekiddako.",
+  "Mfuko wa dharura ({0}) unabaki kwa mzunguko ujao."
+ ],
+ "The platform team asks to invite {0} as {1}.": [
+  "Ttiimu ya pulatifomu esaba okuyita {0} nga {1}.",
+  "Timu ya jukwaa inaomba kumwalika {0} kama {1}."
+ ],
+ "The platform team asks to invite {0}. You decide.": [
+  "Ttiimu ya pulatifomu esaba okuyita {0}. Ggwe osalawo.",
+  "Timu ya jukwaa inaomba kumwalika {0}. Wewe unaamua."
+ ],
+ "The platform team can look at this circle until {0}. They can only look. They cannot change anything. Every look is written in your record.": [
+  "Ttiimu ya pulatifomu esobola okulaba ekibiina kino okutuusa {0}. Basobola kulaba bulabi. Tebasobola kukyusa kintu kyonna. Buli lwe balaba kiwandiikibwa mu biwandiiko byammwe.",
+  "Timu ya jukwaa inaweza kuangalia kikundi hiki hadi {0}. Wanaweza kuangalia tu. Hawawezi kubadilisha chochote. Kila wanapoangalia huandikwa kwenye rekodi zenu."
+ ],
+ "The whole app changes to the language you pick. Names, numbers and amounts stay as they are.": [
+  "App yonna ekyuka n'edda mu lulimi lw'olonda. Amannya, ennamba n'omuwendo gwa ssente bisigala nga bwe biri.",
+  "Programu nzima inabadilika kuwa lugha unayochagua. Majina, namba na kiasi cha pesa vinabaki vilivyo."
+ ],
+ "Total Debits: {0} • Total Credits: {1}{2}": [
+  "Debiti zonna: {0} • Kuleediti zonna: {1}{2}",
+  "Jumla ya Debiti: {0} • Jumla ya Krediti: {1}{2}"
+ ],
+ "Total late fees: {0}{1}": [
+  "Engassi z'okulwawo zonna: {0}{1}",
+  "Jumla ya faini za kuchelewa: {0}{1}"
+ ],
+ "Welcome to {0}! You are now {1}.": [
+  "Tukwanirizza mu {0}! Kati oli {1}.",
+  "Karibu {0}! Sasa wewe ni {1}."
+ ],
+ "Withdrawals used {0} of goal money.": [
+  "Okuggyayo ssente kwakozesa {0} ku ssente z'ekigendererwa.",
+  "Utoaji umetumia {0} ya pesa za lengo."
+ ],
+ "You are already in {0}.": [
+  "Oli dda mu {0}.",
+  "Tayari uko katika {0}."
+ ],
+ "You are in {0} {1}. Tap one to open it.": [
+  "Oli mu {0} {1}. Nyiga ku kimu okukiggulawo.",
+  "Uko katika {0} {1}. Gusa kimoja kukifungua."
+ ],
+ "You are invited to join {0} on SACCO Ledger as {1}. Tap to see it and join: {2}  (or open the app, tap My circles, Join with a code: {3})": [
+  "Oyitiddwa okwegatta ku {0} ku SACCO Ledger nga {1}. Nyiga okukiraba n'okwegatta: {2}  (oba ggulawo app, nyiga Ebibiina byange, Yegatta ne koodi: {3})",
+  "Umealikwa kujiunga na {0} kwenye SACCO Ledger kama {1}. Gusa kuona na kujiunga: {2}  (au fungua programu, gusa Vikundi vyangu, Jiunge kwa msimbo: {3})"
+ ],
+ "{0} by {1}\n{2}": [
+  "{0}, yakikola {1}\n{2}",
+  "{0} na {1}\n{2}"
+ ],
+ "{0} has not signed up yet. They become {1} the moment they sign up with this email.": [
+  "{0} tanneewandiisa. Afuuka {1} amangu ddala nga yeewandiisizza ne email eno.",
+  "{0} bado hajajisajili. Atakuwa {1} mara tu akijisajili kwa barua pepe hii."
+ ],
+ "{0} invited you as {1}.": [
+  "{0} yakuyise nga {1}.",
+  "{0} amekualika kama {1}."
+ ],
+ "{0} invited you to join": [
+  "{0} yakuyise okwegatta",
+  "{0} amekualika kujiunga"
+ ],
+ "{0} is now {1}.": [
+  "{0} kati ye {1}.",
+  "{0} sasa ni {1}."
+ ],
+ "{0} late": [
+  "{0} ezaalwawo",
+  "{0} imechelewa"
+ ],
+ "{0} members • {1} records • {2} waiting": [
+  "Bammemba {0} • ebiwandiiko {1} • {2} birindiridde",
+  "Wanachama {0} • rekodi {1} • {2} inasubiri"
+ ],
+ "{0} more waits for checking.": [
+  "Ebirala {0} birindiridde okukeberebwa.",
+  "{0} zaidi inasubiri kukaguliwa."
+ ],
+ "{0} other {1} on the platform": [
+  "{1} abalala {0} ku pulatifomu",
+  "{1} wengine {0} kwenye jukwaa"
+ ],
+ "{0} to check": [
+  "{0} bya kukebera",
+  "{0} za kukagua"
+ ],
+ "{0} waiting": [
+  "{0} birindiridde",
+  "{0} inasubiri"
+ ],
+ "{0} would like you to join as {1}.": [
+  "{0} ayagala weegatte nga {1}.",
+  "{0} angependa ujiunge kama {1}."
+ ],
+ "{0} {1}, expires {2}": [
+  "{0} {1}, eggwaako {2}",
+  "{0} {1}, inaisha {2}"
+ ],
+ "{0} • #{1} • Cycle {2} • {3}": [
+  "{0} • #{1} • Ekiseera {2} • {3}",
+  "{0} • #{1} • Mzunguko {2} • {3}"
+ ],
+ "{0} • Cycle {1}": [
+  "{0} • Ekiseera {1}",
+  "{0} • Mzunguko {1}"
+ ],
+ "{0} • Ref {1}{2}{3}": [
+  "{0} • Ref {1}{2}{3}",
+  "{0} • Ref {1}{2}{3}"
+ ],
+ "{0} • left {1}": [
+  "{0} • ezisigadde {1}",
+  "{0} • imebaki {1}"
+ ],
+ "{0} • since {1}{2}": [
+  "{0} • okuva {1}{2}",
+  "{0} • tangu {1}{2}"
+ ],
+ "{0} • {1} • Cycle {2}": [
+  "{0} • {1} • Ekiseera {2}",
+  "{0} • {1} • Mzunguko {2}"
+ ],
+ "{0} • {1} • NIN {2}": [
+  "{0} • {1} • NIN {2}",
+  "{0} • {1} • NIN {2}"
+ ],
+ "{0} • {1}. The money stays in savings. Only the label changes.": [
+  "{0} • {1}. Ssente zisigala mu kutereka. Erinnya lyokka lye likyuka.",
+  "{0} • {1}. Pesa zinabaki kwenye akiba. Ni jina tu linalobadilika."
+ ],
+ "{0}. You are {1}.{2}": [
+  "{0}. Oli {1}.{2}",
+  "{0}. Wewe ni {1}.{2}"
+ ],
+ "{0}: {1} percent of the goal": [
+  "{0}: ebitundu {1} ku kikumi eby'ekigendererwa",
+  "{0}: asilimia {1} ya lengo"
+ ],
+ "{0}× their savings": [
+  "{0}× okutereka kwe",
+  "{0}× akiba yake"
+ ],
+ "{0}{1}Joined {2} • {3} {4}{5}": [
+  "{0}{1}Yeegatta {2} • {3} {4}{5}",
+  "{0}{1}Alijiunga {2} • {3} {4}{5}"
+ ]
+}

@@ -244,3 +244,12 @@ web           admin PWA files
 android, ios  native app shells
 docs          plan and licences
 ```
+
+## Languages
+
+The whole app shows in English, Luganda or Kiswahili. Every piece of text goes through one translator (`lib/core/i18n.dart`).
+
+- Translations live in `tool/i18n/*.json` (English → [Luganda, Kiswahili]). Fix a word there, then run `python3 tool/build_i18n.py`.
+- `python3 tool/extract_strings.py` lists every sentence in the app, so new screens can be translated.
+- Text with no translation shows in English, so nothing ever goes blank. A translation that drops a number slot is ignored.
+- Native speakers should review Luganda and Kiswahili before a big launch.
