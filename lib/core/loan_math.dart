@@ -237,7 +237,7 @@ String describeLateFee(LoanTerms t, String Function(int) fmt) {
   final what =
       t.lateType == 'fixed' ? fmt(t.lateAmount) : '${t.latePct == t.latePct.roundToDouble() ? t.latePct.toStringAsFixed(0) : t.latePct}% of the missed payment';
   final when = switch (t.lateEvery) { 'once' => 'once', 'day' => 'every day', 'week' => 'every week', _ => 'every month' };
-  final grace = t.graceDays > 0 ? ' after ${t.graceDays} grace day${t.graceDays == 1 ? '' : 's'}' : '';
+  final grace = t.graceDays <= 0 ? '' : (t.graceDays == 1 ? ' after 1 grace day' : ' after ${t.graceDays} grace days');
   final cap = t.capPct != null ? ' Never more than ${t.capPct!.toStringAsFixed(t.capPct! % 1 == 0 ? 0 : 2)}% of the loan in total.' : '';
   return 'Late: $what, $when it stays unpaid$grace.$cap';
 }

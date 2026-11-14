@@ -46,5 +46,13 @@
  "{0#} people": [
   "abantu {0}",
   "watu {0}"
+ ],
+ " after 1 grace day": [
+  " oluvannyuma lw'olunaku 1 olw'okulindirira",
+  " baada ya siku 1 ya neema"
+ ],
+ " after {0#} grace days": [
+  " oluvannyuma lw'ennaku {0} ez'okulindirira",
+  " baada ya siku {0} za neema"
  ]
 }

@@ -7,14 +7,45 @@ FILES = [f for f in glob.glob('lib/**/*.dart', recursive=True)
 
 lit = re.compile(r"""(?<![A-Za-z0-9_])(r?)('(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*")""")
 
+def scan(src):
+    """Finds every Dart string literal, even with ${...} holding its own quotes inside."""
+    toks = []
+    i, n = 0, len(src)
+    while i < n:
+        c = src[i]
+        if src.startswith('//', i):
+            i = src.find('\n', i); i = n if i < 0 else i; continue
+        if src.startswith('/*', i):
+            i = src.find('*/', i); i = n if i < 0 else i + 2; continue
+        if c in '\'"':
+            raw = i > 0 and src[i - 1] == 'r'
+            if src.startswith(c * 3, i):
+                end = src.find(c * 3, i + 3); toks.append((i, end + 3, src[i + 3:end])); i = end + 3; continue
+            j = i + 1
+            while j < n and src[j] != c and src[j] != '\n':
+                if src[j] == '\\' and not raw: j += 2; continue
+                if src.startswith('${', j):
+                    d = 1; j += 2
+                    while j < n and d:
+                        if src[j] in '\'"':  # a string inside the interpolation
+                            q = src[j]; j += 1
+                            while j < n and src[j] != q:
+                                j += 2 if src[j] == '\\' else 1
+                        elif src[j] == '{': d += 1
+                        elif src[j] == '}': d -= 1
+                        j += 1
+                    continue
+                j += 1
+            toks.append((i, j + 1, src[i + 1:j])); i = j + 1; continue
+        i += 1
+    return toks
+
 def literals(src):
-    # Joins 'a' 'b' written next to each other, as Dart does.
     out = []
-    pos = 0
-    toks = [(m.start(), m.end(), m.group(2)[1:-1], m.group(1)) for m in lit.finditer(src)]
+    toks = scan(src)
     i = 0
     while i < len(toks):
-        s, e, body, raw = toks[i]
+        s, e, body = toks[i]
         j = i
         while j + 1 < len(toks) and src[toks[j][1]:toks[j + 1][0]].strip() == '':
             j += 1

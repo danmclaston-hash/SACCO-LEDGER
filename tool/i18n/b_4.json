@@ -1,0 +1,646 @@
+{
+ "A borrower cannot approve their own loan.": [
+  "Eyeewola tasobola kukkiriza bbanja lye.",
+  "Mkopaji hawezi kuidhinisha mkopo wake mwenyewe."
+ ],
+ "A borrower cannot pay out their own loan.": [
+  "Eyeewola tasobola kwewa ssente za bbanja lye.",
+  "Mkopaji hawezi kujitolea pesa za mkopo wake mwenyewe."
+ ],
+ "A borrower cannot witness their own loan.": [
+  "Eyeewola tasobola kuba mujulizi ku bbanja lye.",
+  "Mkopaji hawezi kuwa shahidi wa mkopo wake mwenyewe."
+ ],
+ "A different officer must agree to this reset.": [
+  "Omukulembeze omulala y'alina okukkiriza okukyusa kuno.",
+  "Kiongozi mwingine lazima akubali kuweka upya huku."
+ ],
+ "A member with this phone number is already in this group.": [
+  "Mmemba alina ennamba y'essimu eno ali dda mu kibiina kino.",
+  "Mwanachama mwenye namba hii ya simu tayari yumo kwenye kikundi hiki."
+ ],
+ "A paid result must carry the gateway transaction id.": [
+  "Okusasula okuwedde kulina okubaako gateway transaction id.",
+  "Malipo yaliyokamilika lazima yawe na gateway transaction id."
+ ],
+ "A reason is required for every reversal.": [
+  "Buli lw'osazaamu ekiwandiiko olina okuwa ensonga.",
+  "Kila ubatilishaji lazima uwe na sababu."
+ ],
+ "Account not found.": [
+  "Akawunti tesangiddwa.",
+  "Akaunti haijapatikana."
+ ],
+ "Add this person first.": [
+  "Sooka oyongereko omuntu ono.",
+  "Ongeza mtu huyu kwanza."
+ ],
+ "All loans must be repaid before share-out.": [
+  "Amabanja gonna galina okusasulwa nga ssente tezinnagabanibwa.",
+  "Mikopo yote lazima ilipwe kabla ya mgawanyo."
+ ],
+ "Another meeting is still open. Close it first.": [
+  "Waliwo olukiiko olulala olukyali oluggule. Sooka oluggale.",
+  "Mkutano mwingine bado uko wazi. Ufunge kwanza."
+ ],
+ "Another member of this circle already uses this phone number. Change the phone, or ask the circle's secretary.": [
+  "Mmemba omulala mu kibiina kino akozesa dda ennamba y'essimu eno. Kyusa essimu, oba buuza omuwandiisi w'ekibiina.",
+  "Mwanachama mwingine wa kikundi hiki tayari anatumia namba hii ya simu. Badilisha namba, au muulize katibu wa kikundi."
+ ],
+ "Another member of {0} already uses this phone number.": [
+  "Mmemba omulala owa {0} akozesa dda ennamba y'essimu eno.",
+  "Mwanachama mwingine wa {0} tayari anatumia namba hii ya simu."
+ ],
+ "Ask another owner to change your own role.": [
+  "Saba nnannyini omulala akyuse ekifo kyo.",
+  "Mwombe mmiliki mwingine abadilishe nafasi yako."
+ ],
+ "Ask another owner to remove you.": [
+  "Saba nnannyini omulala akuggyemu.",
+  "Mwombe mmiliki mwingine akuondoe."
+ ],
+ "Both counters must be active members.": [
+  "Ababala bombi balina okuba bammemba abakola.",
+  "Wahesabuji wote wawili lazima wawe wanachama hai."
+ ],
+ "Cash does not match. Counted {0}, ledger says {1}. {2} of {3}. Recount or find the missing record.": [
+  "Ssente tezikwatagana. Ezibaliddwa {0}, ekitabo kigamba {1}. {2} ya {3}. Ddamu obale oba noonya ekiwandiiko ekibula.",
+  "Pesa hazilingani. Zilizohesabiwa {0}, leja inasema {1}. {2} ya {3}. Hesabu tena au tafuta rekodi inayokosekana."
+ ],
+ "Choose Uganda, Kenya, Tanzania or Rwanda.": [
+  "Londa Uganda, Kenya, Tanzania oba Rwanda.",
+  "Chagua Uganda, Kenya, Tanzania au Rwanda."
+ ],
+ "Choose a late fee type.": [
+  "Londa ekika ky'engassi y'okulwawo.",
+  "Chagua aina ya faini ya kuchelewa."
+ ],
+ "Choose a member.": [
+  "Londa mmemba.",
+  "Chagua mwanachama."
+ ],
+ "Choose an active loan for this member.": [
+  "Londa ebbanja lya mmemba ono ly'akyasasula.",
+  "Chagua mkopo unaoendelea wa mwanachama huyu."
+ ],
+ "Choose flat or reducing.": [
+  "Londa amagoba agatakyuka oba agakendeera.",
+  "Chagua riba isiyobadilika au inayopungua."
+ ],
+ "Choose how interest works.": [
+  "Londa engeri amagoba gye gakolamu.",
+  "Chagua jinsi riba inavyofanya kazi."
+ ],
+ "Choose how often the late fee is added.": [
+  "Londa emirundi engassi y'okulwawo gy'eyongerwako.",
+  "Chagua ni mara ngapi faini ya kuchelewa inaongezwa."
+ ],
+ "Choose monthly or pay at the end.": [
+  "Londa buli mwezi oba okusasula ku nkomerero.",
+  "Chagua kila mwezi au kulipa mwishoni."
+ ],
+ "Choose owner or admin.": [
+  "Londa nnannyini oba omukulembeze.",
+  "Chagua mmiliki au msimamizi."
+ ],
+ "Circle not found.": [
+  "Ekibiina tekisangiddwa.",
+  "Kikundi hakijapatikana."
+ ],
+ "Claim not found.": [
+  "Okusaba tekusangiddwa.",
+  "Dai halijapatikana."
+ ],
+ "Close the open meeting first.": [
+  "Sooka oggale olukiiko oluggule.",
+  "Funga kwanza mkutano ulio wazi."
+ ],
+ "Enter a valid email.": [
+  "Wandiika email entuufu.",
+  "Andika email sahihi."
+ ],
+ "Enter the committee resolution reference.": [
+  "Wandiika ennamba y'ekisalibwawo kya kakiiko.",
+  "Andika namba ya azimio la kamati."
+ ],
+ "Enter the transaction ID from the mobile money or bank message.": [
+  "Wandiika transaction ID eri mu bubaka bwa mobile money oba obwa bbanka.",
+  "Andika transaction ID iliyo kwenye ujumbe wa mobile money au wa benki."
+ ],
+ "Grace days must be 0 to 90.": [
+  "Ennaku ez'okulindirira zirina okuba 0 okutuuka ku 90.",
+  "Siku za msamaha lazima ziwe 0 hadi 90."
+ ],
+ "Interest must be between 0 and 100{0}{1}.": [
+  "Amagoba galina okuba wakati wa 0 ne 100{0}{1}.",
+  "Riba lazima iwe kati ya 0 na 100{0}{1}."
+ ],
+ "Interest-free months must be 0 to 59.": [
+  "Emyezi egitaliiko magoba girina okuba 0 okutuuka ku 59.",
+  "Miezi isiyo na riba lazima iwe 0 hadi 59."
+ ],
+ "Journal does not balance (debits {0}, credits {1})": [
+  "Journal tekwatagana (debits {0}, credits {1})",
+  "Journal hailingani (debits {0}, credits {1})"
+ ],
+ "Journal not found.": [
+  "Journal tesangiddwa.",
+  "Journal haijapatikana."
+ ],
+ "Keep the message under 280 letters.": [
+  "Obubaka bubeere wansi w'ennukuta 280.",
+  "Ujumbe uwe chini ya herufi 280."
+ ],
+ "Late fee limit must be 0 to 1000{0}{1}.": [
+  "Ekkomo ly'engassi y'okulwawo lirina okuba 0 okutuuka ku 1000{0}{1}.",
+  "Kikomo cha faini ya kuchelewa lazima kiwe 0 hadi 1000{0}{1}."
+ ],
+ "Late fee must not be negative or above 100{0}{1}.": [
+  "Engassi y'okulwawo terina kuba wansi wa 0 oba waggulu wa 100{0}{1}.",
+  "Faini ya kuchelewa isiwe chini ya 0 wala zaidi ya 100{0}{1}."
+ ],
+ "Limit reached. Can borrow up to {0} (savings x {1}, less current loans).": [
+  "Ekkomo lituuse. Osobola okwewola okutuuka ku {0} (okutereka x {1}, ng'oggyeeko amabanja g'olina).",
+  "Kikomo kimefikiwa. Unaweza kukopa hadi {0} (akiba x {1}, ukitoa mikopo uliyo nayo)."
+ ],
+ "Loan not found.": [
+  "Ebbanja terisangiddwa.",
+  "Mkopo haujapatikana."
+ ],
+ "Member not found.": [
+  "Mmemba tasangiddwa.",
+  "Mwanachama hajapatikana."
+ ],
+ "Name needs at least 2 letters.": [
+  "Erinnya lyetaaga ennukuta 2 oba okusingawo.",
+  "Jina linahitaji angalau herufi 2."
+ ],
+ "No invite for that email.": [
+  "Tewali kuyitibwa kwa email eyo.",
+  "Hakuna mwaliko kwa email hiyo."
+ ],
+ "No payment gateway is connected.": [
+  "Tewali ngeri ya kusasula ku mutimbagano eyungiddwako.",
+  "Hakuna njia ya malipo ya mtandaoni iliyounganishwa."
+ ],
+ "Not allowed.": [
+  "Tekikkirizibwa.",
+  "Hairuhusiwi."
+ ],
+ "Not enough lending money. Available {0} (emergency fund is protected).": [
+  "Ssente ez'okuwola tezimala. Eziriwo {0} (ensawo y'obuyambi ekuumibwa).",
+  "Pesa za kukopesha hazitoshi. Zilizopo {0} (mfuko wa dharura unalindwa)."
+ ],
+ "Not enough money recorded in this channel.": [
+  "Ssente eziwandiikiddwa mu ngeri eno tezimala.",
+  "Pesa zilizorekodiwa kwenye njia hii hazitoshi."
+ ],
+ "Online payment is not switched on for this group.": [
+  "Okusasula ku mutimbagano tekunnateekebwako mu kibiina kino.",
+  "Malipo ya mtandaoni hayajawashwa kwa kikundi hiki."
+ ],
+ "Online payment not found.": [
+  "Okusasula ku mutimbagano tekusangiddwa.",
+  "Malipo ya mtandaoni hayajapatikana."
+ ],
+ "Online payments are switched off for now. Pay with MoMo or Airtel to the group's number and record the transaction ID.": [
+  "Okusasula ku mutimbagano kuggyiddwako kaakano. Sasula ne MoMo oba Airtel ku nnamba y'ekibiina owandiike transaction ID.",
+  "Malipo ya mtandaoni yamezimwa kwa sasa. Lipa kwa MoMo au Airtel kwenye namba ya kikundi kisha rekodi transaction ID."
+ ],
+ "Only money coming in can be paid online.": [
+  "Ssente eziyingira zokka ze zisobola okusasulwa ku mutimbagano.",
+  "Ni pesa zinazoingia tu zinazoweza kulipwa mtandaoni."
+ ],
+ "Only officers can read the audit trail.": [
+  "Abakulembeze bokka be basobola okusoma ebiwandiiko by'okukebera.",
+  "Ni viongozi tu wanaoweza kusoma kumbukumbu za ukaguzi."
+ ],
+ "Only officers can see the trial balance.": [
+  "Abakulembeze bokka be basobola okulaba trial balance.",
+  "Ni viongozi tu wanaoweza kuona trial balance."
+ ],
+ "Only officers can verify the audit trail.": [
+  "Abakulembeze bokka be basobola okukakasa ebiwandiiko by'okukebera.",
+  "Ni viongozi tu wanaoweza kuthibitisha kumbukumbu za ukaguzi."
+ ],
+ "Only shares or savings can be for a goal.": [
+  "Emigabo oba okutereka byokka bye bisobola okuba eby'ekigendererwa.",
+  "Ni hisa au akiba tu zinazoweza kuwa za lengo."
+ ],
+ "Only the admin or the secretary can ask for a password reset.": [
+  "Omukulembeze oba omuwandiisi bokka be basobola okusaba okukyusa password.",
+  "Ni msimamizi au katibu tu anayeweza kuomba kubadilisha nenosiri."
+ ],
+ "Only the circle admin can invite someone as an officer.": [
+  "Omukulembeze w'ekibiina yekka y'asobola okuyita omuntu okuba omukulembeze.",
+  "Ni msimamizi wa kikundi tu anayeweza kumwalika mtu kuwa kiongozi."
+ ],
+ "Only the group admin or loan officer can change the rules for one loan.": [
+  "Omukulembeze w'ekibiina oba avunaanyizibwa ku mabanja bokka be basobola okukyusa amateeka g'ebbanja erimu.",
+  "Ni msimamizi wa kikundi au kiongozi wa mikopo tu anayeweza kubadilisha kanuni za mkopo mmoja."
+ ],
+ "Only the group admin or treasurer can connect a payment gateway.": [
+  "Omukulembeze w'ekibiina oba omuwanika bokka be basobola okuyunga engeri y'okusasula ku mutimbagano.",
+  "Ni msimamizi wa kikundi au mweka hazina tu anayeweza kuunganisha njia ya malipo ya mtandaoni."
+ ],
+ "Only the organization admin can change roles.": [
+  "Omukulembeze w'ekitongole yekka y'asobola okukyusa ebifo.",
+  "Ni msimamizi wa shirika tu anayeweza kubadilisha nafasi."
+ ],
+ "Only the organization admin can give officer roles.": [
+  "Omukulembeze w'ekitongole yekka y'asobola okuwa ebifo by'obukulembeze.",
+  "Ni msimamizi wa shirika tu anayeweza kutoa nafasi za uongozi."
+ ],
+ "Only the person who sent it, or the circle admin, can cancel it.": [
+  "Eyakuweereza yekka, oba omukulembeze w'ekibiina, y'asobola okukusazaamu.",
+  "Ni aliyeutuma tu, au msimamizi wa kikundi, anayeweza kuufuta."
+ ],
+ "Only the platform owner can change administrators.": [
+  "Nnannyini platform yekka y'asobola okukyusa abakulembeze.",
+  "Ni mmiliki wa mfumo tu anayeweza kubadilisha wasimamizi."
+ ],
+ "Only the treasurer or admin can record money going out.": [
+  "Omuwanika oba omukulembeze bokka be basobola okuwandiika ssente ezifuluma.",
+  "Ni mweka hazina au msimamizi tu anayeweza kurekodi pesa zinazotoka."
+ ],
+ "Only this circle's admin or secretary can invite people.": [
+  "Omukulembeze oba omuwandiisi w'ekibiina kino bokka be basobola okuyita abantu.",
+  "Ni msimamizi au katibu wa kikundi hiki tu anayeweza kualika watu."
+ ],
+ "Only this circle's admin or secretary can see its invitations.": [
+  "Omukulembeze oba omuwandiisi w'ekibiina kino bokka be basobola okulaba okuyitibwa kwakyo.",
+  "Ni msimamizi au katibu wa kikundi hiki tu anayeweza kuona mialiko yake."
+ ],
+ "Only this circle's officers can see this.": [
+  "Abakulembeze b'ekibiina kino bokka be basobola okulaba kino.",
+  "Ni viongozi wa kikundi hiki tu wanaoweza kuona hili."
+ ],
+ "Payment is bigger than what is left on this loan ({0}).": [
+  "Ky'osasula kisinga ekisigadde ku bbanja lino ({0}).",
+  "Malipo ni makubwa kuliko kilichobaki kwenye mkopo huu ({0})."
+ ],
+ "Payment record not found.": [
+  "Ekiwandiiko ky'okusasula tekisangiddwa.",
+  "Rekodi ya malipo haijapatikana."
+ ],
+ "Phone looks wrong. Use a number like 0772 123456.": [
+  "Essimu erabika nga nkyamu. Kozesa ennamba nga 0772 123456.",
+  "Namba ya simu inaonekana si sahihi. Tumia namba kama 0772 123456."
+ ],
+ "Pick a role.": [
+  "Londa ekifo.",
+  "Chagua nafasi."
+ ],
+ "Platform admins only.": [
+  "Bakulembeze ba platform bokka.",
+  "Wasimamizi wa mfumo tu."
+ ],
+ "Platform team only.": [
+  "Ttiimu ya platform yokka.",
+  "Timu ya mfumo tu."
+ ],
+ "Please accept the data notice first.": [
+  "Sooka okkirize ekirango ekikwata ku bikukwatako.",
+  "Tafadhali kubali kwanza taarifa kuhusu data."
+ ],
+ "Please sign in first.": [
+  "Sooka oyingire.",
+  "Tafadhali ingia kwanza."
+ ],
+ "Remove this person from the platform team first.": [
+  "Sooka oggye omuntu ono ku ttiimu ya platform.",
+  "Mwondoe kwanza mtu huyu kwenye timu ya mfumo."
+ ],
+ "Reverse the repayments on this loan first.": [
+  "Sooka osazeemu ebisasuddwa ku bbanja lino.",
+  "Batilisha kwanza marejesho ya mkopo huu."
+ ],
+ "Review all pending payment records first.": [
+  "Sooka okebere ebiwandiiko by'okusasula byonna ebikyalinze.",
+  "Kagua kwanza rekodi zote za malipo zinazosubiri."
+ ],
+ "Say why the label is changing.": [
+  "Yogera lwaki erinnya likyuka.",
+  "Eleza kwa nini lebo inabadilika."
+ ],
+ "Say why you are rejecting this.": [
+  "Yogera lwaki kino okigaana.",
+  "Eleza kwa nini unakataa hili."
+ ],
+ "Say why.": [
+  "Yogera lwaki.",
+  "Eleza kwa nini."
+ ],
+ "Share-out check failed: {0} vs {1}. Nothing was posted.": [
+  "Okukebera okugabana ssente kugaanyi: {0} ku {1}. Tewali kiwandiikiddwa.",
+  "Ukaguzi wa mgawanyo umeshindwa: {0} dhidi ya {1}. Hakuna kilichorekodiwa."
+ ],
+ "Someone else must decide your own claim. (Two people rule)": [
+  "Omuntu omulala y'alina okusalawo ku kusaba kwo. (Etteeka ly'abantu babiri)",
+  "Mtu mwingine lazima aamue dai lako mwenyewe. (Kanuni ya watu wawili)"
+ ],
+ "Someone else must forgive your own late fees. (Two people rule)": [
+  "Omuntu omulala y'alina okukusonyiwa engassi zo ez'okulwawo. (Etteeka ly'abantu babiri)",
+  "Mtu mwingine lazima akusamehe faini zako za kuchelewa. (Kanuni ya watu wawili)"
+ ],
+ "Someone else must review this: it is your own money. (Two people rule)": [
+  "Omuntu omulala y'alina okukebera kino: ze ssente zo. (Etteeka ly'abantu babiri)",
+  "Mtu mwingine lazima akague hili: ni pesa zako mwenyewe. (Kanuni ya watu wawili)"
+ ],
+ "Someone else must review this: you submitted it. (Two people rule)": [
+  "Omuntu omulala y'alina okukebera kino: ggwe wakiweereza. (Etteeka ly'abantu babiri)",
+  "Mtu mwingine lazima akague hili: wewe ndiye uliyelituma. (Kanuni ya watu wawili)"
+ ],
+ "Term must be 1 to 60 months.": [
+  "Ebbanga lirina okuba emyezi 1 okutuuka ku 60.",
+  "Muda lazima uwe miezi 1 hadi 60."
+ ],
+ "Term must be at least 1 month.": [
+  "Ebbanga lirina okuba omwezi 1 oba okusingawo.",
+  "Muda lazima uwe angalau mwezi 1."
+ ],
+ "Test keys work only in a demo group. Use live keys for a real group.": [
+  "Test keys zikola mu kibiina eky'okugezesa kyokka. Kozesa live keys ku kibiina ekituufu.",
+  "Test keys zinafanya kazi kwenye kikundi cha majaribio tu. Tumia live keys kwa kikundi halisi."
+ ],
+ "That goal is not open in this group.": [
+  "Ekigendererwa ekyo si kiggule mu kibiina kino.",
+  "Lengo hilo haliko wazi kwenye kikundi hiki."
+ ],
+ "That is a lot of invitations for one day. Try again tomorrow.": [
+  "Okuyitibwa okwo kungi nnyo ku lunaku lumu. Ddamu ogezeeko enkya.",
+  "Hiyo ni mialiko mingi kwa siku moja. Jaribu tena kesho."
+ ],
+ "That member is not active in this group.": [
+  "Mmemba oyo takola mu kibiina kino.",
+  "Mwanachama huyo si hai kwenye kikundi hiki."
+ ],
+ "The circle's admin did not agree to this invitation.": [
+  "Omukulembeze w'ekibiina teyakkiriza kuyitibwa kuno.",
+  "Msimamizi wa kikundi hakukubali mwaliko huu."
+ ],
+ "The demo is open to everyone already.": [
+  "Ekibiina eky'okugezesa kiggule dda eri buli muntu.",
+  "Kikundi cha majaribio tayari kiko wazi kwa kila mtu."
+ ],
+ "The emergency fund does not have this much.": [
+  "Ensawo y'obuyambi terina ssente zenkana awo.",
+  "Mfuko wa dharura hauna kiasi hiki."
+ ],
+ "The founder always stays owner.": [
+  "Omutandisi asigala nga ye nnannyini bulijjo.",
+  "Mwanzilishi hubaki mmiliki daima."
+ ],
+ "The founder cannot be blocked.": [
+  "Omutandisi tasobola kuziyizibwa.",
+  "Mwanzilishi hawezi kuzuiwa."
+ ],
+ "The founder cannot be removed.": [
+  "Omutandisi tasobola kuggyibwamu.",
+  "Mwanzilishi hawezi kuondolewa."
+ ],
+ "The owner cannot be removed.": [
+  "Nnannyini tasobola kuggyibwamu.",
+  "Mmiliki hawezi kuondolewa."
+ ],
+ "The person who approved cannot also pay out. (Two people rule)": [
+  "Eyakkiriza tasobola ate kuwa ssente. (Etteeka ly'abantu babiri)",
+  "Aliyeidhinisha hawezi pia kutoa pesa. (Kanuni ya watu wawili)"
+ ],
+ "The shared demo cannot take invitations. Invite people to a real circle.": [
+  "Ekibiina eky'okugezesa ekya bonna tekikkiriza kuyitibwa. Yita abantu mu kibiina ekituufu.",
+  "Kikundi cha majaribio cha wote hakipokei mialiko. Alika watu kwenye kikundi halisi."
+ ],
+ "There is nothing to share out.": [
+  "Tewali kya kugabana.",
+  "Hakuna cha kugawana."
+ ],
+ "This account signs in with email. Tap \"Forgot password?\" and use the link we send to your email.": [
+  "Akawunti eno eyingira na email. Nyiga \"Forgot password?\" okozese link gye tukuweereza ku email yo.",
+  "Akaunti hii huingia kwa email. Bonyeza \"Forgot password?\" kisha tumia kiungo tunachotuma kwenye email yako."
+ ],
+ "This circle has not opened a support window.": [
+  "Ekibiina kino tekinnaggulawo kiseera kya buyambi.",
+  "Kikundi hiki hakijafungua muda wa msaada."
+ ],
+ "This claim was already decided.": [
+  "Okusaba kuno kwasalibwawo dda.",
+  "Dai hili tayari limeamuliwa."
+ ],
+ "This code is wrong or has expired.": [
+  "Koodi eno nkyamu oba eweddeko.",
+  "Msimbo huu si sahihi au muda wake umeisha."
+ ],
+ "This code is wrong or has expired. Ask for a new one.": [
+  "Koodi eno nkyamu oba eweddeko. Saba endala.",
+  "Msimbo huu si sahihi au muda wake umeisha. Omba mpya."
+ ],
+ "This code is wrong or has expired. Ask your group secretary for a new one.": [
+  "Koodi eno nkyamu oba eweddeko. Saba omuwandiisi w'ekibiina kyo endala.",
+  "Msimbo huu si sahihi au muda wake umeisha. Mwombe katibu wa kikundi chako mpya."
+ ],
+ "This goal is not open.": [
+  "Ekigendererwa kino si kiggule.",
+  "Lengo hili haliko wazi."
+ ],
+ "This invitation has expired. Ask for a new one.": [
+  "Okuyitibwa kuno kuweddeko. Saba okulala.",
+  "Mwaliko huu umeisha muda. Omba mpya."
+ ],
+ "This invitation is not open.": [
+  "Okuyitibwa kuno si kuggule.",
+  "Mwaliko huu hauko wazi."
+ ],
+ "This invitation is not waiting for a decision.": [
+  "Okuyitibwa kuno tekulinze kusalibwawo.",
+  "Mwaliko huu hausubiri uamuzi."
+ ],
+ "This invitation is waiting for the circle's admin to agree. Try again later.": [
+  "Okuyitibwa kuno kulinze omukulembeze w'ekibiina okukkiriza. Ddamu ogezeeko oluvannyuma.",
+  "Mwaliko huu unasubiri msimamizi wa kikundi akubali. Jaribu tena baadaye."
+ ],
+ "This invitation was already used.": [
+  "Okuyitibwa kuno kwakozesebwa dda.",
+  "Mwaliko huu tayari umetumika."
+ ],
+ "This invitation was cancelled. Ask for a new one.": [
+  "Okuyitibwa kuno kwasazibwamu. Saba okulala.",
+  "Mwaliko huu umefutwa. Omba mpya."
+ ],
+ "This invitation was sent to {0}. Sign in with that account to open it.": [
+  "Okuyitibwa kuno kwaweerezebwa {0}. Yingira ne akawunti eyo okukuggulawo.",
+  "Mwaliko huu ulitumwa kwa {0}. Ingia kwa akaunti hiyo ili kuufungua."
+ ],
+ "This invitation was turned down. Ask for a new one.": [
+  "Okuyitibwa kuno kwagaanibwa. Saba okulala.",
+  "Mwaliko huu ulikataliwa. Omba mpya."
+ ],
+ "This journal was already reversed.": [
+  "Journal eno yasazibwamu dda.",
+  "Journal hii tayari imebatilishwa."
+ ],
+ "This kind of journal cannot be reversed.": [
+  "Journal ey'ekika kino tesobola kusazibwamu.",
+  "Journal ya aina hii haiwezi kubatilishwa."
+ ],
+ "This loan cannot be rejected now.": [
+  "Ebbanja lino terisobola kugaanibwa kaakano.",
+  "Mkopo huu hauwezi kukataliwa sasa."
+ ],
+ "This loan is not active.": [
+  "Ebbanja lino terikola.",
+  "Mkopo huu si hai."
+ ],
+ "This loan is not approved yet.": [
+  "Ebbanja lino terinnakkirizibwa.",
+  "Mkopo huu bado haujaidhinishwa."
+ ],
+ "This loan is not waiting for approval.": [
+  "Ebbanja lino terilinze kukkirizibwa.",
+  "Mkopo huu hausubiri kuidhinishwa."
+ ],
+ "This meeting is not open.": [
+  "Olukiiko luno si luggule.",
+  "Mkutano huu hauko wazi."
+ ],
+ "This member has an active loan. Clear it before withdrawing savings.": [
+  "Mmemba ono alina ebbanja ly'akyasasula. Sooka olimalewo nga tannaggyayo ssente z'aterese.",
+  "Mwanachama huyu ana mkopo unaoendelea. Ulipe wote kabla ya kutoa akiba."
+ ],
+ "This member has no savings yet.": [
+  "Mmemba ono tannatereka ssente.",
+  "Mwanachama huyu bado hana akiba."
+ ],
+ "This person is already an administrator.": [
+  "Omuntu ono mukulembeze dda.",
+  "Mtu huyu tayari ni msimamizi."
+ ],
+ "This person is already in this circle.": [
+  "Omuntu ono ali dda mu kibiina kino.",
+  "Mtu huyu tayari yumo kwenye kikundi hiki."
+ ],
+ "This person is already on the team. Use Make owner or Make admin.": [
+  "Omuntu ono ali dda ku ttiimu. Kozesa Mufuule nnannyini oba Mufuule mukulembeze.",
+  "Mtu huyu tayari yumo kwenye timu. Tumia Mfanye mmiliki au Mfanye msimamizi."
+ ],
+ "This person is not an administrator.": [
+  "Omuntu ono si mukulembeze.",
+  "Mtu huyu si msimamizi."
+ ],
+ "This person is not on the team.": [
+  "Omuntu ono tali ku ttiimu.",
+  "Mtu huyu hayumo kwenye timu."
+ ],
+ "This record is permanent. Post a reversal instead of changing it.": [
+  "Ekiwandiiko kino tekikyusibwa. Wandiika ekikisazaamu mu kifo ky'okukikyusa.",
+  "Rekodi hii ni ya kudumu. Weka ubatilishaji badala ya kuibadilisha."
+ ],
+ "This record was already reviewed.": [
+  "Ekiwandiiko kino kyakeberebwa dda.",
+  "Rekodi hii tayari imekaguliwa."
+ ],
+ "This request is not pending.": [
+  "Okusaba kuno tekulinze.",
+  "Ombi hili halisubiri."
+ ],
+ "This transaction ID was already recorded in this group.": [
+  "Transaction ID eno yawandiikibwa dda mu kibiina kino.",
+  "Transaction ID hii tayari imerekodiwa kwenye kikundi hiki."
+ ],
+ "Two different people must count the cash.": [
+  "Abantu babiri ab'enjawulo be balina okubala ssente.",
+  "Watu wawili tofauti lazima wahesabu pesa."
+ ],
+ "Two different people must count the closing cash.": [
+  "Abantu babiri ab'enjawulo be balina okubala ssente ez'okuggalawo.",
+  "Watu wawili tofauti lazima wahesabu pesa za kufunga."
+ ],
+ "Two different witnesses are required.": [
+  "Abajulizi babiri ab'enjawulo beetaagibwa.",
+  "Mashahidi wawili tofauti wanahitajika."
+ ],
+ "Type at least 2 letters.": [
+  "Wandiika ennukuta 2 oba okusingawo.",
+  "Andika angalau herufi 2."
+ ],
+ "Unknown country.": [
+  "Ensi temanyiddwa.",
+  "Nchi haijulikani."
+ ],
+ "Unknown look.": [
+  "Endabika temanyiddwa.",
+  "Mwonekano haujulikani."
+ ],
+ "Withdrawal is more than this member's savings.": [
+  "Ssente z'aggyayo zisinga mmemba ono z'aterese.",
+  "Kiasi cha kutoa ni zaidi ya akiba ya mwanachama huyu."
+ ],
+ "Witnesses must be active members.": [
+  "Abajulizi balina okuba bammemba abakola.",
+  "Mashahidi lazima wawe wanachama hai."
+ ],
+ "You already asked. We will handle it soon.": [
+  "Wasabye dda. Tujja kukikolako mangu.",
+  "Umeshaomba. Tutalishughulikia hivi karibuni."
+ ],
+ "You are already in this circle.": [
+  "Oli dda mu kibiina kino.",
+  "Tayari umo kwenye kikundi hiki."
+ ],
+ "You are not a member of this group.": [
+  "Toli mmemba wa kibiina kino.",
+  "Wewe si mwanachama wa kikundi hiki."
+ ],
+ "You are not an active member of this group.": [
+  "Toli mmemba akola mu kibiina kino.",
+  "Wewe si mwanachama hai wa kikundi hiki."
+ ],
+ "You can forgive up to {0} now.": [
+  "Osobola okusonyiwa okutuuka ku {0} kaakano.",
+  "Unaweza kusamehe hadi {0} sasa."
+ ],
+ "You can only apply for your own loan.": [
+  "Osobola okusaba ebbanja lyo lyokka.",
+  "Unaweza kuomba mkopo wako mwenyewe tu."
+ ],
+ "You can only claim for yourself.": [
+  "Osobola okwesabira wekka.",
+  "Unaweza kudai kwa ajili yako mwenyewe tu."
+ ],
+ "You can only pay for yourself.": [
+  "Osobola okwesasulira wekka.",
+  "Unaweza kujilipia wewe mwenyewe tu."
+ ],
+ "You can only record your own payments.": [
+  "Osobola okuwandiika by'osasula ggwe byokka.",
+  "Unaweza kurekodi malipo yako mwenyewe tu."
+ ],
+ "You can only see your own statement.": [
+  "Osobola okulaba sitatimenti yo yokka.",
+  "Unaweza kuona taarifa yako mwenyewe tu."
+ ],
+ "You cannot block yourself.": [
+  "Tosobola kweziyiza.",
+  "Huwezi kujizuia mwenyewe."
+ ],
+ "You cannot change your own role. Ask another admin.": [
+  "Tosobola kukyusa kifo kyo. Saba omukulembeze omulala.",
+  "Huwezi kubadilisha nafasi yako mwenyewe. Mwombe msimamizi mwingine."
+ ],
+ "You cannot deactivate yourself.": [
+  "Tosobola kweyimiriza.",
+  "Huwezi kujisimamisha mwenyewe."
+ ],
+ "You cannot reset your own password here. Ask two other officers.": [
+  "Tosobola kukyusa password yo wano. Saba abakulembeze abalala babiri.",
+  "Huwezi kubadilisha nenosiri lako hapa. Waombe viongozi wengine wawili."
+ ],
+ "Your role ({0}) cannot do this. Needed: {1}.": [
+  "Ekifo kyo ({0}) tekisobola kukola kino. Ekyetaagisa: {1}.",
+  "Nafasi yako ({0}) haiwezi kufanya hili. Inahitajika: {1}."
+ ],
+ "{0} signs in with email. They tap \"Forgot password?\" on the sign-in screen and get a link in their own email. Officers cannot reset it.": [
+  "{0} ayingira na email. Anyiga \"Forgot password?\" ku lupapula lw'okuyingira n'afuna link mu email ye. Abakulembeze tebasobola kugikyusa.",
+  "{0} huingia kwa email. Anabonyeza \"Forgot password?\" kwenye skrini ya kuingia na kupata kiungo kwenye email yake mwenyewe. Viongozi hawawezi kulibadilisha."
+ ]
+}

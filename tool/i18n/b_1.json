@@ -1,0 +1,1166 @@
+{
+ "Enter the amount.": [
+  "Wandiika omuwendo gwa ssente.",
+  "Weka kiasi."
+ ],
+ "Enter the cash and choose two counters.": [
+  "Wandiika ssente era olonde ababazi babiri.",
+  "Weka pesa taslimu na uchague wahesabuji wawili."
+ ],
+ "Enter the transaction ID.": [
+  "Wandiika ID y'okusasula.",
+  "Weka ID ya muamala."
+ ],
+ "Enter your app PIN": [
+  "Wandiika PIN yo eya app",
+  "Weka PIN yako ya programu"
+ ],
+ "Every amount is written twice: where it came from and where it went. The two sides must always be equal. If they are not, something is wrong and the app shows it at once.": [
+  "Buli muwendo guwandiikibwa emirundi ebiri: gye gwava ne gye gwagenda. Enjuyi zombi zirina okwenkana bulijjo. Bwe zitenkana, waliwo ekikyamu era app ekiraga amangu ago.",
+  "Kila kiasi huandikwa mara mbili: kilikotoka na kilikokwenda. Pande mbili lazima zilingane kila wakati. Zisipolingana, kuna kosa na programu inaonyesha mara moja."
+ ],
+ "Every circle I am in and my role there, invitations, start or join a circle": [
+  "Buli kibiina mwe ndi n'omulimu gwange, okuyitibwa, okutandika oba okwegatta ku kibiina",
+  "Kila kikundi nilichomo na nafasi yangu, mialiko, anzisha au jiunge na kikundi"
+ ],
+ "Every day": [
+  "Buli lunaku",
+  "Kila siku"
+ ],
+ "Every group on the platform, administrators, account closing requests": [
+  "Buli kibiina ku mukutu, abakulembeze, okusaba okuggalawo akawunti",
+  "Kila kikundi kwenye jukwaa, wasimamizi, maombi ya kufunga akaunti"
+ ],
+ "Every month": [
+  "Buli mwezi",
+  "Kila mwezi"
+ ],
+ "Every phone and browser using your account will be signed out, this one too. Records you saved are not lost.": [
+  "Buli ssimu ne browser ebikozesa akawunti yo bijja kufulumizibwa, ne kino. Ebiwandiiko bye waterese tebibula.",
+  "Kila simu na kivinjari kinachotumia akaunti yako kitatolewa, hiki pia. Rekodi ulizohifadhi hazipotei."
+ ],
+ "Every shilling is given out. Nothing is left over or missing.": [
+  "Buli siringi egabibwa. Tewali kisigalawo wadde ekibula.",
+  "Kila shilingi inagawiwa. Hakuna kinachobaki wala kupotea."
+ ],
+ "Every shilling is written in the ledger and sealed. Mistakes get a visible correction, never a secret delete. Tap the small (i) beside any word you do not know. You can replay this tour in My Account.": [
+  "Buli siringi ewandiikibwa mu kitabo ne kiggalwa. Ensobi zitereezebwa mu lwatu, tezisangulwa mu kyama. Nyiga aka (i) akatono akali ku kigambo ky'otomanyi. Osobola okuddamu okulambula kuno mu Akawunti Yange.",
+  "Kila shilingi huandikwa kwenye leja na kufungwa. Makosa hurekebishwa waziwazi, hayafutwi kwa siri. Gusa (i) ndogo kando ya neno usilolijua. Unaweza kurudia ziara hii kwenye Akaunti Yangu."
+ ],
+ "Every shilling, on the record": [
+  "Buli siringi, ewandiikiddwa",
+  "Kila shilingi, imeandikwa"
+ ],
+ "Every week": [
+  "Buli wiiki",
+  "Kila wiki"
+ ],
+ "Every year": [
+  "Buli mwaka",
+  "Kila mwaka"
+ ],
+ "Every {0}": [
+  "Buli {0}",
+  "Kila {0}"
+ ],
+ "Everyday": [
+  "Ekya bulijjo",
+  "Ya kila siku"
+ ],
+ "Example: 100,000 for 3 months": [
+  "Ekyokulabirako: 100,000 okumala emyezi 3",
+  "Mfano: 100,000 kwa miezi 3"
+ ],
+ "Example: Savings UGX 25,000": [
+  "Ekyokulabirako: Okutereka UGX 25,000",
+  "Mfano: Akiba UGX 25,000"
+ ],
+ "Execute Reversal": [
+  "Sazaamu kati",
+  "Tengua sasa"
+ ],
+ "Expires": [
+  "Kiggwaako",
+  "Inaisha"
+ ],
+ "Expiry date (YYYY-MM-DD)": [
+  "Olunaku lw'okuggwaako (YYYY-MM-DD)",
+  "Tarehe ya kuisha (YYYY-MM-DD)"
+ ],
+ "Explain words": [
+  "Nnyonnyola ebigambo",
+  "Eleza maneno"
+ ],
+ "Explain words with (i) buttons": [
+  "Nnyonnyola ebigambo n'obupeesa (i)",
+  "Eleza maneno kwa vitufe vya (i)"
+ ],
+ "Extra large": [
+  "Kinene nnyo",
+  "Kubwa sana"
+ ],
+ "FAILED at row {0}": [
+  "KIGAANYE ku lunyiriri {0}",
+  "IMESHINDWA kwenye safu {0}"
+ ],
+ "Fair to the borrower: fees stop growing at this limit.": [
+  "Kya bwenkanya eri eyeewola: ebisale tebyeyongera kusukka wano.",
+  "Haki kwa mkopaji: ada haziongezeki kupita kikomo hiki."
+ ],
+ "Feb": [
+  "Feb",
+  "Feb"
+ ],
+ "Fewer settings": [
+  "Entegeka ntono",
+  "Mipangilio michache"
+ ],
+ "Fill in group name, your name and share price.": [
+  "Jjuzaamu erinnya ly'ekibiina, erinnya lyo n'omuwendo gw'omugabo.",
+  "Jaza jina la kikundi, jina lako na bei ya hisa."
+ ],
+ "Fill in the goal and the boxes above to see the answer.": [
+  "Jjuzaamu ekigendererwa n'obubokisi waggulu olabe eky'okuddamu.",
+  "Jaza lengo na visanduku vya juu ili uone jibu."
+ ],
+ "Filled from your profile. Fix them if needed. This circle's officers will see them.": [
+  "Biggiddwa mu bikukwatako. Bitereeze bwe kyetaagisa. Abakulu b'ekibiina kino bajja kubiraba.",
+  "Zimejazwa kutoka wasifu wako. Zirekebishe ikihitajika. Viongozi wa kikundi hiki wataziona."
+ ],
+ "Financial Intelligence Authority": [
+  "Financial Intelligence Authority",
+  "Financial Intelligence Authority"
+ ],
+ "Find a person by email, pick the circle and their role. They get a link and decide themselves. You can invite yourself too, to run a circle you are not in.": [
+  "Noonya omuntu ng'okozesa email, londa ekibiina n'omulimu gwe. Afuna linki ne yeesalirawo. Osobola n'okweyita, okuddukanya ekibiina ky'otolimu.",
+  "Tafuta mtu kwa barua pepe, chagua kikundi na nafasi yake. Atapata kiungo na kuamua mwenyewe. Unaweza kujialika pia, ili kuendesha kikundi usichokuwemo."
+ ],
+ "Find anything": [
+  "Noonya kyonna",
+  "Tafuta chochote"
+ ],
+ "Find by name or email": [
+  "Noonya n'erinnya oba email",
+  "Tafuta kwa jina au barua pepe"
+ ],
+ "Fine": [
+  "Engassi",
+  "Faini"
+ ],
+ "Fines paid {0}": [
+  "Engassi ezisasuddwa {0}",
+  "Faini zilizolipwa {0}"
+ ],
+ "Finished goals": [
+  "Ebigendererwa ebiwedde",
+  "Malengo yaliyokamilika"
+ ],
+ "Fixed amount": [
+  "Omuwendo ogutakyuka",
+  "Kiasi kisichobadilika"
+ ],
+ "Flutterwave": [
+  "Flutterwave",
+  "Flutterwave"
+ ],
+ "Flutterwave (30+ African countries)": [
+  "Flutterwave (amawanga ga Afrika 30+)",
+  "Flutterwave (nchi 30+ za Afrika)"
+ ],
+ "For each group or SACCO": [
+  "Ku buli kibiina oba SACCO",
+  "Kwa kila kikundi au SACCO"
+ ],
+ "For goal": [
+  "Ku kigendererwa",
+  "Kwa lengo"
+ ],
+ "For goal: {0}": [
+  "Ku kigendererwa: {0}",
+  "Kwa lengo: {0}"
+ ],
+ "For lending as a business outside a member group. Compound interest is barred, and a loan agreement is required.": [
+  "Kya abo abawola ssente nga bizinensi ebweru w'ekibiina kya bammemba. Amagoba ku magoba tegakkirizibwa, era endagaano y'ebbanja yeetaagisa.",
+  "Kwa wanaokopesha kama biashara nje ya kikundi cha wanachama. Riba juu ya riba hairuhusiwi, na mkataba wa mkopo unahitajika."
+ ],
+ "For the company running this app": [
+  "Kya kkampuni eddukanya app eno",
+  "Kwa kampuni inayoendesha programu hii"
+ ],
+ "For those who transfer money or take deposits. Keep records for 10 years and report suspicious transactions.": [
+  "Kya abo abaweereza ssente oba abakuuma ssente z'abantu. Kuuma ebiwandiiko okumala emyaka 10 era loopa okusasula okwekengerwa.",
+  "Kwa wanaotuma pesa au kupokea amana. Tunza rekodi kwa miaka 10 na ripoti miamala yenye shaka."
+ ],
+ "Forgive": [
+  "Sonyiwa",
+  "Samehe"
+ ],
+ "Forgive late fees": [
+  "Sonyiwa ebisale by'okulwawo",
+  "Samehe ada za kuchelewa"
+ ],
+ "Forgiven {0}": [
+  "Ezisonyiyiddwa {0}",
+  "Imesamehewa {0}"
+ ],
+ "Forgot PIN? Sign in with password": [
+  "Weerabidde PIN? Yingira n'ekigambo ky'ekyama",
+  "Umesahau PIN? Ingia kwa nenosiri"
+ ],
+ "Forgot password": [
+  "Neerabidde ekigambo ky'ekyama",
+  "Nimesahau nenosiri"
+ ],
+ "Forgot password?": [
+  "Weerabidde ekigambo ky'ekyama?",
+  "Umesahau nenosiri?"
+ ],
+ "From {0}": [
+  "Okuva {0}",
+  "Kutoka {0}"
+ ],
+ "Full SACCO plus portfolio risk dashboards and risk flags": [
+  "SACCO enzijuvu n'olupapula lw'obulabe bw'amabanja n'obubonero bw'obulabe",
+  "SACCO kamili pamoja na dashibodi za hatari ya mikopo na alama za hatari"
+ ],
+ "Full name": [
+  "Erinnya mu bujjuvu",
+  "Jina kamili"
+ ],
+ "Gain {0}": [
+  "Ofunye {0}",
+  "Faida {0}"
+ ],
+ "Gateway": [
+  "Omukutu gw'okusasula",
+  "Lango la malipo"
+ ],
+ "Get the Android app": [
+  "Funa app ya Android",
+  "Pata programu ya Android"
+ ],
+ "Go to My circles": [
+  "Genda ku Bibiina byange",
+  "Nenda kwenye Vikundi vyangu"
+ ],
+ "Go to payment": [
+  "Genda osasule",
+  "Nenda kwenye malipo"
+ ],
+ "Goal": [
+  "Ekigendererwa",
+  "Lengo"
+ ],
+ "Goal amount": [
+  "Ssente z'ekigendererwa",
+  "Kiasi cha lengo"
+ ],
+ "Goal chart. Collected {0}": [
+  "Ekipande ky'ekigendererwa. Ezikuŋŋaanyiziddwa {0}",
+  "Chati ya lengo. Zilizokusanywa {0}"
+ ],
+ "Goal closed.": [
+  "Ekigendererwa kiggaddwa.",
+  "Lengo limefungwa."
+ ],
+ "Goal label": [
+  "Erinnya ly'ekigendererwa",
+  "Jina la lengo"
+ ],
+ "Goal saved.": [
+  "Ekigendererwa kiterekeddwa.",
+  "Lengo limehifadhiwa."
+ ],
+ "Goals": [
+  "Ebigendererwa",
+  "Malengo"
+ ],
+ "Google": [
+  "Google",
+  "Google"
+ ],
+ "Google Play and Apple": [
+  "Google Play ne Apple",
+  "Google Play na Apple"
+ ],
+ "Grace days": [
+  "Ennaku z'okulindirira",
+  "Siku za nafuu"
+ ],
+ "Green and gold, soft corners": [
+  "Kiragala ne zaabu, ensonda engonvu",
+  "Kijani na dhahabu, pembe laini"
+ ],
+ "Group": [
+  "Ekibiina",
+  "Kikundi"
+ ],
+ "Group Payment Accounts": [
+  "Akawunti z'ekibiina ez'okusasula",
+  "Akaunti za malipo za kikundi"
+ ],
+ "Group Settings": [
+  "Entegeka z'ekibiina",
+  "Mipangilio ya kikundi"
+ ],
+ "Group expense": [
+  "Ensaasaanya y'ekibiina",
+  "Matumizi ya kikundi"
+ ],
+ "Group goals ({0})": [
+  "Ebigendererwa by'ekibiina ({0})",
+  "Malengo ya kikundi ({0})"
+ ],
+ "Group made, but its country or interest was not saved: {0} Set them in Group Settings.": [
+  "Ekibiina kikoleddwa, naye eggwanga lyakyo oba amagoba tebyaterekeddwa: {0} Biteeke mu Ntegeka z'ekibiina.",
+  "Kikundi kimeundwa, lakini nchi au riba yake haikuhifadhiwa: {0} Ziweke kwenye Mipangilio ya kikundi."
+ ],
+ "Group money position and risk": [
+  "Embeera ya ssente z'ekibiina n'obulabe",
+  "Hali ya pesa za kikundi na hatari"
+ ],
+ "Group name": [
+  "Erinnya ly'ekibiina",
+  "Jina la kikundi"
+ ],
+ "Group savings over time": [
+  "Okutereka kw'ekibiina okumala ekiseera",
+  "Akiba ya kikundi kwa muda"
+ ],
+ "Grows with the missed amount": [
+  "Kyeyongera ng'omuwendo ogutasasuddwa bwe gweyongera",
+  "Huongezeka kulingana na kiasi kisicholipwa"
+ ],
+ "Halt new large loan disbursements until delinquent borrowers are engaged by loan officers.": [
+  "Yimiriza okugaba amabanja amanene amapya okutuusa abakungu b'amabanja lwe banaayogera n'abalwawo okusasula.",
+  "Simamisha kutoa mikopo mikubwa mipya hadi maafisa mikopo wazungumze na wakopaji waliochelewa."
+ ],
+ "Has an account. They will see the invitation in the app too.": [
+  "Alina akawunti. Ajja kulaba okuyitibwa ne mu app.",
+  "Ana akaunti. Ataona mwaliko kwenye programu pia."
+ ],
+ "Healthy": [
+  "Biri bulungi",
+  "Nzuri"
+ ],
+ "Hello, {0}": [
+  "Oli otya, {0}",
+  "Habari, {0}"
+ ],
+ "Help": [
+  "Obuyambi",
+  "Msaada"
+ ],
+ "Help from the platform team": [
+  "Obuyambi okuva mu ttiimu y'omukutu",
+  "Msaada kutoka timu ya jukwaa"
+ ],
+ "Here is the money at a glance. Tap it to see more.": [
+  "Zino ze ssente mu bufunze. Nyigako olabe ebisingawo.",
+  "Hizi ni pesa kwa ufupi. Gusa ili uone zaidi."
+ ],
+ "Hide numbers": [
+  "Kweka emiwendo",
+  "Ficha namba"
+ ],
+ "Hide password": [
+  "Kweka ekigambo ky'ekyama",
+  "Ficha nenosiri"
+ ],
+ "Hide passwords": [
+  "Kweka ebigambo by'ekyama",
+  "Ficha manenosiri"
+ ],
+ "High Idle Cash Reserve": [
+  "Ssente nnyingi zitudde bwereere",
+  "Pesa nyingi zimekaa bure"
+ ],
+ "History (cannot be edited)": [
+  "Ebyafaayo (tebikyusibwa)",
+  "Historia (haibadilishwi)"
+ ],
+ "Home": [
+  "Awaka",
+  "Mwanzo"
+ ],
+ "How many members must be at a meeting for its decisions to count. 67% means two out of every three members.": [
+  "Bammemba bameka abalina okubeera mu lukiiko okusalawo kwalwo kulyoke kubalibwe. 67% kitegeeza bammemba babiri ku buli basatu.",
+  "Wanachama wangapi lazima wawe mkutanoni ili maamuzi yake yahesabike. 67% ni wanachama wawili kati ya kila watatu."
+ ],
+ "How many {0}?": [
+  "{0}: bimeka?",
+  "{0}: ngapi?"
+ ],
+ "How much each?": [
+  "Buli kimu ssente mmeka?",
+  "Kila moja kiasi gani?"
+ ],
+ "How the group is doing": [
+  "Ekibiina bwe kiyimiridde",
+  "Hali ya kikundi"
+ ],
+ "How the group is doing: where the money is, loan health, month by month": [
+  "Ekibiina bwe kiyimiridde: ssente gye ziri, embeera y'amabanja, mwezi ku mwezi",
+  "Hali ya kikundi: pesa ziko wapi, hali ya mikopo, mwezi kwa mwezi"
+ ],
+ "How the money moved": [
+  "Ssente bwe zaatambula",
+  "Jinsi pesa zilivyotembea"
+ ],
+ "How to pay": [
+  "Engeri y'okusasula",
+  "Jinsi ya kulipa"
+ ],
+ "I am a member": [
+  "Ndi mmemba",
+  "Mimi ni mwanachama"
+ ],
+ "I help run": [
+  "Nnyamba okuddukanya",
+  "Nasaidia kuendesha"
+ ],
+ "I lead": [
+  "Nkulembera",
+  "Naongoza"
+ ],
+ "IBMPlexMono": [
+  "IBMPlexMono",
+  "IBMPlexMono"
+ ],
+ "IBMPlexSans": [
+  "IBMPlexSans",
+  "IBMPlexSans"
+ ],
+ "ID {0}": [
+  "ID {0}",
+  "ID {0}"
+ ],
+ "If I borrow this, what do I bring back, and what if I am late?": [
+  "Bwe nneewola zino, nzizaayo mmeka, ate bwe ndwawo?",
+  "Nikikopa hizi, narudisha kiasi gani, na nikichelewa je?"
+ ],
+ "If the first payment is late": [
+  "Okusasula okusooka bwe kulwawo",
+  "Malipo ya kwanza yakichelewa"
+ ],
+ "If {0} has an account, a reset link is on its way. Open it on this device. Check Spam too.": [
+  "Oba {0} erina akawunti, linki y'okukyusa ekigambo ky'ekyama ejja. Gigguleko ku ssimu eno. Kebera ne mu Spam.",
+  "Kama {0} ina akaunti, kiungo cha kuweka upya kinakuja. Kifungue kwenye kifaa hiki. Angalia Spam pia."
+ ],
+ "Immutable Governance Audit Trail": [
+  "Ebyafaayo by'okukebera ebitakyusibwa",
+  "Kumbukumbu za ukaguzi zisizobadilika"
+ ],
+ "In {0} {1}": [
+  "Mu {1} {0}",
+  "Baada ya {1} {0}"
+ ],
+ "In {0} {1} you would have {2} ({3}% of the goal).": [
+  "Mu {1} {0} ojja kuba ne {2} ({3}% ku kigendererwa).",
+  "Baada ya {1} {0} utakuwa na {2} ({3}% ya lengo)."
+ ],
+ "Individual accounts, deposits, withdrawals, loan products, repayment schedules": [
+  "Akawunti z'omuntu ku muntu, okuteekayo, okuggyayo, ebika by'amabanja, enteekateeka z'okusasula",
+  "Akaunti binafsi, kuweka pesa, kutoa pesa, aina za mikopo, ratiba za marejesho"
+ ],
+ "Ink blue on paper, like a bank book": [
+  "Bwino wa bbululu ku lupapula, ng'ekitabo kya bbanka",
+  "Wino wa bluu kwenye karatasi, kama kitabu cha benki"
+ ],
+ "Intelligent Finance": [
+  "Ebyensimbi eby'amagezi",
+  "Fedha kwa akili"
+ ],
+ "Interest": [
+  "Amagoba",
+  "Riba"
+ ],
+ "Interest (% a year)": [
+  "Amagoba (% buli mwaka)",
+  "Riba (% kwa mwaka)"
+ ],
+ "Interest (% each month)": [
+  "Amagoba (% buli mwezi)",
+  "Riba (% kila mwezi)"
+ ],
+ "Interest (% of the loan, once)": [
+  "Amagoba (% ku bbanja, omulundi gumu)",
+  "Riba (% ya mkopo, mara moja)"
+ ],
+ "Interest rate (% per year)": [
+  "Omuwendo gw'amagoba (% buli mwaka)",
+  "Kiwango cha riba (% kwa mwaka)"
+ ],
+ "Interest shrinks as you pay": [
+  "Amagoba gakendeera ng'osasula",
+  "Riba hupungua unapolipa"
+ ],
+ "Interest starts": [
+  "Amagoba gatandika",
+  "Riba inaanza"
+ ],
+ "Interest starts after these months. 0 = from the first month.": [
+  "Amagoba gatandika oluvannyuma lw'emyezi gino. 0 = okuva ku mwezi ogusooka.",
+  "Riba inaanza baada ya miezi hii. 0 = kuanzia mwezi wa kwanza."
+ ],
+ "Interest-free months": [
+  "Emyezi egitaliiko magoba",
+  "Miezi bila riba"
+ ],
+ "Invitation cancelled. The link no longer works.": [
+  "Okuyitibwa kusaziddwamu. Linki tekyakola.",
+  "Mwaliko umefutwa. Kiungo hakifanyi kazi tena."
+ ],
+ "Invitation ends": [
+  "Okuyitibwa kuggwaako",
+  "Mwaliko unaisha"
+ ],
+ "Invitation ready": [
+  "Okuyitibwa kwetegese",
+  "Mwaliko uko tayari"
+ ],
+ "Invitations ({0} open)": [
+  "Okuyitibwa ({0} tekunnaddibwamu)",
+  "Mialiko ({0} wazi)"
+ ],
+ "Invite": [
+  "Yita",
+  "Alika"
+ ],
+ "Invite by email": [
+  "Yita ng'okozesa email",
+  "Alika kwa barua pepe"
+ ],
+ "Invite cancelled.": [
+  "Okuyita kusaziddwamu.",
+  "Mwaliko umefutwa."
+ ],
+ "Invite code": [
+  "Koodi y'okuyita",
+  "Msimbo wa mwaliko"
+ ],
+ "Invite someone": [
+  "Yita omuntu",
+  "Alika mtu"
+ ],
+ "Invite someone to a circle": [
+  "Yita omuntu mu kibiina",
+  "Alika mtu kwenye kikundi"
+ ],
+ "Is this for a goal?": [
+  "Zino za kigendererwa?",
+  "Hii ni kwa lengo?"
+ ],
+ "Isolated from lending. Carries forward across cycles.": [
+  "Tezeewolebwa. Zeeyongerayo mu biseera ebiddako.",
+  "Hautumiki kukopesha. Unaendelea mzunguko hadi mzunguko."
+ ],
+ "Join": [
+  "Weegatte",
+  "Jiunge"
+ ],
+ "Join my group": [
+  "Weegatte ku kibiina kyange",
+  "Jiunge na kikundi changu"
+ ],
+ "Join with a code": [
+  "Weegatte ne koodi",
+  "Jiunge kwa msimbo"
+ ],
+ "Join {0}": [
+  "Weegatte ku {0}",
+  "Jiunge na {0}"
+ ],
+ "Joined {0}": [
+  "Yeegatta {0}",
+  "Alijiunga {0}"
+ ],
+ "Joining code": [
+  "Koodi y'okwegatta",
+  "Msimbo wa kujiunga"
+ ],
+ "Joining code made. Give it to {0}": [
+  "Koodi y'okwegatta ekoleddwa. Giwe {0}",
+  "Msimbo wa kujiunga umetengenezwa. Mpe {0}"
+ ],
+ "Journals": [
+  "Ebiwandiiko by'ekitabo",
+  "Maingizo ya leja"
+ ],
+ "Journals, trial balance, tamper check": [
+  "Ebiwandiiko, okugeraageranya ebitabo, okukebera oba waliwo eyakyusizza",
+  "Maingizo, urari wa hesabu, ukaguzi wa kuchezewa"
+ ],
+ "Jul": [
+  "Jul",
+  "Jul"
+ ],
+ "Jun": [
+  "Juu",
+  "Jun"
+ ],
+ "Keep it": [
+  "Kireke",
+  "Bakiza"
+ ],
+ "Keep it on": [
+  "Kireke nga kikola",
+  "Iache iwake"
+ ],
+ "Label changed and recorded.": [
+  "Erinnya likyusiddwa era kiwandiikiddwa.",
+  "Jina limebadilishwa na kurekodiwa."
+ ],
+ "Language": [
+  "Olulimi",
+  "Lugha"
+ ],
+ "Large": [
+  "Kinene",
+  "Kubwa"
+ ],
+ "Large SACCO: Bank of Uganda": [
+  "SACCO ennene: Bank of Uganda",
+  "SACCO kubwa: Bank of Uganda"
+ ],
+ "Last 12 months. Only checked records.": [
+  "Emyezi 12 egiyise. Ebiwandiiko ebikebereddwa byokka.",
+  "Miezi 12 iliyopita. Rekodi zilizokaguliwa tu."
+ ],
+ "Last payment on": [
+  "Okusasula okusembayo nga",
+  "Malipo ya mwisho tarehe"
+ ],
+ "Last step: in Flutterwave go to Settings → Webhooks. Paste this URL, and type the same secret hash you entered here:\n{0}": [
+  "Ekisembayo: mu Flutterwave genda ku Settings → Webhooks. Teekamu URL eno, era owandiike secret hash y'emu gye wawandiise wano:\n{0}",
+  "Hatua ya mwisho: kwenye Flutterwave nenda Settings → Webhooks. Bandika URL hii, na uandike secret hash ileile uliyoweka hapa:\n{0}"
+ ],
+ "Late fee (% of the missed payment)": [
+  "Ebisale by'okulwawo (% ku ssente ezitasasuddwa)",
+  "Ada ya kuchelewa (% ya malipo yaliyokosekana)"
+ ],
+ "Late fee ({0})": [
+  "Ebisale by'okulwawo ({0})",
+  "Ada ya kuchelewa ({0})"
+ ],
+ "Late fee: {0}{1}": [
+  "Ebisale by'okulwawo: {0}{1}",
+  "Ada ya kuchelewa: {0}{1}"
+ ],
+ "Late fees": [
+  "Ebisale by'okulwawo",
+  "Ada za kuchelewa"
+ ],
+ "Late fees forgiven.": [
+  "Ebisale by'okulwawo bisonyiyiddwa.",
+  "Ada za kuchelewa zimesamehewa."
+ ],
+ "Late fees owed now: {0}": [
+  "Ebisale by'okulwawo ebibanjibwa kati: {0}",
+  "Ada za kuchelewa zinazodaiwa sasa: {0}"
+ ],
+ "Late fees {0}": [
+  "Ebisale by'okulwawo {0}",
+  "Ada za kuchelewa {0}"
+ ],
+ "Late loans": [
+  "Amabanja agalwawo",
+  "Mikopo iliyochelewa"
+ ],
+ "Late: {0}, {1} it stays unpaid{2}.{3}": [
+  "Bw'olwawo: {0}, {1} nga terinnasasulwa{2}.{3}",
+  "Ukichelewa: {0}, {1} ikibaki bila kulipwa{2}.{3}"
+ ],
+ "Later": [
+  "Oluvannyuma",
+  "Baadaye"
+ ],
+ "Latest Payment Records": [
+  "Ebiwandiiko by'okusasula ebisembyeyo",
+  "Rekodi mpya za malipo"
+ ],
+ "Latest records": [
+  "Ebiwandiiko ebisembyeyo",
+  "Rekodi mpya"
+ ],
+ "Ledger": [
+  "Ekitabo",
+  "Leja"
+ ],
+ "Ledger & Audit": [
+  "Ekitabo n'okukebera",
+  "Leja na ukaguzi"
+ ],
+ "Ledger says the lockbox holds {0}": [
+  "Ekitabo kigamba akasanduuko k'ensimbi kalimu {0}",
+  "Leja inasema sanduku la pesa lina {0}"
+ ],
+ "Left": [
+  "Ebisigadde",
+  "Imebaki"
+ ],
+ "Less than saved: {0}": [
+  "Ntono ku zaaterekebwa: {0}",
+  "Pungufu ya akiba: {0}"
+ ],
+ "Let support look (24 hours)": [
+  "Kkiriza abayambi balabe (essaawa 24)",
+  "Ruhusu wasaidizi waangalie (saa 24)"
+ ],
+ "Let us walk you through. It takes one minute. We never hold your money. We keep honest records that nobody can quietly change.": [
+  "Ka tukulage. Kitwala eddakiika emu. Tetukwata ssente zo. Tukuuma ebiwandiiko eby'amazima omuntu yenna by'atasobola kukyusa mu kyama.",
+  "Tukuonyeshe. Inachukua dakika moja. Hatushiki pesa zako kamwe. Tunatunza rekodi za kweli ambazo hakuna anayeweza kuzibadilisha kimyakimya."
+ ],
+ "Licence number from the certificate": [
+  "Nnamba ya layisinsi okuva ku satifikeeti",
+  "Namba ya leseni kutoka kwenye cheti"
+ ],
+ "Licences": [
+  "Layisinsi",
+  "Leseni"
+ ],
+ "Light": [
+  "Ekitangaala",
+  "Mwanga"
+ ],
+ "Light or dark": [
+  "Kitangaala oba kizikiza",
+  "Mwanga au giza"
+ ],
+ "Like 0772 123456": [
+  "Nga 0772 123456",
+  "Kama 0772 123456"
+ ],
+ "Like 10, or 2.5": [
+  "Nga 10, oba 2.5",
+  "Kama 10, au 2.5"
+ ],
+ "Like {0}": [
+  "Nga {0}",
+  "Kama {0}"
+ ],
+ "Limit total late fees": [
+  "Teekawo ekkomo ku bisale by'okulwawo",
+  "Weka kikomo cha ada za kuchelewa"
+ ],
+ "Line chart of savings. Now {0}.": [
+  "Ekipande ky'olunyiriri eky'okutereka. Kati {0}.",
+  "Chati ya mstari ya akiba. Sasa {0}."
+ ],
+ "Link copied.": [
+  "Linki ekoppeddwa.",
+  "Kiungo kimenakiliwa."
+ ],
+ "Linked to the app": [
+  "Kiyungiddwa ku app",
+  "Imeunganishwa na programu"
+ ],
+ "Live: real money": [
+  "Kya ddala: ssente za ddala",
+  "Halisi: pesa za kweli"
+ ],
+ "Loan": [
+  "Ebbanja",
+  "Mkopo"
+ ],
+ "Loan Left": [
+  "Ebbanja erisigadde",
+  "Mkopo uliobaki"
+ ],
+ "Loan Officer": [
+  "Omukungu w'amabanja",
+  "Afisa mikopo"
+ ],
+ "Loan Repayment": [
+  "Okusasula ebbanja",
+  "Marejesho ya mkopo"
+ ],
+ "Loan approved. A different officer pays it out.": [
+  "Ebbanja likkiriziddwa. Omukungu omulala y'aligaba.",
+  "Mkopo umeidhinishwa. Afisa mwingine ndiye atautoa."
+ ],
+ "Loan calculator": [
+  "Ekibalirira ebbanja",
+  "Kikokotoo cha mkopo"
+ ],
+ "Loan health": [
+  "Embeera y'amabanja",
+  "Hali ya mikopo"
+ ],
+ "Loan limit": [
+  "Ekkomo ly'ebbanja",
+  "Kikomo cha mkopo"
+ ],
+ "Loan limit (times savings)": [
+  "Ekkomo ly'ebbanja (emirundi gy'ezitereke)",
+  "Kikomo cha mkopo (mara ya akiba)"
+ ],
+ "Loan payments that are late. The longer they are late, the bigger the risk the money is not paid back.": [
+  "Okusasula amabanja okulwawo. Gye bikoma okulwawo, obulabe gye bukoma okuba obunene nti ssente tezijja kuddizibwa.",
+  "Malipo ya mikopo yaliyochelewa. Kadiri yanavyochelewa, ndivyo hatari ya pesa kutorudishwa inavyokua."
+ ],
+ "Loan repayment": [
+  "Okusasula ebbanja",
+  "Marejesho ya mkopo"
+ ],
+ "Loan rules": [
+  "Amateeka g'amabanja",
+  "Kanuni za mikopo"
+ ],
+ "Loan rules saved. New loans will use them.": [
+  "Amateeka g'amabanja gaterekeddwa. Amabanja amapya gajja kugakozesa.",
+  "Kanuni za mikopo zimehifadhiwa. Mikopo mipya itazitumia."
+ ],
+ "Loan {0}": [
+  "Ebbanja {0}",
+  "Mkopo {0}"
+ ],
+ "Loans": [
+  "Amabanja",
+  "Mikopo"
+ ],
+ "Locked: totals only": [
+  "Kisibiddwa: omugatte gwokka",
+  "Imefungwa: jumla tu"
+ ],
+ "Look": [
+  "Endabika",
+  "Mwonekano"
+ ],
+ "Look and language": [
+  "Endabika n'olulimi",
+  "Mwonekano na lugha"
+ ],
+ "Look around the shared demo": [
+  "Lambula eky'okugezesa ekya bonna",
+  "Tazama onyesho la pamoja"
+ ],
+ "Look only": [
+  "Kulaba kwokka",
+  "Kuangalia tu"
+ ],
+ "Looking for a person, a payment or a record? Search finds it.": [
+  "Onoonya omuntu, okusasula oba ekiwandiiko? Noonya wano.",
+  "Unatafuta mtu, malipo au rekodi? Tafuta hapa."
+ ],
+ "Loss": [
+  "Okufiirwa",
+  "Hasara"
+ ],
+ "Lost a phone? This ends every session, this one too.": [
+  "Ssimu ebuze? Kino kifulumya buli wamu, ne wano.",
+  "Umepoteza simu? Hii inakutoa kila mahali, hapa pia."
+ ],
+ "Lost your phone with the authenticator app? Contact the SACCO Ledger team to prove who you are.": [
+  "Ssimu eriko app ya authenticator ebuze? Tuukirira ttiimu ya SACCO Ledger okakase nti ggwe.",
+  "Umepoteza simu yenye programu ya authenticator? Wasiliana na timu ya SACCO Ledger kuthibitisha wewe ni nani."
+ ],
+ "MTN *165#": [
+  "MTN *165#",
+  "MTN *165#"
+ ],
+ "MTN MoMo": [
+  "MTN MoMo",
+  "MTN MoMo"
+ ],
+ "MTN MoMo merchant code or number": [
+  "Koodi oba nnamba ya MTN MoMo ey'omusuubuzi",
+  "Msimbo au namba ya mfanyabiashara ya MTN MoMo"
+ ],
+ "MTN pay to: {0}": [
+  "MTN sasula ku: {0}",
+  "MTN lipa kwa: {0}"
+ ],
+ "MTN, Airtel, through an SMS provider (UCC rules)": [
+  "MTN, Airtel, okuyita mu kkampuni ya SMS (amateeka ga UCC)",
+  "MTN, Airtel, kupitia mtoa huduma wa SMS (kanuni za UCC)"
+ ],
+ "Make admin": [
+  "Mufuule omukulembeze",
+  "Mfanye msimamizi"
+ ],
+ "Make admin only": [
+  "Mufuule omukulembeze yekka",
+  "Mfanye msimamizi tu"
+ ],
+ "Make invitation": [
+  "Kola okuyitibwa",
+  "Tengeneza mwaliko"
+ ],
+ "Make owner": [
+  "Mufuule nnannyini",
+  "Mfanye mmiliki"
+ ],
+ "Make {0} an owner?": [
+  "{0} afuuke nnannyini?",
+  "Mfanye {0} mmiliki?"
+ ],
+ "Mar": [
+  "Mar",
+  "Mac"
+ ],
+ "May": [
+  "Maa",
+  "Mei"
+ ],
+ "Me (demo admin)": [
+  "Nze (omukulembeze ow'okugezesa)",
+  "Mimi (msimamizi wa onyesho)"
+ ],
+ "Meeting #{0}": [
+  "Olukiiko #{0}",
+  "Mkutano #{0}"
+ ],
+ "Meeting History": [
+  "Ebyafaayo by'enkiiko",
+  "Historia ya mikutano"
+ ],
+ "Meeting Minutes / Notes": [
+  "Ebyateesebwa / Ebiwandiiko by'olukiiko",
+  "Kumbukumbu / Maelezo ya mkutano"
+ ],
+ "Meeting Transactions": [
+  "Okusasula mu lukiiko",
+  "Miamala ya mkutano"
+ ],
+ "Meeting closed. Cash matches.": [
+  "Olukiiko luggaddwa. Ssente zikwatagana.",
+  "Mkutano umefungwa. Pesa zinalingana."
+ ],
+ "Meeting opened.": [
+  "Olukiiko lugguddwawo.",
+  "Mkutano umefunguliwa."
+ ],
+ "Meeting quorum (%)": [
+  "Bammemba abalina okubaawo mu lukiiko (%)",
+  "Akidi ya mkutano (%)"
+ ],
+ "Meetings": [
+  "Enkiiko",
+  "Mikutano"
+ ],
+ "Member": [
+  "Mmemba",
+  "Mwanachama"
+ ],
+ "Member added. Their invite code is on their card.": [
+  "Mmemba agattiddwako. Koodi ye ey'okuyita eri ku kaadi ye.",
+  "Mwanachama ameongezwa. Msimbo wake wa mwaliko uko kwenye kadi yake."
+ ],
+ "Member savings": [
+  "Ssente bammemba ze batereka",
+  "Akiba za wanachama"
+ ],
+ "Member statement: {0}": [
+  "Lipoota ya mmemba: {0}",
+  "Taarifa ya mwanachama: {0}"
+ ],
+ "Members": [
+  "Bammemba",
+  "Wanachama"
+ ],
+ "Members needed for a meeting (%)": [
+  "Bammemba abeetaagisa okutuuza olukiiko (%)",
+  "Wanachama wanaohitajika kwa mkutano (%)"
+ ],
+ "Merchant code": [
+  "Koodi y'omusuubuzi",
+  "Msimbo wa mfanyabiashara"
+ ],
+ "Message copied. Paste it in WhatsApp or SMS.": [
+  "Obubaka bukoppeddwa. Buteeke mu WhatsApp oba SMS.",
+  "Ujumbe umenakiliwa. Ubandike kwenye WhatsApp au SMS."
+ ],
+ "Microfinance Deposit-Taking Institutions (Registered Societies) Regulations 2023": [
+  "Microfinance Deposit-Taking Institutions (Registered Societies) Regulations 2023",
+  "Microfinance Deposit-Taking Institutions (Registered Societies) Regulations 2023"
+ ],
+ "Minutes: {0}": [
+  "Ebyateesebwa: {0}",
+  "Kumbukumbu: {0}"
+ ],
+ "Mobile Channels": [
+  "Emikutu gy'essimu",
+  "Njia za simu"
+ ],
+ "Mobile money and bank": [
+  "Mobile money ne bbanka",
+  "Mobile money na benki"
+ ],
+ "Money": [
+  "Ssente",
+  "Pesa"
+ ],
+ "Money arrived, but an officer must check it: {0}": [
+  "Ssente zituuse, naye omukungu alina okuzikebera: {0}",
+  "Pesa zimefika, lakini afisa lazima azikague: {0}"
+ ],
+ "Money in and out, month by month": [
+  "Ssente eziyingira n'ezifuluma, mwezi ku mwezi",
+  "Pesa zinazoingia na kutoka, mwezi kwa mwezi"
+ ],
+ "Money in loans 30+ days late": [
+  "Ssente mu mabanja agalwawo ennaku 30+",
+  "Pesa kwenye mikopo iliyochelewa siku 30+"
+ ],
+ "Money in loans 90+ days late": [
+  "Ssente mu mabanja agalwawo ennaku 90+",
+  "Pesa kwenye mikopo iliyochelewa siku 90+"
+ ],
+ "Money lender licence (only if lending to the public)": [
+  "Layisinsi y'omuwozi wa ssente (bw'oba owola abantu ab'ebweru lwokka)",
+  "Leseni ya mkopeshaji (ikiwa tu unakopesha umma)"
+ ],
+ "Money records": [
+  "Ebiwandiiko bya ssente",
+  "Rekodi za pesa"
+ ],
+ "Money stays in the one savings account. When members pay, they can label it for this goal.": [
+  "Ssente zisigala mu akawunti emu ey'okutereka. Bammemba bwe basasula, basobola okuzitegeka ku kigendererwa kino.",
+  "Pesa hubaki kwenye akaunti moja ya akiba. Wanachama wakilipa, wanaweza kuziwekea alama ya lengo hili."
+ ],
+ "Money to share": [
+  "Ssente ez'okugabana",
+  "Pesa za kugawana"
+ ],
+ "Money you keep in the group. It is yours. It also decides how much you can borrow.": [
+  "Ssente z'otereka mu kibiina. Zizo. Era ze zisalawo ssente mmeka z'osobola okwewola.",
+  "Pesa unazoweka kwenye kikundi. Ni zako. Pia zinaamua unaweza kukopa kiasi gani."
+ ],
+ "Money you put in at a fixed price, like buying small pieces of the group. At share-out you get back your shares plus your part of the profit.": [
+  "Ssente z'oteekamu ku muwendo ogutakyuka, ng'agula obutundu obutono obw'ekibiina. Mu kugabana ssente ofuna emigabo gyo n'omugabo gwo ku magoba.",
+  "Pesa unazoweka kwa bei maalum, kama kununua vipande vidogo vya kikundi. Wakati wa mgawanyo unarudishiwa hisa zako pamoja na sehemu yako ya faida."
+ ],
+ "Month by month": [
+  "Mwezi ku mwezi",
+  "Mwezi kwa mwezi"
+ ],
+ "Month {0} ({1})": [
+  "Omwezi {0} ({1})",
+  "Mwezi {0} ({1})"
+ ],
+ "Months": [
+  "Emyezi",
+  "Miezi"
+ ],
+ "More": [
+  "Ebirala",
+  "Zaidi"
+ ],
+ "More settings (loans, meetings)": [
+  "Entegeka endala (amabanja, enkiiko)",
+  "Mipangilio zaidi (mikopo, mikutano)"
+ ],
+ "Most a member can borrow": [
+  "Mmemba ky'asinga okwewola",
+  "Kiwango cha juu mwanachama anaweza kukopa"
+ ],
+ "Most groups use 10": [
+  "Ebibiina ebisinga bikozesa 10",
+  "Vikundi vingi hutumia 10"
+ ],
+ "Most groups use 3": [
+  "Ebibiina ebisinga bikozesa 3",
+  "Vikundi vingi hutumia 3"
+ ],
+ "Most groups use 67 (two thirds)": [
+  "Ebibiina ebisinga bikozesa 67 (bibiri ku bisatu)",
+  "Vikundi vingi hutumia 67 (theluthi mbili)"
+ ],
+ "Most late fees can reach (% of the loan)": [
+  "Ebisale by'okulwawo gye bikoma (% ku bbanja)",
+  "Kikomo cha ada za kuchelewa (% ya mkopo)"
+ ],
+ "Move around": [
+  "Okutambula mu app",
+  "Kutembea kwenye programu"
+ ],
+ "My Account": [
+  "Akawunti Yange",
+  "Akaunti Yangu"
+ ],
+ "My Payment Records": [
+  "Ebiwandiiko byange eby'okusasula",
+  "Rekodi zangu za malipo"
+ ],
+ "My SACCO Ledger data": [
+  "Ebyange ebiri mu SACCO Ledger",
+  "Data yangu ya SACCO Ledger"
+ ],
+ "My circles": [
+  "Ebibiina byange",
+  "Vikundi vyangu"
+ ],
+ "My circles ({0} new)": [
+  "Ebibiina byange ({0} bipya)",
+  "Vikundi vyangu ({0} vipya)"
+ ],
+ "My money": [
+  "Ssente zange",
+  "Pesa zangu"
+ ],
+ "My money, month by month": [
+  "Ssente zange, mwezi ku mwezi",
+  "Pesa zangu, mwezi kwa mwezi"
+ ],
+ "My part: {0}": [
+  "Omugabo gwange: {0}",
+  "Sehemu yangu: {0}"
+ ],
+ "My savings": [
+  "Ssente ze nterese",
+  "Akiba yangu"
+ ],
+ "My savings over time": [
+  "Okutereka kwange okumala ekiseera",
+  "Akiba yangu kwa muda"
+ ],
+ "NITA-U Certification Regulations": [
+  "NITA-U Certification Regulations",
+  "NITA-U Certification Regulations"
+ ],
+ "NITA-U certification": [
+  "Satifikeeti ya NITA-U",
+  "Cheti cha NITA-U"
+ ],
+ "Name and phone": [
+  "Erinnya n'essimu",
+  "Jina na simu"
+ ],
+ "Name, MoMo ID, loan number, meeting...": [
+  "Erinnya, MoMo ID, nnamba y'ebbanja, olukiiko...",
+  "Jina, MoMo ID, namba ya mkopo, mkutano..."
+ ],
+ "Name, e.g. School fees": [
+  "Erinnya, okugeza Ebisale by'essomero",
+  "Jina, mfano Ada ya shule"
+ ],
+ "National ID (NIN)": [
+  "Endagamuntu (NIN)",
+  "Kitambulisho cha taifa (NIN)"
+ ],
+ "National ID (NIN), optional": [
+  "Endagamuntu (NIN), si kya buwaze",
+  "Kitambulisho cha taifa (NIN), si lazima"
+ ],
+ "National Information Technology Authority": [
+  "National Information Technology Authority",
+  "National Information Technology Authority"
+ ],
+ "National Payment Systems Act, 2020": [
+  "National Payment Systems Act, 2020",
+  "National Payment Systems Act, 2020"
+ ],
+ "National Payment Systems Act, 2020; Regulations 2021": [
+  "National Payment Systems Act, 2020; Regulations 2021",
+  "National Payment Systems Act, 2020; Regulations 2021"
+ ],
+ "Need {0}%: {1}/{2}": [
+  "Kyetaagisa {0}%: {1}/{2}",
+  "Inahitajika {0}%: {1}/{2}"
+ ],
+ "Needed for platform tools. Protects your account even if someone learns your password.": [
+  "Kyetaagisa ku bikozesebwa by'omukutu. Kikuuma akawunti yo ne bwe wabaawo ategedde ekigambo kyo eky'ekyama.",
+  "Inahitajika kwa zana za jukwaa. Inalinda akaunti yako hata mtu akijua nenosiri lako."
+ ]
+}
